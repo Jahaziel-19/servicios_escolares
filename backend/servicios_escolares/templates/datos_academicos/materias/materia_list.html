@@ -1,0 +1,149 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Materias{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- Encabezado -->
+  <div class="row gy-2 align-items-center mb-3">
+    <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+      <div style="font-size: 3rem; color: #1abc9c;">📚</div>
+      <div>
+        <h1 class="mb-0 fw-bold">Gestión de Materias</h1>
+        <p class="text-muted mb-0">Administra y visualiza las materias registradas en el sistema.</p>
+      </div>
+    </div>
+    <div class="col-12 col-md-4 text-md-end">
+      <a href="{% url 'datos_academicos:materia_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-1" aria-label="Agregar nueva materia">
+        <i class="bi bi-plus-lg"></i> Nueva Materia
+      </a>
+    </div>
+  </div>
+
+  <!-- Filtros y barra de búsqueda -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <form method="get" class="d-flex flex-wrap align-items-center gap-2">
+        <!-- Búsqueda -->
+        <div class="flex-grow-1">
+          <input type="search" name="q" class="form-control" placeholder="Buscar por nombre o clave de materia"
+            value="{{ request.GET.q }}" aria-label="Buscar">
+        </div>
+
+        <!-- Filtro por carrera -->
+        <div>
+          <select name="carrera" class="form-select">
+            <option value="">Todas las carreras</option>
+            {% for carrera in carreras %}
+              <option value="{{ carrera.id }}" {% if request.GET.carrera == carrera.id|stringformat:"s" %}selected{% endif %}>{{ carrera.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Botón Buscar -->
+        <div>
+          <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1">
+            <i class="material-symbols-rounded">search</i> Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de materias -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+              <thead>
+                <tr>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Clave</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Nombre</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Créditos</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Horas Teóricas</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Horas Prácticas</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Tipo</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for materia in materias %}
+                <tr>
+                  <td class="text-center">{{ materia.clave }}</td>
+                  <td class="text-center text-truncate" style="max-width: 300px;">
+                    {{ materia.nombre }}
+                  </td>
+                  <td class="text-center">{{ materia.creditos }}</td>
+                  <td class="text-center">{{ materia.horas_teoricas }}</td>
+                  <td class="text-center">{{ materia.horas_practicas }}</td>
+                  <td class="text-center">{{ materia.tipo|default:"-" }}</td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                      <a href="{% url 'datos_academicos:materia_detail' materia.pk %}" class="btn btn-info btn-sm" title="Ver">
+                        <i class="material-symbols-rounded fs-6">visibility</i>
+                      </a>
+                      <a href="{% url 'datos_academicos:materia_edit' materia.pk %}" class="btn btn-warning btn-sm" title="Editar">
+                        <i class="material-symbols-rounded fs-6">edit</i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center py-4">
+                    <div class="d-flex flex-column align-items-center">
+                      <i class="material-symbols-rounded fs-1 text-muted mb-2">school</i>
+                      <p class="text-muted mb-0">No se encontraron materias.</p>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  {% if is_paginated %}
+  <div class="row mt-4">
+    <div class="col-12">
+      <nav aria-label="Paginación de materias">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.carrera %}carrera={{ request.GET.carrera }}&{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>
+            </li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.carrera %}carrera={{ request.GET.carrera }}&{% endif %}page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.carrera %}carrera={{ request.GET.carrera }}&{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

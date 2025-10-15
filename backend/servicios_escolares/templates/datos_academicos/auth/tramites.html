@@ -1,0 +1,511 @@
+{% extends 'layouts/base_alumno.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Portal de Alumnos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .stats-summary {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 30px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .tramites-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+    
+    .tramite-item {
+        padding: 20px;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .tramite-item:hover {
+        border-color: #667eea;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .tramite-item.pendiente {
+        border-left: 4px solid #ffc107;
+        background: #fffbf0;
+    }
+    
+    .tramite-item.completado {
+        border-left: 4px solid #28a745;
+        background: #f8fff9;
+    }
+    
+    .tramite-item.rechazado {
+        border-left: 4px solid #dc3545;
+        background: #fff8f8;
+    }
+    
+    .tramite-item.procesando {
+        border-left: 4px solid #17a2b8;
+        background: #f0f9ff;
+    }
+    
+    .status-badge {
+        padding: 8px 15px;
+        border-radius: 25px;
+        font-weight: bold;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-pendiente {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-completado {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-rechazado {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .status-procesando {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .tramite-type {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .back-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+    
+    .no-data i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .timeline-date {
+        font-size: 0.85rem;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .priority-high {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #dc3545;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: bold;
+    }
+    
+    .download-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .download-btn:hover {
+        background: #218838;
+        color: white;
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-file-alt me-3"></i>Mis Trámites</h2>
+                <p class="mb-0">{{ alumno.nombre }} • {{ alumno.carrera.nombre }}</p>
+            </div>
+            <a href="{% url 'datos_academicos:alumno_dashboard' %}" class="back-btn">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <!-- Resumen estadístico -->
+    <div class="stats-summary">
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <div class="stat-number text-primary">{{ total_tramites }}</div>
+                    <div class="stat-label">Total de Trámites</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <div class="stat-number text-warning">{{ tramites_pendientes }}</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <div class="stat-number text-success">{{ tramites_completados }}</div>
+                    <div class="stat-label">Completados</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <div class="stat-number text-danger">{{ tramites_rechazados }}</div>
+                    <div class="stat-label">Rechazados</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Solicitar un trámite -->
+    <div class="tramites-card">
+        <h5><i class="fas fa-plus-circle me-2 text-primary"></i>Solicitar un trámite</h5>
+        <div class="row mt-3">
+            <div class="col-lg-4 mb-3">
+                <div class="p-3 rounded border">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-certificate text-primary me-2"></i>
+                        <strong>Constancia de estudios</strong>
+                    </div>
+                    <small class="text-muted d-block mb-3">Documento oficial de inscripción y situación académica.</small>
+                    <a class="btn btn-sm btn-primary" target="_blank" href="{% url 'procedimientos:descargar_constancia' alumno.matricula %}">
+                        <i class="fas fa-file-download me-1"></i>Solicitar constancia
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-3">
+                <div class="p-3 rounded border">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-list-alt text-primary me-2"></i>
+                        <strong>Kardex</strong>
+                    </div>
+                    <small class="text-muted d-block mb-3">Historial académico con calificaciones y créditos.</small>
+                    <a class="btn btn-sm btn-primary" target="_blank" href="{% url 'procedimientos:descargar_kardex' alumno.matricula %}">
+                        <i class="fas fa-file-download me-1"></i>Solicitar kardex
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-3">
+                <div class="p-3 rounded border">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-graduation-cap text-primary me-2"></i>
+                        <strong>Boleta de calificaciones</strong>
+                    </div>
+                    <small class="text-muted d-block mb-3">Boleta en PDF del último periodo activo.</small>
+                    <a class="btn btn-sm btn-primary" target="_blank" href="{% url 'procedimientos:descargar_boleta' alumno.matricula %}">
+                        <i class="fas fa-file-download me-1"></i>Solicitar boleta
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista de trámites -->
+    <div class="tramites-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5><i class="fas fa-list me-2 text-primary"></i>Historial de Trámites</h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary" onclick="filterTramites('all')">
+                    Todos
+                </button>
+                <button class="btn btn-sm btn-outline-warning" onclick="filterTramites('pendiente')">
+                    Pendientes
+                </button>
+                <button class="btn btn-sm btn-outline-success" onclick="filterTramites('completado')">
+                    Completados
+                </button>
+            </div>
+        </div>
+        
+        {% if tramites %}
+            {% for tramite in tramites %}
+                <div class="tramite-item {{ tramite.estado|lower }}" data-status="{{ tramite.estado|lower }}">
+                    {% if tramite.estado == 'Pendiente' %}
+                        <div class="priority-high">
+                            <i class="fas fa-clock me-1"></i>Urgente
+                        </div>
+                    {% endif %}
+                    
+                    <div class="row align-items-center">
+                        <div class="col-lg-6">
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <span class="tramite-type">
+                                    <i class="fas fa-{% if tramite.tipo == 'constancia' %}certificate{% elif tramite.tipo == 'kardex' %}list-alt{% elif tramite.tipo == 'boleta' %}graduation-cap{% else %}file{% endif %} me-1"></i>
+                                    {{ tramite.get_tipo_display }}
+                                </span>
+                                <span class="status-badge status-{{ tramite.estado|lower }}">
+                                    {{ tramite.estado }}
+                                </span>
+                            </div>
+                            
+                            <div class="timeline-date">
+                                <i class="fas fa-calendar-plus"></i>
+                                Solicitado: {{ tramite.fecha_solicitud|date:"d/m/Y H:i" }}
+                            </div>
+                            
+                            {% if tramite.fecha_procesado %}
+                                <div class="timeline-date">
+                                    <i class="fas fa-calendar-check"></i>
+                                    Procesado: {{ tramite.fecha_procesado|date:"d/m/Y H:i" }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-lg-4">
+                            {% if tramite.observaciones %}
+                                <small class="text-muted">
+                                    <i class="fas fa-comment me-1"></i>
+                                    <strong>Observaciones:</strong><br>
+                                    {{ tramite.observaciones|truncatewords:15 }}
+                                </small>
+                            {% else %}
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Sin observaciones adicionales
+                                </small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-lg-2 text-end">
+                            {% if tramite.estado == 'Completado' or tramite.estado == 'Procesado' %}
+                                <a class="download-btn" target="_blank" title="Descargar documento"
+                                   href="{% if tramite.tipo == 'constancia' %}{% url 'procedimientos:descargar_constancia' alumno.matricula %}{% elif tramite.tipo == 'kardex' %}{% url 'procedimientos:descargar_kardex' alumno.matricula %}{% elif tramite.tipo == 'boleta' %}{% url 'procedimientos:descargar_boleta' alumno.matricula %}{% else %}#{% endif %}">
+                                    <i class="fas fa-download me-1"></i>
+                                    Descargar
+                                </a>
+                            {% elif tramite.estado == 'Pendiente' %}
+                                <small class="text-muted">
+                                    <i class="fas fa-hourglass-half me-1"></i>
+                                    En proceso
+                                </small>
+                            {% elif tramite.estado == 'Rechazado' %}
+                                <small class="text-danger">
+                                    <i class="fas fa-times-circle me-1"></i>
+                                    Rechazado
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Barra de progreso para trámites pendientes -->
+                    {% if tramite.estado == 'Pendiente' %}
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">Progreso estimado</small>
+                                <small class="text-muted">60%</small>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-warning" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-data">
+                <i class="fas fa-file-alt"></i>
+                <h4>No hay trámites registrados</h4>
+                <p>Aún no has solicitado ningún trámite. Contacta a servicios escolares para solicitar documentos oficiales.</p>
+                <div class="mt-4">
+                    <h6>Trámites disponibles:</h6>
+                    <div class="d-flex justify-content-center gap-3 mt-3">
+                        <div class="text-center">
+                            <i class="fas fa-certificate fa-2x text-primary mb-2"></i>
+                            <p class="small mb-0">Constancias</p>
+                        </div>
+                        <div class="text-center">
+                            <i class="fas fa-list-alt fa-2x text-primary mb-2"></i>
+                            <p class="small mb-0">Kardex</p>
+                        </div>
+                        <div class="text-center">
+                            <i class="fas fa-graduation-cap fa-2x text-primary mb-2"></i>
+                            <p class="small mb-0">Boletas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Información adicional -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="tramites-card">
+                <h5><i class="fas fa-info-circle me-2 text-primary"></i>Información de Trámites</h5>
+                <div class="mt-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-clock text-warning me-2"></i>
+                        <small>Los trámites se procesan en un plazo de 3-5 días hábiles</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-bell text-info me-2"></i>
+                        <small>Recibirás notificaciones sobre el estado de tus trámites</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-download text-success me-2"></i>
+                        <small>Los documentos completados estarán disponibles para descarga</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="tramites-card">
+                <h5><i class="fas fa-phone me-2 text-primary"></i>Contacto</h5>
+                <div class="mt-3">
+                    <p class="mb-2">
+                        <i class="fas fa-building me-2"></i>
+                        <strong>Servicios Escolares</strong>
+                    </p>
+                    <p class="mb-2">
+                        <i class="fas fa-phone me-2"></i>
+                        (555) 123-4567
+                    </p>
+                    <p class="mb-2">
+                        <i class="fas fa-envelope me-2"></i>
+                        servicios@escuela.edu.mx
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        Lunes a Viernes: 8:00 AM - 4:00 PM
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function filterTramites(status) {
+        const items = document.querySelectorAll('.tramite-item');
+        const buttons = document.querySelectorAll('[onclick^="filterTramites"]');
+        
+        // Reset button styles
+        buttons.forEach(btn => {
+            btn.classList.remove('btn-primary', 'btn-warning', 'btn-success');
+            btn.classList.add('btn-outline-primary', 'btn-outline-warning', 'btn-outline-success');
+        });
+        
+        // Highlight active button
+        event.target.classList.remove('btn-outline-primary', 'btn-outline-warning', 'btn-outline-success');
+        if (status === 'pendiente') {
+            event.target.classList.add('btn-warning');
+        } else if (status === 'completado') {
+            event.target.classList.add('btn-success');
+        } else {
+            event.target.classList.add('btn-primary');
+        }
+        
+        // Filter items (tratar 'procesado' como 'completado')
+        items.forEach(item => {
+            const itemStatus = item.dataset.status;
+            const matches = (status === 'all') || (itemStatus === status) || (status === 'completado' && itemStatus === 'procesado');
+            if (matches) {
+                item.style.display = 'block';
+                item.style.animation = 'fadeIn 0.3s ease';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+    
+    // Animación de entrada
+    document.addEventListener('DOMContentLoaded', function() {
+        const items = document.querySelectorAll('.tramite-item');
+        items.forEach((item, index) => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                item.style.transition = 'all 0.5s ease';
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+    
+    // CSS para animación
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+Sistema de Servicios Escolares - Notificación de Producto No Conforme
+
+Folio: {{ producto_no_conforme.folio }}
+Estado: {{ producto_no_conforme.get_estado_display }}
+Prioridad: {{ producto_no_conforme.get_prioridad_display }}
+
+{% if tipo_notificacion == 'creacion' %}
+Se ha creado un nuevo producto no conforme que requiere su atención.
+{% elif tipo_notificacion == 'asignacion' %}
+Se le ha asignado un producto no conforme para su gestión.
+{% elif tipo_notificacion == 'cambio_estado' %}
+El estado del producto no conforme ha cambiado.
+{% elif tipo_notificacion == 'seguimiento' %}
+Se ha agregado un nuevo seguimiento al producto no conforme.
+{% elif tipo_notificacion == 'vencimiento' %}
+El producto no conforme está próximo a vencer ({{ datos_adicionales.dias_restantes }} días restantes).
+{% elif tipo_notificacion == 'vencido' %}
+El producto no conforme ha vencido ({{ datos_adicionales.dias_vencido }} días de retraso).
+{% endif %}
+
+Detalles del Producto No Conforme:
+- Alumno: {{ alumno.nombre_completo }}
+- Número de Control: {{ alumno.numero_control }}
+- Tipo de Problema: {{ producto_no_conforme.get_tipo_problema_display }}
+- Fecha de Creación: {{ producto_no_conforme.fecha_creacion|date:"d/m/Y H:i" }}
+{% if producto_no_conforme.fecha_vencimiento %}
+- Fecha de Vencimiento: {{ producto_no_conforme.fecha_vencimiento|date:"d/m/Y" }}
+{% endif %}
+{% if producto_no_conforme.responsable %}
+- Responsable: {{ producto_no_conforme.responsable.get_full_name }}
+{% endif %}
+
+Descripción del Problema:
+{{ producto_no_conforme.descripcion_problema }}
+
+{% if datos_adicionales.comentarios %}
+Comentarios Adicionales:
+{{ datos_adicionales.comentarios }}
+{% endif %}
+
+Para más detalles y gestionar este producto no conforme, ingrese al sistema:
+[URL del sistema será configurada aquí]
+
+---
+Este es un mensaje automático del Sistema de Servicios Escolares.
+No responda a este correo electrónico.

@@ -1,0 +1,8 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<h2>Documento generado con éxito</h2>
+<p>Descargue su documento personalizado aquí:</p>
+<a href="{{ ruta_documento }}" download>{{ nombre_documento }}</a>
+<br><br>
+<a href="{% url 'tramites:subir_plantilla' %}" class="btn btn-secondary">Subir otra plantilla</a>
+{% endblock %}

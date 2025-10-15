@@ -1,0 +1,9 @@
+{% extends "layouts/base.html" %}
+<h3>Importar Formulario JSON</h3>
+<form method="post" enctype="multipart/form-data" action="{% url 'formbuilder:importar_formulario' %}">
+    {% csrf_token %}
+    <div class="mb-3">
+        <input type="file" name="archivo_json" accept=".json" required>
+    </div>
+    <button type="submit" class="btn btn-black">Importar</button>
+</form>

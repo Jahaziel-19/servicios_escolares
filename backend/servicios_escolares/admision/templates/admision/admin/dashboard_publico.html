@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Formulario Público de Admisión{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-card.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    
+    .stats-card.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .stats-card.info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .stats-card.danger {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .recent-applications {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .application-item {
+        border-left: 4px solid #667eea;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: #f8f9fa;
+        border-radius: 0 10px 10px 0;
+        transition: all 0.3s ease;
+    }
+    
+    .application-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+    
+    .status-pendiente {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-aprobada {
+        background-color: #d1edff;
+        color: #0c5460;
+    }
+    
+    .status-rechazada {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .quick-actions {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .action-btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 0.5rem;
+        padding: 0.8rem;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-3">
+                <i class="fas fa-chart-line me-2"></i>
+                Dashboard - Formulario Público de Admisión
+            </h1>
+            <p class="text-muted">Resumen general de las solicitudes de admisión del formulario público</p>
+        </div>
+    </div>
+
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ estadisticas.total_solicitudes }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-file-alt me-1"></i>
+                    Total de Solicitudes
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card success">
+                <div class="stats-number">{{ estadisticas.aprobadas }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-check-circle me-1"></i>
+                    Aprobadas
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card warning">
+                <div class="stats-number">{{ estadisticas.pendientes }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-clock me-1"></i>
+                    Pendientes
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card danger">
+                <div class="stats-number">{{ estadisticas.rechazadas }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-times-circle me-1"></i>
+                    Rechazadas
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas por Período -->
+    {% if estadisticas.por_periodo %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Solicitudes por Período de Admisión
+                </h5>
+                <div class="row">
+                    {% for periodo, datos in estadisticas.por_periodo.items %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-0 bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">{{ periodo }}</h6>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="text-success">
+                                            <strong>{{ datos.aprobadas }}</strong>
+                                            <small class="d-block">Aprobadas</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-warning">
+                                            <strong>{{ datos.pendientes }}</strong>
+                                            <small class="d-block">Pendientes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="text-danger">
+                                            <strong>{{ datos.rechazadas }}</strong>
+                                            <small class="d-block">Rechazadas</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Solicitudes Recientes -->
+        <div class="col-md-8">
+            <div class="recent-applications">
+                <h5 class="mb-3">
+                    <i class="fas fa-history me-2"></i>
+                    Solicitudes Recientes
+                </h5>
+                {% if solicitudes_recientes %}
+                    {% for solicitud in solicitudes_recientes %}
+                    <div class="application-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{% url 'admision:admin_ver_solicitud_publico' solicitud.folio %}" 
+                                       class="text-decoration-none">
+                                        {{ solicitud.nombre }} {{ solicitud.apellido_paterno }}
+                                    </a>
+                                </h6>
+                                <p class="mb-1 text-muted">
+                                    <small>
+                                        <i class="fas fa-id-card me-1"></i>
+                                        Folio: {{ solicitud.folio }}
+                                        <span class="ms-3">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ solicitud.fecha_registro|date:"d/m/Y H:i" }}
+                                        </span>
+                                    </small>
+                                </p>
+                                {% if solicitud.carrera_interes %}
+                                <p class="mb-0 text-muted">
+                                    <small>
+                                        <i class="fas fa-graduation-cap me-1"></i>
+                                        {{ solicitud.carrera_interes }}
+                                    </small>
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <span class="status-badge status-{{ solicitud.estado }}">
+                                    {{ solicitud.get_estado_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'admision:admin_solicitudes_publico' %}" 
+                           class="btn btn-outline-primary">
+                            <i class="fas fa-list me-1"></i>
+                            Ver Todas las Solicitudes
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay solicitudes registradas aún</p>
+                        <a href="{% url 'admision:registro_aspirante' %}" 
+                           class="btn btn-primary" target="_blank">
+                            <i class="fas fa-plus me-1"></i>
+                            Ver Formulario Público
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="col-md-4">
+            <div class="quick-actions">
+                <h5 class="mb-3">
+                    <i class="fas fa-bolt me-2"></i>
+                    Acciones Rápidas
+                </h5>
+                
+                <a href="{% url 'admision:admin_solicitudes_publico' %}" 
+                   class="action-btn btn btn-primary">
+                    <i class="fas fa-list me-2"></i>
+                    Gestionar Solicitudes
+                </a>
+                
+                <a href="{% url 'admision:admin_exportar_solicitudes' %}" 
+                   class="action-btn btn btn-success">
+                    <i class="fas fa-download me-2"></i>
+                    Exportar Datos
+                </a>
+                
+                <a href="{% url 'admision:admin_estadisticas_avanzadas' %}" 
+                   class="action-btn btn btn-info">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Estadísticas Avanzadas
+                </a>
+                
+                <a href="{% url 'admision:registro_aspirante' %}" 
+                   class="action-btn btn btn-outline-primary" target="_blank">
+                    <i class="fas fa-external-link-alt me-2"></i>
+                    Ver Formulario Público
+                </a>
+                
+                <a href="{% url 'admision:informacion_proceso' %}" 
+                   class="action-btn btn btn-outline-info" target="_blank">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información del Proceso
+                </a>
+            </div>
+
+            <!-- Estadísticas Adicionales -->
+            <div class="quick-actions mt-3">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Estadísticas Adicionales
+                </h5>
+                
+                <div class="row text-center">
+                    <div class="col-6 mb-2">
+                        <div class="bg-light p-2 rounded">
+                            <strong class="d-block">{{ estadisticas.hoy }}</strong>
+                            <small class="text-muted">Hoy</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-2">
+                        <div class="bg-light p-2 rounded">
+                            <strong class="d-block">{{ estadisticas.esta_semana }}</strong>
+                            <small class="text-muted">Esta Semana</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light p-2 rounded">
+                            <strong class="d-block">{{ estadisticas.este_mes }}</strong>
+                            <small class="text-muted">Este Mes</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light p-2 rounded">
+                            <strong class="d-block">{{ estadisticas.promedio_diario|floatformat:1 }}</strong>
+                            <small class="text-muted">Promedio/Día</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animación de entrada para las tarjetas de estadísticas
+    const statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+
+    // Actualización automática de estadísticas cada 5 minutos
+    setInterval(function() {
+        fetch(window.location.href, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.estadisticas) {
+                // Actualizar números en las tarjetas
+                document.querySelector('.stats-card .stats-number').textContent = data.estadisticas.total_solicitudes;
+                document.querySelectorAll('.stats-card')[1].querySelector('.stats-number').textContent = data.estadisticas.aprobadas;
+                document.querySelectorAll('.stats-card')[2].querySelector('.stats-number').textContent = data.estadisticas.pendientes;
+                document.querySelectorAll('.stats-card')[3].querySelector('.stats-number').textContent = data.estadisticas.rechazadas;
+            }
+        })
+        .catch(error => console.log('Error actualizando estadísticas:', error));
+    }, 300000); // 5 minutos
+});
+</script>
+{% endblock %}

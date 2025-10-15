@@ -1,0 +1,68 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Importar Excel por rango{% endblock %}
+
+{% block content %}
+<div class="container my-5 fade-in-up">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+
+      <!-- Contenedor glass para formulario -->
+      <div class="glass-card p-4 mb-4">
+        <div class="text-center mb-4">
+          <img src="{% static 'img/icons/excel.png' %}" alt="Excel" width="64" class="mb-2" />
+          <h1 class="h4 fw-semibold text-primary">Importar Excel por rango</h1>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="mb-3">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.help_text %}
+            <small class="form-text text-muted">{{ field.help_text }}</small>
+            {% endif %}
+            {% for error in field.errors %}
+            <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+
+          <button type="submit" class="btn btn-primary mt-4 w-100 d-flex align-items-center justify-content-center gap-2">
+            <img src="https://img.icons8.com/fluency/24/upload.png" alt="Importar" class="me-2">
+            Importar
+          </button>
+        </form>
+
+        {% if error %}
+        <div class="alert alert-danger mt-3" role="alert">
+          {{ error }}
+        </div>
+        {% endif %}
+      </div>
+
+      {% if datos %}
+      <div class="glass-card p-3">
+        <h5 class="mb-3 text-info">Datos importados de la hoja <strong>"{{ hoja }}"</strong> rango <strong>{{ rango }}</strong></h5>
+        <div class="table-wrapper">
+          <table class="table align-middle mb-0">
+            <tbody>
+              {% for fila in datos %}
+              <tr>
+                {% for celda in fila %}
+                <td>{{ celda }}</td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Asignar Responsable - {{ producto.folio }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-user-plus"></i>
+                        Asignar Responsable - {{ producto.folio }}
+                    </h3>
+                    <div>
+                        <a href="{% url 'datos_academicos:producto_no_conforme_detail' producto.pk %}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Información del Producto -->
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> Información del Producto No Conforme</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Folio:</strong> {{ producto.folio }}</p>
+                                <p><strong>Alumno:</strong> {{ producto.alumno.nombre_completo }}</p>
+                                <p><strong>Tipo de Problema:</strong> {{ producto.tipo_problema }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Estado:</strong> {{ producto.estado }}</p>
+                                <p><strong>Prioridad:</strong> {{ producto.prioridad }}</p>
+                                <p><strong>Fecha de Creación:</strong> {{ producto.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                            </div>
+                        </div>
+                        <p><strong>Descripción:</strong></p>
+                        <p>{{ producto.descripcion_problema|truncatewords:50 }}</p>
+                    </div>
+
+                    <!-- Formulario de Asignación -->
+                    <form method="post" id="form-asignar">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="{{ form.responsable.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user"></i> Responsable *
+                                    </label>
+                                    {{ form.responsable }}
+                                    {% if form.responsable.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.responsable.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Seleccione el usuario que será responsable de resolver este producto no conforme.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.fecha_limite.id_for_label }}" class="form-label">
+                                        <i class="fas fa-calendar"></i> Fecha Límite
+                                    </label>
+                                    {{ form.fecha_limite }}
+                                    {% if form.fecha_limite.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.fecha_limite.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Fecha límite para resolver el problema (opcional).
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.prioridad.id_for_label }}" class="form-label">
+                                        <i class="fas fa-exclamation-triangle"></i> Prioridad
+                                    </label>
+                                    {{ form.prioridad }}
+                                    {% if form.prioridad.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.prioridad.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Ajuste la prioridad si es necesario.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="{{ form.comentarios.id_for_label }}" class="form-label">
+                                        <i class="fas fa-comment"></i> Comentarios de Asignación
+                                    </label>
+                                    {{ form.comentarios }}
+                                    {% if form.comentarios.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.comentarios.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Agregue comentarios o instrucciones específicas para el responsable.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    {{ form.notificar_responsable }}
+                                    <label class="form-check-label" for="{{ form.notificar_responsable.id_for_label }}">
+                                        Notificar al responsable por correo electrónico
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-end">
+                            <a href="{% url 'datos_academicos:producto_no_conforme_detail' producto.pk %}" 
+                               class="btn btn-secondary me-2">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-user-check"></i> Asignar Responsable
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Configurar Select2 para el campo de responsable
+    $('#id_responsable').select2({
+        placeholder: 'Seleccione un responsable...',
+        allowClear: true,
+        width: '100%'
+    });
+
+    // Configurar datepicker para fecha límite
+    $('#id_fecha_limite').datepicker({
+        format: 'yyyy-mm-dd',
+        startDate: 'today',
+        autoclose: true,
+        language: 'es'
+    });
+
+    // Validación del formulario
+    $('#form-asignar').on('submit', function(e) {
+        let isValid = true;
+        
+        // Validar responsable
+        if (!$('#id_responsable').val()) {
+            isValid = false;
+            $('#id_responsable').addClass('is-invalid');
+            if (!$('#id_responsable').next('.invalid-feedback').length) {
+                $('#id_responsable').after('<div class="invalid-feedback">Este campo es obligatorio.</div>');
+            }
+        } else {
+            $('#id_responsable').removeClass('is-invalid');
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de Validación',
+                text: 'Por favor, complete todos los campos obligatorios.',
+                confirmButtonText: 'Entendido'
+            });
+        } else {
+            // Mostrar confirmación
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Confirmar Asignación?',
+                text: 'Se asignará este producto no conforme al responsable seleccionado.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, asignar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Mostrar loading
+                    Swal.fire({
+                        title: 'Procesando...',
+                        text: 'Asignando responsable...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Enviar formulario
+                    this.submit();
+                }
+            });
+        }
+    });
+
+    // Limpiar validación al cambiar valores
+    $('#id_responsable').on('change', function() {
+        $(this).removeClass('is-invalid');
+    });
+});
+</script>
+{% endblock %}

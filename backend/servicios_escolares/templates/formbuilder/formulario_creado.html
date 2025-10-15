@@ -1,0 +1,12 @@
+{% extends "layouts/base.html" %}
+{% block title %}Gracias{% endblock %}
+{% block content %}
+{% include 'includes/navbar.html' %}
+<div class="alert alert-success" role="alert">
+    <h4 class="alert-heading">¡Formulario creado!</h4>
+    <hr>
+    <a href="{% url 'formbuilder:listar_formularios' %}" class="btn btn-black">Volver a Formularios</a>
+    <a href="{% url 'formbuilder:editar_formulario' formulario.id %}" class="btn btn-black">Editar formulario</a>
+    <a href="{% url 'formbuilder:crear_formulario' %}" class="btn btn-black">Crear otro formulario</a>
+</div>
+{% endblock %}

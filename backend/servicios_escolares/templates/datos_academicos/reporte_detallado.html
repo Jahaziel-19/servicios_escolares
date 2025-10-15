@@ -1,0 +1,287 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Reporte Detallado - Productos No Conformes{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .filter-section {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table-responsive {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    
+    .btn-export {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-export:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        color: white;
+    }
+    
+    .navigation-links {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .navigation-links h2 {
+        margin: 0;
+        color: #333;
+        font-size: 1.5rem;
+        margin-right: 20px;
+    }
+    
+    .nav-btn {
+        padding: 8px 16px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .nav-btn:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Navegación -->
+    <div class="navigation-links">
+        <h2>Reporte Detallado - Productos No Conformes</h2>
+        <a href="{% url 'datos_academicos:producto_no_conforme_list' %}" class="nav-btn btn btn-primary btn-sm">
+            <i class="fas fa-list"></i> Lista de Productos
+        </a>
+        <a href="{% url 'datos_academicos:producto_no_conforme_dashboard' %}" class="nav-btn btn btn-info btn-sm">
+            <i class="fas fa-chart-bar"></i> Dashboard Principal
+        </a>
+        <a href="{% url 'datos_academicos:reportes_dashboard' %}" class="nav-btn btn btn-warning btn-sm">
+            <i class="fas fa-chart-line"></i> Dashboard de Reportes
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filter-section">
+        <h4><i class="fas fa-filter"></i> Filtros de Búsqueda</h4>
+        <form method="get" class="row">
+            <div class="col-md-3">
+                {{ form.fecha_inicio.label_tag }}
+                {{ form.fecha_inicio }}
+            </div>
+            <div class="col-md-3">
+                {{ form.fecha_fin.label_tag }}
+                {{ form.fecha_fin }}
+            </div>
+            <div class="col-md-2">
+                {{ form.estado.label_tag }}
+                {{ form.estado }}
+            </div>
+            <div class="col-md-2">
+                {{ form.prioridad.label_tag }}
+                {{ form.prioridad }}
+            </div>
+            <div class="col-md-2">
+                {{ form.tipo_problema.label_tag }}
+                {{ form.tipo_problema }}
+            </div>
+            <div class="col-md-3">
+                {{ form.responsable.label_tag }}
+                {{ form.responsable }}
+            </div>
+            <div class="col-md-3">
+                {{ form.alumno.label_tag }}
+                {{ form.alumno }}
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                <a href="{% url 'datos_academicos:reporte_detallado' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Estadísticas del filtro -->
+    <div class="stats-card">
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="fas fa-chart-pie"></i> Estadísticas del Filtro</h5>
+                <p class="mb-1"><strong>Total de productos:</strong> {{ total_filtrado }}</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Distribución por Estado:</h6>
+                {% for item in distribucion_estado_filtrado %}
+                    <span class="badge bg-info me-2">{{ item.estado }}: {{ item.count }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de resultados -->
+    <div class="table-responsive">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4><i class="fas fa-table"></i> Resultados del Reporte</h4>
+            <button class="btn-export" onclick="exportToExcel()">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+            </button>
+        </div>
+        
+        {% if page_obj %}
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Folio</th>
+                        <th>Alumno</th>
+                        <th>Tipo de Problema</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th>Responsable</th>
+                        <th>Fecha Creación</th>
+                        <th>Fecha Límite</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in page_obj %}
+                        <tr>
+                            <td><strong>{{ producto.folio }}</strong></td>
+                            <td>{{ producto.alumno.get_full_name }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ producto.get_tipo_problema_display }}</span>
+                            </td>
+                            <td>
+                                {% if producto.prioridad == 'alta' %}
+                                    <span class="badge bg-danger">{{ producto.get_prioridad_display }}</span>
+                                {% elif producto.prioridad == 'media' %}
+                                    <span class="badge bg-warning">{{ producto.get_prioridad_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-success">{{ producto.get_prioridad_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if producto.estado == 'abierto' %}
+                                    <span class="badge bg-danger">{{ producto.get_estado_display }}</span>
+                                {% elif producto.estado == 'en_proceso' %}
+                                    <span class="badge bg-warning">{{ producto.get_estado_display }}</span>
+                                {% elif producto.estado == 'resuelto' %}
+                                    <span class="badge bg-success">{{ producto.get_estado_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ producto.get_estado_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ producto.responsable.get_full_name|default:"Sin asignar" }}</td>
+                            <td>{{ producto.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if producto.fecha_limite %}
+                                    {{ producto.fecha_limite|date:"d/m/Y" }}
+                                    {% if producto.esta_vencido %}
+                                        <span class="badge bg-danger ms-1">Vencido</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Sin fecha límite</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'datos_academicos:producto_no_conforme_detail' producto.pk %}" 
+                                   class="btn btn-sm btn-outline-primary" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Paginación -->
+            {% if page_obj.has_other_pages %}
+                <nav aria-label="Paginación">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Siguiente</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i> No se encontraron productos que coincidan con los filtros aplicados.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function exportToExcel() {
+    // Obtener los parámetros de filtro actuales
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Crear URL para exportar con los mismos filtros
+    const exportUrl = "{% url 'datos_academicos:exportar_reporte_excel' %}?" + urlParams.toString();
+    
+    // Abrir en nueva ventana para descargar
+    window.open(exportUrl, '_blank');
+}
+</script>
+{% endblock %}

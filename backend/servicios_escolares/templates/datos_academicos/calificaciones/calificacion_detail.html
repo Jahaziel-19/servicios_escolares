@@ -1,0 +1,17 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<h2>Detalle de Calificación</h2>
+<ul class="list-group">
+    <li class="list-group-item"><strong>Alumno:</strong> {{ calificacion.alumno.nombre }}</li>
+    <li class="list-group-item"><strong>Materia:</strong> {{ calificacion.materia }}</li>
+    <li class="list-group-item"><strong>Periodo Escolar:</strong> {{ calificacion.periodo_escolar }}</li>
+    <li class="list-group-item"><strong>Calificación:</strong> {{ calificacion.calificacion }}</li>
+    <li class="list-group-item"><strong>Créditos:</strong> {{ calificacion.creditos }}</li>
+    <li class="list-group-item"><strong>Acreditación:</strong> {{ calificacion.acreditacion }}</li>
+    <li class="list-group-item"><strong>Observaciones:</strong> {{ calificacion.observaciones|default:"Ninguna" }}</li>
+    <li class="list-group-item"><strong>Fecha de Registro:</strong> {{ calificacion.fecha_registro }}</li>
+</ul>
+<a href="{% url 'datos_academicos:calificacion_edit' calificacion.pk %}" class="btn btn-primary mt-3">Editar</a>
+<a href="{% url 'datos_academicos:calificacion_list' %}" class="btn btn-secondary mt-3">Volver a la lista</a>
+{% endblock %}

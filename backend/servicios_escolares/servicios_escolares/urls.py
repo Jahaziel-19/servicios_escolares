@@ -16,8 +16,33 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
+from . import views
 
 urlpatterns = [
+    
+    #Rutas generales
+    path('inicio/', views.home, name='home'),
+    path('configuracion/', views.configuracion, name='configuracion'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+
+    # Rutas admin
     path('admin/', admin.site.urls),
-    path('', include('admin_material.urls')),
-]
+
+    # Rutas de autenticación
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+
+    # Rutas apps
+    path('formbuilder/', include('formbuilder.urls')),
+    path('datos_academicos/', include('datos_academicos.urls')),
+    path('docsbuilder/', include('docsbuilder.urls')),
+    path('excel_importer/', include('excel_importer.urls')),
+    path('procedimientos/', include('procedimientos.urls')),
+    path('admision/', include('admision.urls')),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

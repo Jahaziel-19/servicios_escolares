@@ -1,0 +1,169 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}{{ plan.nombre }} - Plan de Estudio{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Encabezado -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h3 class="card-title mb-0">
+                                <i class="fas fa-graduation-cap me-2"></i>
+                                {{ plan.nombre }}
+                            </h3>
+                            <p class="text-muted mb-0">{{ plan.carrera.nombre }}</p>
+                        </div>
+                        <div class="col-auto">
+                            <div class="btn-group">
+                                <a href="{% url 'datos_academicos:plan_estudio_edit' plan.pk %}" class="btn btn-warning">
+                                    <i class="fas fa-edit me-1"></i>
+                                    Editar
+                                </a>
+                                <a href="{% url 'datos_academicos:plan_estudio_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>
+                                    Volver
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información General</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Clave:</strong></td>
+                                    <td>{{ plan.clave }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Año:</strong></td>
+                                    <td>{{ plan.año }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Carrera:</strong></td>
+                                    <td>{{ plan.carrera.nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Créditos:</strong></td>
+                                    <td>{{ plan.creditos }}</td>
+                                </tr>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Estadísticas</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="card bg-primary text-white">
+                                        <div class="card-body text-center">
+                                            <h4>{{ materias_por_semestre|length }}</h4>
+                                            <small>Semestres</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card bg-info text-white">
+                                        <div class="card-body text-center">
+                                            <h4>
+                                                {% for semestre, materias in materias_por_semestre.items %}
+                                                    {{ materias|length }}{% if not forloop.last %} + {% endif %}
+                                                {% endfor %}
+                                            </h4>
+                                            <small>Total Materias</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Materias por semestre -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Materias del Plan de Estudio
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if materias_por_semestre %}
+                        <div class="accordion" id="semestresAccordion">
+                            {% for semestre, materias in materias_por_semestre.items %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                                    <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" 
+                                            type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse{{ forloop.counter }}" 
+                                            aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                                            aria-controls="collapse{{ forloop.counter }}">
+                                        <strong>{{ semestre }}</strong>
+                                        <span class="badge bg-primary ms-2">{{ materias|length }} materias</span>
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ forloop.counter }}" 
+                                     class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
+                                     aria-labelledby="heading{{ forloop.counter }}" 
+                                     data-bs-parent="#semestresAccordion">
+                                    <div class="accordion-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Clave</th>
+                                                        <th>Nombre</th>
+                                                        <th>Créditos</th>
+                                                        <th>Horas Teóricas</th>
+                                                        <th>Horas Prácticas</th>
+                                                        <th>Tipo</th>
+                                                        <th>Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for materia in materias %}
+                                                    <tr>
+                                                        <td><code>{{ materia.clave }}</code></td>
+                                                        <td>{{ materia.nombre }}</td>
+                                                        <td>{{ materia.creditos }}</td>
+                                                        <td>{{ materia.horas_teoricas }}</td>
+                                                        <td>{{ materia.horas_practicas }}</td>
+                                                        <td>
+                                                            <span class="badge bg-secondary">{{ materia.tipo }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <a href="{% url 'datos_academicos:materia_detail' materia.pk %}" 
+                                                               class="btn btn-sm btn-outline-info" title="Ver materia">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-book fa-3x mb-3 d-block"></i>
+                            <h5>No hay materias asignadas a este plan</h5>
+                            <p>Las materias se asignan a través de la relación Materia-Carrera</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

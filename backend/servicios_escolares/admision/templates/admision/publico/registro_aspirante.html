@@ -1,0 +1,1422 @@
+{% extends 'admision/publico/base_publico.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--box-shadow);
+        border-left: 4px solid var(--primary-color);
+        display: none;
+    }
+    
+    .form-section.active {
+        display: block;
+        animation: fadeInUp 0.5s ease-out;
+    }
+    
+    .form-section h3 {
+        color: var(--primary-color);
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .form-section h3 i {
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+    
+    .required-field::after {
+        content: " *";
+        color: var(--danger-color);
+        font-weight: bold;
+    }
+    
+    .field-help {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .validation-feedback {
+        display: none;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .validation-feedback.show {
+        display: block;
+    }
+    
+    .validation-feedback.valid {
+        color: var(--success-color);
+    }
+    
+    .validation-feedback.invalid {
+        color: var(--danger-color);
+    }
+    
+    .progress-container {
+        position: sticky;
+        top: 80px;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 2rem;
+        box-shadow: var(--box-shadow);
+    }
+    
+    .form-progress {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .progress-step {
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+        padding: 0.5rem;
+        border-radius: var(--border-radius);
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        font-size: 0.75rem;
+        font-weight: 500;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    
+    .progress-step.active {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    .progress-step.completed {
+        background: var(--success-color);
+        color: white;
+    }
+    
+    .section-navigation {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .submit-section {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--box-shadow);
+        border-left: 4px solid var(--success-color);
+        text-align: center;
+    }
+    
+    .terms-checkbox {
+        margin-bottom: 1.5rem;
+    }
+    
+    .submit-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: var(--border-radius);
+        border: 2px solid #e9ecef;
+        transition: var(--transition);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .is-valid {
+        border-color: var(--success-color) !important;
+    }
+    
+    .is-invalid {
+        border-color: var(--danger-color) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-10">
+            <!-- Información del Período -->
+            {% if periodo %}
+            <div class="alert alert-info fade-in-up">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="alert-heading mb-1">{{ periodo.nombre }}</h5>
+                        <p class="mb-0">{{ periodo.descripcion }}</p>
+                    </div>
+                    <div class="text-end">
+                        <small>
+                            <strong>Inicio:</strong> {{ periodo.fecha_inicio|date:"d/m/Y" }}<br>
+                            <strong>Fin:</strong> {{ periodo.fecha_fin|date:"d/m/Y" }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Mensajes -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- Formulario de Registro -->
+            <div class="content-card fade-in-up">
+                <div class="content-header">
+                    <h1><i class="bi bi-person-plus me-2"></i>Registro de Aspirante</h1>
+                    <p>Completa todos los campos para enviar tu solicitud de admisión</p>
+                </div>
+                
+                <div class="content-body">
+                    <!-- Progreso del Formulario -->
+                    <div class="progress-container">
+                        <div class="form-progress">
+                            <div class="progress-step active" data-step="1">
+                                <i class="bi bi-person me-1"></i>
+                                Datos Personales
+                            </div>
+                            <div class="progress-step" data-step="2">
+                                <i class="bi bi-envelope me-1"></i>
+                                Contacto
+                            </div>
+                            <div class="progress-step" data-step="3">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                Dirección
+                            </div>
+                            <div class="progress-step" data-step="4">
+                                <i class="bi bi-book me-1"></i>
+                                Académicos
+                            </div>
+                            <div class="progress-step" data-step="5">
+                                <i class="bi bi-briefcase me-1"></i>
+                                Laboral
+                            </div>
+                            <div class="progress-step" data-step="6">
+                                <i class="bi bi-heart-pulse me-1"></i>
+                                Salud
+                            </div>
+                            <div class="progress-step" data-step="7">
+                                <i class="bi bi-people me-1"></i>
+                                Familia
+                            </div>
+                            <div class="progress-step" data-step="8">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Finalizar
+                            </div>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 12.5%" id="form-progress-bar"></div>
+                        </div>
+                    </div>
+                    
+                    <form method="post" id="registro-form" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Sección 1: Datos Personales -->
+                        <div class="form-section active" data-section="1">
+                            <h3><i class="bi bi-person"></i>Datos Personales</h3>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.nombre.id_for_label }}" class="form-label required-field">{{ form.nombre.label }}</label>
+                                        {{ form.nombre }}
+                                        {% if form.nombre.help_text %}<div class="field-help">{{ form.nombre.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="nombre-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.apellido_paterno.id_for_label }}" class="form-label required-field">{{ form.apellido_paterno.label }}</label>
+                                        {{ form.apellido_paterno }}
+                                        <div class="validation-feedback" id="apellido_paterno-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.apellido_materno.id_for_label }}" class="form-label">{{ form.apellido_materno.label }}</label>
+                                        {{ form.apellido_materno }}
+                                        <div class="validation-feedback" id="apellido_materno-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.curp.id_for_label }}" class="form-label required-field">{{ form.curp.label }}</label>
+                                        {{ form.curp }}
+                                        {% if form.curp.help_text %}<div class="field-help">{{ form.curp.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="curp-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label required-field">{{ form.fecha_nacimiento.label }}</label>
+                                        {{ form.fecha_nacimiento }}
+                                        <div class="validation-feedback" id="fecha_nacimiento-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.sexo.id_for_label }}" class="form-label required-field">{{ form.sexo.label }}</label>
+                                        {{ form.sexo }}
+                                        <div class="validation-feedback" id="sexo-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.numero_seguridad_social.id_for_label }}" class="form-label">{{ form.numero_seguridad_social.label }}</label>
+                                        {{ form.numero_seguridad_social }}
+                                        {% if form.numero_seguridad_social.help_text %}<div class="field-help">{{ form.numero_seguridad_social.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="numero_seguridad_social-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.estado_civil.id_for_label }}" class="form-label required-field">{{ form.estado_civil.label }}</label>
+                                        {{ form.estado_civil }}
+                                        <div class="validation-feedback" id="estado_civil-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="section-navigation">
+                                <div></div>
+                                <button type="button" class="btn btn-primary" onclick="nextSection()">
+                                    Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 2: Datos de Contacto -->
+                        <div class="form-section" data-section="2">
+                            <h3><i class="bi bi-envelope"></i>Datos de Contacto</h3>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.email.id_for_label }}" class="form-label required-field">{{ form.email.label }}</label>
+                                        {{ form.email }}
+                                        {% if form.email.help_text %}<div class="field-help">{{ form.email.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="email-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.telefono.id_for_label }}" class="form-label required-field">{{ form.telefono.label }}</label>
+                                        {{ form.telefono }}
+                                        {% if form.telefono.help_text %}<div class="field-help">{{ form.telefono.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="telefono-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="section-navigation">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevSection()">
+                                    <i class="bi bi-arrow-left me-1"></i> Anterior
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextSection()">
+                                    Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 3: Dirección -->
+                        <div class="form-section" data-section="3">
+                            <h3><i class="bi bi-geo-alt"></i>Dirección</h3>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label for="{{ form.direccion.id_for_label }}" class="form-label required-field">{{ form.direccion.label }}</label>
+                                        {{ form.direccion }}
+                                        {% if form.direccion.help_text %}<div class="field-help">{{ form.direccion.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="direccion-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.codigo_postal.id_for_label }}" class="form-label required-field">{{ form.codigo_postal.label }}</label>
+                                        {{ form.codigo_postal }}
+                                        <div class="validation-feedback" id="codigo_postal-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.colonia_comunidad.id_for_label }}" class="form-label required-field">{{ form.colonia_comunidad.label }}</label>
+                                        {{ form.colonia_comunidad }}
+                                        <div class="validation-feedback" id="colonia_comunidad-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.zona_procedencia.id_for_label }}" class="form-label required-field">{{ form.zona_procedencia.label }}</label>
+                                        {{ form.zona_procedencia }}
+                                        <div class="validation-feedback" id="zona_procedencia-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.municipio.id_for_label }}" class="form-label required-field">{{ form.municipio.label }}</label>
+                                        {{ form.municipio }}
+                                        <div class="validation-feedback" id="municipio-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.estado.id_for_label }}" class="form-label required-field">{{ form.estado.label }}</label>
+                                        {{ form.estado }}
+                                        <div class="validation-feedback" id="estado-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="section-navigation">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevSection()">
+                                    <i class="bi bi-arrow-left me-1"></i> Anterior
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextSection()">
+                                    Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 4: Información Académica -->
+                        <div class="form-section" data-section="4">
+                            <h3><i class="bi bi-book"></i>Información Académica</h3>
+                            
+                            <h5 class="mb-3">Carrera de Interés</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.carrera_primera_opcion.id_for_label }}" class="form-label required-field">{{ form.carrera_primera_opcion.label }}</label>
+                                        {{ form.carrera_primera_opcion }}
+                                        {% if form.carrera_primera_opcion.help_text %}<div class="field-help">{{ form.carrera_primera_opcion.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="carrera_primera_opcion-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.carrera_segunda_opcion.id_for_label }}" class="form-label">{{ form.carrera_segunda_opcion.label }}</label>
+                                        {{ form.carrera_segunda_opcion }}
+                                        {% if form.carrera_segunda_opcion.help_text %}<div class="field-help">{{ form.carrera_segunda_opcion.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="carrera_segunda_opcion-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.modalidad.id_for_label }}" class="form-label required-field">{{ form.modalidad.label }}</label>
+                                        {{ form.modalidad }}
+                                        <div class="validation-feedback" id="modalidad-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            <h5 class="mb-3">Información de Bachillerato</h5>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label for="{{ form.preparatoria_nombre.id_for_label }}" class="form-label required-field">{{ form.preparatoria_nombre.label }}</label>
+                                        {{ form.preparatoria_nombre }}
+                                        {% if form.preparatoria_nombre.help_text %}<div class="field-help">{{ form.preparatoria_nombre.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="preparatoria_nombre-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.tipo_preparatoria.id_for_label }}" class="form-label required-field">{{ form.tipo_preparatoria.label }}</label>
+                                        {{ form.tipo_preparatoria }}
+                                        <div class="validation-feedback" id="tipo_preparatoria-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.municipio_preparatoria.id_for_label }}" class="form-label required-field">{{ form.municipio_preparatoria.label }}</label>
+                                        {{ form.municipio_preparatoria }}
+                                        <div class="validation-feedback" id="municipio_preparatoria-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.estado_preparatoria.id_for_label }}" class="form-label required-field">{{ form.estado_preparatoria.label }}</label>
+                                        {{ form.estado_preparatoria }}
+                                        <div class="validation-feedback" id="estado_preparatoria-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.promedio_general.id_for_label }}" class="form-label required-field">{{ form.promedio_general.label }}</label>
+                                        {{ form.promedio_general }}
+                                        {% if form.promedio_general.help_text %}<div class="field-help">{{ form.promedio_general.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="promedio_general-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.año_egreso.id_for_label }}" class="form-label required-field">{{ form.año_egreso.label }}</label>
+                                        {{ form.año_egreso }}
+                                        {% if form.año_egreso.help_text %}<div class="field-help">{{ form.año_egreso.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="año_egreso-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="section-navigation">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevSection()">
+                                    <i class="bi bi-arrow-left me-1"></i> Anterior
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextSection()">
+                                    Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 5: Información Laboral -->
+                        <div class="form-section" data-section="5">
+                            <h3><i class="bi bi-briefcase"></i>Información Laboral</h3>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.trabaja.id_for_label }}" class="form-label required-field">{{ form.trabaja.label }}</label>
+                                        {{ form.trabaja }}
+                                        <div class="validation-feedback" id="trabaja-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.trabajador_seguridad_ciudadana.id_for_label }}" class="form-label">{{ form.trabajador_seguridad_ciudadana.label }}</label>
+                                        {{ form.trabajador_seguridad_ciudadana }}
+                                        <div class="validation-feedback" id="trabajador_seguridad_ciudadana-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="trabajo-details" style="display: none;">
+                                <hr class="my-4">
+                                <h5 class="mb-3">Detalles del Trabajo</h5>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <label for="{{ form.nombre_empresa.id_for_label }}" class="form-label">{{ form.nombre_empresa.label }}</label>
+                                            {{ form.nombre_empresa }}
+                                            <div class="validation-feedback" id="nombre_empresa-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="{{ form.telefono_trabajo.id_for_label }}" class="form-label">{{ form.telefono_trabajo.label }}</label>
+                                            {{ form.telefono_trabajo }}
+                                            <div class="validation-feedback" id="telefono_trabajo-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="{{ form.direccion_empresa.id_for_label }}" class="form-label">{{ form.direccion_empresa.label }}</label>
+                                            {{ form.direccion_empresa }}
+                                            <div class="validation-feedback" id="direccion_empresa-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.puesto_trabajo.id_for_label }}" class="form-label">{{ form.puesto_trabajo.label }}</label>
+                                            {{ form.puesto_trabajo }}
+                                            <div class="validation-feedback" id="puesto_trabajo-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="{{ form.horario_trabajo.id_for_label }}" class="form-label">{{ form.horario_trabajo.label }}</label>
+                                            {{ form.horario_trabajo }}
+                                            <div class="validation-feedback" id="horario_trabajo-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="section-navigation">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevSection()">
+                                    <i class="bi bi-arrow-left me-1"></i> Anterior
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextSection()">
+                                    Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 6: Información de Salud -->
+                        <div class="form-section" data-section="6">
+                            <h3><i class="bi bi-heart-pulse"></i>Información de Salud</h3>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.tiene_discapacidad.id_for_label }}" class="form-label required-field">{{ form.tiene_discapacidad.label }}</label>
+                                        {{ form.tiene_discapacidad }}
+                                        <div class="validation-feedback" id="tiene_discapacidad-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6" id="discapacidad-details" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="{{ form.cual_discapacidad.id_for_label }}" class="form-label">{{ form.cual_discapacidad.label }}</label>
+                                        {{ form.cual_discapacidad }}
+                                        <div class="validation-feedback" id="cual_discapacidad-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.habla_lengua_indigena.id_for_label }}" class="form-label required-field">{{ form.habla_lengua_indigena.label }}</label>
+                                        {{ form.habla_lengua_indigena }}
+                                        <div class="validation-feedback" id="habla_lengua_indigena-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6" id="lengua-details" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="{{ form.cual_lengua_indigena.id_for_label }}" class="form-label">{{ form.cual_lengua_indigena.label }}</label>
+                                        {{ form.cual_lengua_indigena }}
+                                        <div class="validation-feedback" id="cual_lengua_indigena-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.alergico_medicamento.id_for_label }}" class="form-label required-field">{{ form.alergico_medicamento.label }}</label>
+                                        {{ form.alergico_medicamento }}
+                                        <div class="validation-feedback" id="alergico_medicamento-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6" id="medicamento-details" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="{{ form.cual_medicamento.id_for_label }}" class="form-label">{{ form.cual_medicamento.label }}</label>
+                                        {{ form.cual_medicamento }}
+                                        <div class="validation-feedback" id="cual_medicamento-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="section-navigation">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevSection()">
+                                    <i class="bi bi-arrow-left me-1"></i> Anterior
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextSection()">
+                                    Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 7: Información Familiar y Contactos -->
+                        <div class="form-section" data-section="7">
+                            <h3><i class="bi bi-people"></i>Información Familiar y Contactos</h3>
+                            
+                            <h5 class="mb-3">Información del Padre/Tutor</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.nombre_padre_tutor.id_for_label }}" class="form-label required-field">{{ form.nombre_padre_tutor.label }}</label>
+                                        {{ form.nombre_padre_tutor }}
+                                        <div class="validation-feedback" id="nombre_padre_tutor-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.apellido_paterno_padre.id_for_label }}" class="form-label required-field">{{ form.apellido_paterno_padre.label }}</label>
+                                        {{ form.apellido_paterno_padre }}
+                                        <div class="validation-feedback" id="apellido_paterno_padre-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.apellido_materno_padre.id_for_label }}" class="form-label">{{ form.apellido_materno_padre.label }}</label>
+                                        {{ form.apellido_materno_padre }}
+                                        <div class="validation-feedback" id="apellido_materno_padre-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="{{ form.telefono_padre_tutor.id_for_label }}" class="form-label required-field">{{ form.telefono_padre_tutor.label }}</label>
+                                        {{ form.telefono_padre_tutor }}
+                                        <div class="validation-feedback" id="telefono_padre_tutor-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label for="{{ form.direccion_padre_tutor.id_for_label }}" class="form-label required-field">{{ form.direccion_padre_tutor.label }}</label>
+                                        {{ form.direccion_padre_tutor }}
+                                        <div class="validation-feedback" id="direccion_padre_tutor-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.codigo_postal_padre.id_for_label }}" class="form-label required-field">{{ form.codigo_postal_padre.label }}</label>
+                                        {{ form.codigo_postal_padre }}
+                                        <div class="validation-feedback" id="codigo_postal_padre-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.colonia_comunidad_padre.id_for_label }}" class="form-label required-field">{{ form.colonia_comunidad_padre.label }}</label>
+                                        {{ form.colonia_comunidad_padre }}
+                                        <div class="validation-feedback" id="colonia_comunidad_padre-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.municipio_padre.id_for_label }}" class="form-label required-field">{{ form.municipio_padre.label }}</label>
+                                        {{ form.municipio_padre }}
+                                        <div class="validation-feedback" id="municipio_padre-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.estado_padre.id_for_label }}" class="form-label required-field">{{ form.estado_padre.label }}</label>
+                                        {{ form.estado_padre }}
+                                        <div class="validation-feedback" id="estado_padre-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            <h5 class="mb-3">Contacto de Emergencia</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.nombre_emergencia.id_for_label }}" class="form-label required-field">{{ form.nombre_emergencia.label }}</label>
+                                        {{ form.nombre_emergencia }}
+                                        <div class="validation-feedback" id="nombre_emergencia-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.parentesco_emergencia.id_for_label }}" class="form-label required-field">{{ form.parentesco_emergencia.label }}</label>
+                                        {{ form.parentesco_emergencia }}
+                                        <div class="validation-feedback" id="parentesco_emergencia-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="{{ form.telefono_emergencia.id_for_label }}" class="form-label required-field">{{ form.telefono_emergencia.label }}</label>
+                                        {{ form.telefono_emergencia }}
+                                        <div class="validation-feedback" id="telefono_emergencia-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            <h5 class="mb-3">Personas Autorizadas para Consultar Expediente</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.primera_persona_expediente.id_for_label }}" class="form-label required-field">{{ form.primera_persona_expediente.label }}</label>
+                                        {{ form.primera_persona_expediente }}
+                                        <div class="validation-feedback" id="primera_persona_expediente-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.parentesco_primera_persona.id_for_label }}" class="form-label required-field">{{ form.parentesco_primera_persona.label }}</label>
+                                        {{ form.parentesco_primera_persona }}
+                                        <div class="validation-feedback" id="parentesco_primera_persona-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.segunda_persona_expediente.id_for_label }}" class="form-label">{{ form.segunda_persona_expediente.label }}</label>
+                                        {{ form.segunda_persona_expediente }}
+                                        <div class="validation-feedback" id="segunda_persona_expediente-feedback"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="{{ form.parentesco_segunda_persona.id_for_label }}" class="form-label">{{ form.parentesco_segunda_persona.label }}</label>
+                                        {{ form.parentesco_segunda_persona }}
+                                        <div class="validation-feedback" id="parentesco_segunda_persona-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="section-navigation">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevSection()">
+                                    <i class="bi bi-arrow-left me-1"></i> Anterior
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextSection()">
+                                    Siguiente <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección 8: Finalizar -->
+                        <div class="form-section" data-section="8">
+                            <h3><i class="bi bi-check-circle"></i>Información Adicional y Finalizar</h3>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="{{ form.como_conociste.id_for_label }}" class="form-label">{{ form.como_conociste.label }}</label>
+                                        {{ form.como_conociste }}
+                                        {% if form.como_conociste.help_text %}<div class="field-help">{{ form.como_conociste.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="como_conociste-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="{{ form.comentarios_adicionales.id_for_label }}" class="form-label">{{ form.comentarios_adicionales.label }}</label>
+                                        {{ form.comentarios_adicionales }}
+                                        {% if form.comentarios_adicionales.help_text %}<div class="field-help">{{ form.comentarios_adicionales.help_text }}</div>{% endif %}
+                                        <div class="validation-feedback" id="comentarios_adicionales-feedback"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="section-navigation">
+                                <button type="button" class="btn btn-outline-secondary" onclick="prevSection()">
+                                    <i class="bi bi-arrow-left me-1"></i> Anterior
+                                </button>
+                                <div></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Sección de Envío -->
+                        <div class="submit-section">
+                            <h3><i class="bi bi-send"></i>Enviar Solicitud</h3>
+                            
+                            <div class="terms-checkbox">
+                                <div class="form-check">
+                                    {{ form.acepta_terminos }}
+                                    <label class="form-check-label" for="{{ form.acepta_terminos.id_for_label }}">
+                                        Acepto los <a href="#" data-bs-toggle="modal" data-bs-target="#terminosModal">términos y condiciones</a>
+                                    </label>
+                                </div>
+                                <div class="validation-feedback" id="acepta_terminos-feedback"></div>
+                            </div>
+                            
+                            <div class="terms-checkbox">
+                                <div class="form-check">
+                                    {{ form.acepta_comunicaciones }}
+                                    <label class="form-check-label" for="{{ form.acepta_comunicaciones.id_for_label }}">
+                                        {{ form.acepta_comunicaciones.label }}
+                                    </label>
+                                </div>
+                                {% if form.acepta_comunicaciones.help_text %}<div class="field-help">{{ form.acepta_comunicaciones.help_text }}</div>{% endif %}
+                            </div>
+                            
+                            <div class="submit-buttons">
+                                <button type="button" class="btn btn-outline-primary" id="btn-preview">
+                                    <i class="bi bi-eye me-2"></i>
+                                    Vista Previa
+                                </button>
+                                <button type="submit" class="btn btn-primary" id="btn-submit">
+                                    <i class="bi bi-send me-2"></i>
+                                    Enviar Solicitud
+                                </button>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-shield-check me-1"></i>
+                                    Tus datos están protegidos y serán utilizados únicamente para el proceso de admisión.
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Términos y Condiciones -->
+<div class="modal fade" id="terminosModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Términos y Condiciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Aceptación de Términos</h6>
+                <p>Al registrarte en nuestro sistema de admisiones, aceptas cumplir con estos términos y condiciones.</p>
+                
+                <h6>2. Uso de Información Personal</h6>
+                <p>La información proporcionada será utilizada exclusivamente para el proceso de admisión y será tratada conforme a la Ley Federal de Protección de Datos Personales.</p>
+                
+                <h6>3. Veracidad de la Información</h6>
+                <p>Te comprometes a proporcionar información veraz y actualizada. La información falsa puede resultar en la cancelación de tu solicitud.</p>
+                
+                <h6>4. Proceso de Admisión</h6>
+                <p>El registro no garantiza la admisión. Deberás cumplir con todos los requisitos establecidos por la institución.</p>
+                
+                <h6>5. Comunicaciones</h6>
+                <p>Autorizas el envío de comunicaciones relacionadas con tu proceso de admisión al correo electrónico y teléfono proporcionados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Vista Previa -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Vista Previa de tu Solicitud</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="preview-content">
+                <!-- Contenido generado dinámicamente -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="$('#registro-form').submit()">
+                    <i class="bi bi-send me-2"></i>
+                    Confirmar y Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Variables globales
+    let currentSection = 1;
+    const totalSections = 8;
+    
+    // Inicializar formulario
+    initializeForm();
+    
+    // Aplicar errores del servidor si existen
+    (function applyServerErrors() {
+        let serverErrors = {};
+        try {
+            serverErrors = JSON.parse('{{ form_errors_json_str|default:"{}"|escapejs }}');
+        } catch (e) {
+            console.warn('No se pudo parsear errores del servidor:', e);
+            serverErrors = {};
+        }
+        
+        if (serverErrors && Object.keys(serverErrors).length > 0) {
+            let firstSection = null;
+            Object.keys(serverErrors).forEach(function(fieldName) {
+                const field = $(`#id_${fieldName}`);
+                const feedback = $(`#${fieldName}-feedback`);
+                const firstMsg = (serverErrors[fieldName] && serverErrors[fieldName][0] && serverErrors[fieldName][0].message) 
+                    ? serverErrors[fieldName][0].message 
+                    : 'Campo inválido';
+                
+                if (field.length) {
+                    field.addClass('is-invalid');
+                    if (feedback.length) {
+                        feedback.addClass('show invalid').text(firstMsg);
+                    }
+                    
+                    if (!firstSection) {
+                        const sectionEl = field.closest('.form-section');
+                        if (sectionEl.length) {
+                            firstSection = parseInt(sectionEl.data('section'));
+                        }
+                    }
+                }
+            });
+            
+            if (firstSection) {
+                goToSection(firstSection);
+            }
+            
+            showAlert('Por favor, corrige los campos marcados en rojo.', 'danger');
+        }
+    })();
+    
+    // Event listeners
+    setupEventListeners();
+    
+    function initializeForm() {
+        // Mostrar solo la primera sección
+        $('.form-section').removeClass('active');
+        $('[data-section="1"]').addClass('active');
+        
+        // Configurar validaciones en tiempo real
+        setupRealTimeValidation();
+        
+        // Configurar campos condicionales
+        setupConditionalFields();
+        
+        // Configurar vista previa
+        setupPreview();
+        
+        // Actualizar progreso inicial
+        updateProgress();
+    }
+    
+    // Bandera para evitar doble envío en la misma solicitud
+    let isSubmitting = false;
+
+    function setupEventListeners() {
+        // Validación de CURP en tiempo real
+        $('#id_curp').on('blur', function() {
+            validateCURP($(this).val());
+        });
+        
+        // Validación de email en tiempo real
+        $('#id_email').on('blur', function() {
+            validateEmail($(this).val());
+        });
+        
+        // Navegación entre secciones con teclado
+        $(document).on('keydown', function(e) {
+            if (e.ctrlKey) {
+                if (e.key === 'ArrowRight') {
+                    nextSection();
+                } else if (e.key === 'ArrowLeft') {
+                    prevSection();
+                }
+            }
+        });
+        
+        // Clicks en pasos del progreso
+        $('.progress-step').on('click', function() {
+            const targetSection = parseInt($(this).data('step'));
+            goToSection(targetSection);
+        });
+        
+        // Vista previa
+        $('#btn-preview').on('click', function() {
+            generatePreview();
+        });
+        
+        // Envío del formulario (evitar doble submit y recursión)
+        $('#registro-form').on('submit', function(e) {
+            if (isSubmitting) {
+                return; // ya estamos enviando; permitir que continúe el envío nativo
+            }
+            e.preventDefault();
+            isSubmitting = true;
+            submitForm();
+        });
+    }
+    
+    function setupRealTimeValidation() {
+        // Validar campos mientras el usuario escribe
+        $('input, select, textarea').on('input change', function() {
+            validateField($(this));
+            updateProgress();
+        });
+    }
+    
+    function setupConditionalFields() {
+        // Mostrar/ocultar campos de trabajo
+        $('#id_trabaja').on('change', function() {
+            if ($(this).val() === 'si') {
+                $('#trabajo-details').slideDown();
+            } else {
+                $('#trabajo-details').slideUp();
+            }
+        });
+        
+        // Mostrar/ocultar campos de discapacidad
+        $('#id_tiene_discapacidad').on('change', function() {
+            if ($(this).val() === 'si') {
+                $('#discapacidad-details').slideDown();
+            } else {
+                $('#discapacidad-details').slideUp();
+            }
+        });
+        
+        // Mostrar/ocultar campos de lengua indígena
+        $('#id_habla_lengua_indigena').on('change', function() {
+            if ($(this).val() === 'si') {
+                $('#lengua-details').slideDown();
+            } else {
+                $('#lengua-details').slideUp();
+            }
+        });
+        
+        // Mostrar/ocultar campos de medicamentos
+        $('#id_alergico_medicamento').on('change', function() {
+            if ($(this).val() === 'si') {
+                $('#medicamento-details').slideDown();
+            } else {
+                $('#medicamento-details').slideUp();
+            }
+        });
+    }
+    
+    function validateField(field) {
+        const fieldName = field.attr('name');
+        const value = field.val();
+        const feedback = $(`#${fieldName}-feedback`);
+        
+        // Limpiar estado anterior
+        field.removeClass('is-valid is-invalid');
+        feedback.removeClass('show valid invalid');
+        
+        // Validaciones específicas
+        let isValid = true;
+        let message = '';
+        
+        if (field.prop('required') && !value) {
+            isValid = false;
+            message = 'Este campo es requerido.';
+        } else if (fieldName === 'curp' && value) {
+            if (value.length !== 18) {
+                isValid = false;
+                message = 'El CURP debe tener exactamente 18 caracteres.';
+            } else if (!/^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[0-9A-Z][0-9]$/.test(value)) {
+                isValid = false;
+                message = 'El formato del CURP no es válido.';
+            }
+        } else if (fieldName === 'email' && value) {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                isValid = false;
+                message = 'El formato del correo electrónico no es válido.';
+            }
+        } else if ((fieldName === 'telefono' || fieldName === 'telefono_trabajo' || fieldName === 'telefono_padre_tutor' || fieldName === 'telefono_emergencia') && value) {
+            if (!/^[0-9]{10}$/.test(value)) {
+                isValid = false;
+                message = 'El teléfono debe tener exactamente 10 dígitos.';
+            }
+        } else if (fieldName === 'codigo_postal' && value) {
+            if (!/^[0-9]{5}$/.test(value)) {
+                isValid = false;
+                message = 'El código postal debe tener exactamente 5 dígitos.';
+            }
+        }
+        
+        // Aplicar estado visual
+        if (value && isValid) {
+            field.addClass('is-valid');
+            feedback.addClass('show valid').text('✓ Válido');
+        } else if (value && !isValid) {
+            field.addClass('is-invalid');
+            feedback.addClass('show invalid').text(message);
+        }
+        
+        return isValid;
+    }
+    
+    function validateCURP(curp) {
+        if (!curp || curp.length !== 18) return;
+        
+        // Simular validación AJAX (reemplazar con URL real)
+        // $.post('{% url "admision:admision_publico:ajax_validar_curp" %}', {
+        //     'curp': curp,
+        //     'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+        // })
+        // .done(function(data) {
+        //     const feedback = $('#curp-feedback');
+        //     const field = $('#id_curp');
+        //     
+        //     field.removeClass('is-valid is-invalid');
+        //     feedback.removeClass('show valid invalid');
+        //     
+        //     if (data.valido) {
+        //         field.addClass('is-valid');
+        //         feedback.addClass('show valid').text('✓ CURP disponible');
+        //     } else {
+        //         field.addClass('is-invalid');
+        //         feedback.addClass('show invalid').text(data.mensaje);
+        //     }
+        // });
+    }
+    
+    function validateEmail(email) {
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+        
+        // Simular validación AJAX (reemplazar con URL real)
+        // $.post('{% url "admision:admision_publico:ajax_validar_email" %}', {
+        //     'email': email,
+        //     'csrfmiddlewaretoken': $('[name=csrfmiddlewaretoken]').val()
+        // })
+        // .done(function(data) {
+        //     const feedback = $('#email-feedback');
+        //     const field = $('#id_email');
+        //     
+        //     field.removeClass('is-valid is-invalid');
+        //     feedback.removeClass('show valid invalid');
+        //     
+        //     if (data.valido) {
+        //         field.addClass('is-valid');
+        //         feedback.addClass('show valid').text('✓ Correo disponible');
+        //     } else {
+        //         field.addClass('is-invalid');
+        //         feedback.addClass('show invalid').text(data.mensaje);
+        //     }
+        // });
+    }
+    
+    function updateProgress() {
+        const completedFields = $('input:valid, select:valid, textarea:valid').length;
+        const totalFields = $('input[required], select[required], textarea[required]').length;
+        const percentage = totalFields > 0 ? (completedFields / totalFields) * 100 : 0;
+        
+        $('#form-progress-bar').css('width', percentage + '%');
+        
+        // Actualizar pasos completados
+        $('.progress-step').each(function() {
+            const step = parseInt($(this).data('step'));
+            if (step < currentSection) {
+                $(this).addClass('completed').removeClass('active');
+            } else if (step === currentSection) {
+                $(this).addClass('active').removeClass('completed');
+            } else {
+                $(this).removeClass('active completed');
+            }
+        });
+    }
+    
+    function nextSection() {
+        if (currentSection < totalSections) {
+            // Validar sección actual antes de continuar
+            const currentSectionElement = $(`[data-section="${currentSection}"]`);
+            const requiredFields = currentSectionElement.find('input[required], select[required], textarea[required]');
+            let allValid = true;
+            
+            requiredFields.each(function() {
+                if (!validateField($(this))) {
+                    allValid = false;
+                }
+            });
+            
+            if (allValid) {
+                goToSection(currentSection + 1);
+            } else {
+                // Mostrar mensaje de error
+                showAlert('Por favor completa todos los campos requeridos antes de continuar.', 'warning');
+            }
+        }
+    }
+    
+    function prevSection() {
+        if (currentSection > 1) {
+            goToSection(currentSection - 1);
+        }
+    }
+    
+    function goToSection(sectionNumber) {
+        if (sectionNumber >= 1 && sectionNumber <= totalSections) {
+            $('.form-section').removeClass('active');
+            $(`[data-section="${sectionNumber}"]`).addClass('active');
+            currentSection = sectionNumber;
+            updateProgress();
+            
+            // Scroll al inicio de la sección
+            $('html, body').animate({
+                scrollTop: $('.form-section.active').offset().top - 100
+            }, 500);
+        }
+    }
+    
+    function generatePreview() {
+        // Generar vista previa básica
+        let previewContent = '<div class="row">';
+        previewContent += '<div class="col-12"><h5>Vista Previa de tu Solicitud</h5>';
+        previewContent += '<p>Aquí se mostrará un resumen de todos los datos ingresados...</p>';
+        previewContent += '</div></div>';
+        
+        $('#preview-content').html(previewContent);
+        $('#previewModal').modal('show');
+    }
+    
+    function setupPreview() {
+        // Configurar modal de vista previa
+        $('#previewModal').on('show.bs.modal', function() {
+            generatePreview();
+        });
+    }
+    
+    function submitForm() {
+        const submitBtn = $('#btn-submit');
+        const originalText = submitBtn.html();
+        
+        // Validar formulario completo
+        let isValid = true;
+        $('input[required], select[required]').each(function() {
+            if (!validateField($(this)) || !$(this).val()) {
+                isValid = false;
+            }
+        });
+        
+        // Validar términos y condiciones
+        if (!$('#id_acepta_terminos').is(':checked')) {
+            isValid = false;
+            $('#acepta_terminos-feedback').addClass('show invalid').text('Debes aceptar los términos y condiciones');
+        }
+        
+        if (!isValid) {
+            showAlert('Por favor, completa todos los campos requeridos correctamente', 'danger');
+            // Reactivar botón y permitir reintento
+            submitBtn.prop('disabled', false).html(originalText);
+            isSubmitting = false;
+            return;
+        }
+        
+        // Mostrar loading
+        submitBtn.html('<i class="spinner-border spinner-border-sm me-2"></i>Enviando...');
+        submitBtn.prop('disabled', true);
+        
+        // Enviar formulario nativo evitando re-disparar el handler de jQuery
+        const formEl = document.getElementById('registro-form');
+        if (!formEl) {
+            submitBtn.prop('disabled', false).html(originalText);
+            showAlert('No se pudo encontrar el formulario. Intenta nuevamente.', 'danger');
+            isSubmitting = false;
+            return;
+        }
+        HTMLFormElement.prototype.submit.call(formEl);
+    }
+    
+    function showAlert(message, type) {
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        // Insertar al inicio del contenido
+        $('.content-body').prepend(alertHtml);
+        
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            $('.alert').fadeOut();
+        }, 5000);
+    }
+    
+    // Funciones globales para navegación
+    window.nextSection = nextSection;
+    window.prevSection = prevSection;
+});
+</script>
+
+<!-- Modal de Vista Previa -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">Vista Previa de Solicitud</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="preview-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="submitForm()">Enviar Solicitud</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Términos y Condiciones -->
+<div class="modal fade" id="terminosModal" tabindex="-1" aria-labelledby="terminosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="terminosModalLabel">Términos y Condiciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Términos y Condiciones de Admisión</h6>
+                <p>Al enviar esta solicitud de admisión, acepto que:</p>
+                <ul>
+                    <li>Toda la información proporcionada es veraz y completa.</li>
+                    <li>Cualquier información falsa puede resultar en la cancelación de mi solicitud.</li>
+                    <li>La institución se reserva el derecho de verificar la información proporcionada.</li>
+                    <li>El proceso de admisión está sujeto a los criterios establecidos por la institución.</li>
+                    <li>Los datos personales serán tratados conforme a la Ley de Protección de Datos Personales.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

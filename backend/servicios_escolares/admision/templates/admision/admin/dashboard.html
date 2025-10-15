@@ -1,0 +1,286 @@
+{% extends "admision/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard Administrativo - Admisión{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .stats-icon {
+        font-size: 3rem;
+        opacity: 0.8;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+    
+    .quick-actions .btn {
+        margin: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrativo</h2>
+                    <p class="text-muted">Sistema de Admisión - Instituto Tecnológico Superior de Tlaxco</p>
+                </div>
+                <div class="quick-actions">
+                    <a href="{% url 'admision:admin_solicitudes' %}" class="btn btn-primary">
+                        <i class="fas fa-list me-1"></i>Ver Solicitudes
+                    </a>
+                    <a href="{% url 'admin:admision_periodoadmision_changelist' %}" class="btn btn-secondary">
+                        <i class="fas fa-cog me-1"></i>Configurar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ stats.total_solicitudes }}</h3>
+                            <p class="mb-0">Total Solicitudes</p>
+                        </div>
+                        <i class="fas fa-file-alt stats-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ stats.fichas_generadas }}</h3>
+                            <p class="mb-0">Fichas Generadas</p>
+                        </div>
+                        <i class="fas fa-file-pdf stats-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ stats.emails_enviados }}</h3>
+                            <p class="mb-0">Emails Enviados</p>
+                        </div>
+                        <i class="fas fa-envelope stats-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0">{{ periodo_activo.nombre|default:"N/A" }}</h3>
+                            <p class="mb-0">Período Activo</p>
+                        </div>
+                        <i class="fas fa-calendar stats-icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas por Estado -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Solicitudes por Estado</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="estadosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list me-2"></i>Resumen por Estado</h5>
+                </div>
+                <div class="card-body">
+                    {% for estado_code, estado_name in estados %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ estado_name }}</span>
+                        <span class="badge bg-secondary">{{ stats.por_estado|default_if_none:0 }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solicitudes Recientes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-clock me-2"></i>Solicitudes Recientes</h5>
+                    <a href="{% url 'admision:admin_solicitudes' %}" class="btn btn-sm btn-outline-primary">
+                        Ver todas
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if solicitudes_recientes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Folio</th>
+                                    <th>CURP</th>
+                                    <th>Email</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for solicitud in solicitudes_recientes %}
+                                <tr>
+                                    <td><strong>{{ solicitud.folio }}</strong></td>
+                                    <td>{{ solicitud.curp }}</td>
+                                    <td>{{ solicitud.email }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if solicitud.estado == 'aceptada' %}success{% elif solicitud.estado == 'rechazado' %}danger{% elif solicitud.estado == 'en_revision' %}warning{% else %}secondary{% endif %}">
+                                            {{ solicitud.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ solicitud.fecha_registro|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'admision:admin_ver_solicitud' solicitud.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay solicitudes recientes</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bolt me-2"></i>Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin:admision_periodoadmision_add' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-plus-circle mb-2 d-block" style="font-size: 2rem;"></i>
+                                Nuevo Período
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admision:admin_formularios' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-edit mb-2 d-block" style="font-size: 2rem;"></i>
+                                Configurar Formularios
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admision:admin_solicitudes' %}?estado=en_revision" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-search mb-2 d-block" style="font-size: 2rem;"></i>
+                                Revisar Pendientes
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'admin:admision_configuracionadmision_changelist' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-cogs mb-2 d-block" style="font-size: 2rem;"></i>
+                                Configuración
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de estados
+    const ctx = document.getElementById('estadosChart').getContext('2d');
+    const estadosChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                {% for estado_code, estado_name in estados %}
+                '{{ estado_name }}'{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for estado_code, estado_name in estados %}
+                    {{ stats.por_estado|default:0 }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    '#28a745', // Aprobado - Verde
+                    '#dc3545', // Rechazado - Rojo
+                    '#ffc107', // En revisión - Amarillo
+                    '#6c757d', // Borrador - Gris
+                    '#17a2b8'  // Otros - Azul
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

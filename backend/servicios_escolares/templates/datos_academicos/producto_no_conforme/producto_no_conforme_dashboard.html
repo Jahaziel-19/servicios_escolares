@@ -1,0 +1,374 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Productos No Conformes{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .stat-card.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    .stat-card.success {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    .stat-card.info {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    .priority-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+    .priority-baja { background-color: #28a745; }
+    .priority-media { background-color: #ffc107; }
+    .priority-alta { background-color: #fd7e14; }
+    .priority-critica { background-color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Dashboard - Productos No Conformes
+                    </h3>
+                    <div>
+                        <a href="{% url 'datos_academicos:producto_no_conforme_list' %}" class="btn btn-primary btn-sm me-2">
+                            <i class="fas fa-list"></i> Ver Lista
+                        </a>
+                        <a href="{% url 'datos_academicos:reportes_dashboard' %}" class="btn btn-info btn-sm me-2">
+                            <i class="fas fa-chart-line"></i> Reportes
+                        </a>
+                        <a href="{% url 'datos_academicos:reporte_detallado' %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-file-alt"></i> Reporte Detallado
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Estadísticas Generales -->
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-card">
+                                <div class="stat-number" id="total-productos">{{ stats.total }}</div>
+                                <div class="stat-label">Total de Productos</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-card warning">
+                                <div class="stat-number" id="productos-pendientes">{{ stats.pendientes }}</div>
+                                <div class="stat-label">Pendientes</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-card info">
+                                <div class="stat-number" id="productos-proceso">{{ stats.en_proceso }}</div>
+                                <div class="stat-label">En Proceso</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-card success">
+                                <div class="stat-number" id="productos-resueltos">{{ stats.resueltos }}</div>
+                                <div class="stat-label">Resueltos</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráficos -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-pie"></i> Distribución por Estado</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chart-estados"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-doughnut"></i> Distribución por Prioridad</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chart-prioridades"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-bar"></i> Productos por Tipo de Problema</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chart-tipos"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-line"></i> Tendencia Mensual</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="chart-tendencia"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Productos Críticos -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-exclamation-triangle text-danger"></i> Productos Críticos y Vencidos</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if productos_criticos %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Folio</th>
+                                                    <th>Alumno</th>
+                                                    <th>Tipo</th>
+                                                    <th>Prioridad</th>
+                                                    <th>Estado</th>
+                                                    <th>Fecha Límite</th>
+                                                    <th>Días Vencido</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for producto in productos_criticos %}
+                                                <tr class="{% if producto.dias_vencido > 0 %}table-danger{% elif producto.prioridad == 'Crítica' %}table-warning{% endif %}">
+                                                    <td><strong>{{ producto.folio }}</strong></td>
+                                                    <td>{{ producto.alumno.nombre_completo }}</td>
+                                                    <td>{{ producto.tipo_problema }}</td>
+                                                    <td>
+                                                        <span class="priority-indicator priority-{{ producto.prioridad|lower }}"></span>
+                                                        {{ producto.prioridad }}
+                                                    </td>
+                                                    <td>{{ producto.estado }}</td>
+                                                    <td>{{ producto.fecha_limite|date:"d/m/Y"|default:"-" }}</td>
+                                                    <td>
+                                                        {% if producto.dias_vencido > 0 %}
+                                                            <span class="badge badge-danger">{{ producto.dias_vencido }} días</span>
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <a href="{% url 'datos_academicos:producto_no_conforme_detail' producto.pk %}" 
+                                                           class="btn btn-info btn-sm">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle"></i>
+                                        No hay productos críticos o vencidos en este momento.
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+$(document).ready(function() {
+    // Configuración de colores
+    const colors = {
+        primary: '#007bff',
+        success: '#28a745',
+        warning: '#ffc107',
+        danger: '#dc3545',
+        info: '#17a2b8',
+        secondary: '#6c757d'
+    };
+
+    // Gráfico de Estados
+    const ctxEstados = document.getElementById('chart-estados').getContext('2d');
+    new Chart(ctxEstados, {
+        type: 'pie',
+        data: {
+            labels: {{ stats.por_estado.labels|safe }},
+            datasets: [{
+                data: {{ stats.por_estado.data|safe }},
+                backgroundColor: [
+                    colors.warning,
+                    colors.info,
+                    colors.primary,
+                    colors.success,
+                    colors.secondary
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Gráfico de Prioridades
+    const ctxPrioridades = document.getElementById('chart-prioridades').getContext('2d');
+    new Chart(ctxPrioridades, {
+        type: 'doughnut',
+        data: {
+            labels: {{ stats.por_prioridad.labels|safe }},
+            datasets: [{
+                data: {{ stats.por_prioridad.data|safe }},
+                backgroundColor: [
+                    colors.success,
+                    colors.warning,
+                    colors.primary,
+                    colors.danger
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Gráfico de Tipos
+    const ctxTipos = document.getElementById('chart-tipos').getContext('2d');
+    new Chart(ctxTipos, {
+        type: 'bar',
+        data: {
+            labels: {{ stats.por_tipo.labels|safe }},
+            datasets: [{
+                label: 'Cantidad',
+                data: {{ stats.por_tipo.data|safe }},
+                backgroundColor: colors.primary,
+                borderColor: colors.primary,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Gráfico de Tendencia
+    const ctxTendencia = document.getElementById('chart-tendencia').getContext('2d');
+    new Chart(ctxTendencia, {
+        type: 'line',
+        data: {
+            labels: {{ stats.tendencia.labels|safe }},
+            datasets: [{
+                label: 'Productos Creados',
+                data: {{ stats.tendencia.data|safe }},
+                borderColor: colors.primary,
+                backgroundColor: colors.primary + '20',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Actualizar estadísticas cada 5 minutos
+    setInterval(function() {
+        $.ajax({
+            url: '{% url "datos_academicos:producto_no_conforme_ajax_stats" %}',
+            method: 'GET',
+            success: function(data) {
+                $('#total-productos').text(data.total);
+                $('#productos-pendientes').text(data.pendientes);
+                $('#productos-proceso').text(data.en_proceso);
+                $('#productos-resueltos').text(data.resueltos);
+            }
+        });
+    }, 300000); // 5 minutos
+});
+</script>
+{% endblock %}

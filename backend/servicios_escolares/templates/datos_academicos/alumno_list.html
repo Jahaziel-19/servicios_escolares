@@ -1,0 +1,174 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Alumnos{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- Encabezado -->
+    <div class="row gy-2 align-items-center mb-3">
+    <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+      <img src="{% static 'img/icons/alumno.png' %}" alt="Alumnos" class="img-fluid" style="max-width: 60px;">
+      <div>
+        <h1 class="mb-0 fw-bold">Gestión de Alumnos</h1>
+        <p class="text-muted mb-0">Administra y visualiza la información de los alumnos registrados en el sistema.</p>
+      </div>
+    </div>
+  </div>
+
+<!-- Filtros y barra de búsqueda para alumnos -->
+<div class="row mb-4">
+  <div class="col-12">
+    <form method="get" class="d-flex flex-wrap align-items-center gap-2">
+      <!-- Campo de búsqueda -->
+      <div class="flex-grow-1">
+        <input type="search" name="q" class="form-control" placeholder="Buscar por nombre, matrícula o carrera"
+          value="{{ request.GET.q }}" aria-label="Buscar">
+      </div>
+
+      <!-- Filtro por carrera -->
+      <div>
+        <select name="carrera" class="form-select">
+          <option value="">Todas las carreras</option>
+          {% for carrera in carreras %}
+          <option value="{{ carrera.id }}" {% if request.GET.carrera == carrera.id|stringformat:"s" %}selected{% endif %}>
+            {{ carrera.nombre }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Filtro por estatus -->
+      <div>
+        <select name="estatus" class="form-select">
+          <option value="">Todos los estatus</option>
+          <option value="Inscrito" {% if request.GET.estatus == "Inscrito" %}selected{% endif %}>Inscrito</option>
+          <option value="Baja" {% if request.GET.estatus == "Baja" %}selected{% endif %}>Baja</option>
+          <option value="Egresado" {% if request.GET.estatus == "Egresado" %}selected{% endif %}>Egresado</option>
+        </select>
+      </div>
+
+      <!-- Botón de búsqueda -->
+      <div>
+        <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1">
+          <i class="material-symbols-rounded">search</i> Buscar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+  <!-- Tabla de alumnos -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+              <thead>
+                <tr>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Matrícula</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Nombre Completo</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Carrera</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Estado</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for alumno in alumnos %}
+                <tr>
+                  <td class="text-center">{{ alumno.matricula }}</td>
+                  <td class="text-center text-truncate" style="max-width: 200px;">
+                    {{ alumno.nombre }} {{ alumno.apellido_paterno }} {{ alumno.apellido_materno }}
+                  </td>
+                  <td class="text-center">{{ alumno.carrera.nombre }}</td>
+                  <td class="text-center">
+                    {% if alumno.estatus == 'Inscrito' %}
+                    <span class="badge bg-success-subtle text-success fw-semibold">{{ alumno.estatus }}</span>
+                    {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary fw-semibold">{{ alumno.estatus }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                      <a href="{% url 'datos_academicos:alumno_detalle' alumno.pk %}" class="btn btn-info btn-sm"
+                         title="Ver">
+                        <i class="material-symbols-rounded fs-6">visibility</i>
+                      </a>
+                      <a href="{% url 'datos_academicos:alumno_editar' alumno.pk %}" class="btn btn-warning btn-sm"
+                         title="Editar">
+                        <i class="material-symbols-rounded fs-6">edit</i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center">No se encontraron alumnos.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PAGINACIÓN -->
+        <div class="card-footer d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+          <p class="text-sm mb-0">
+            Página {{ page_obj.number }} de {{ paginator.num_pages }}<br>
+            Total de alumnos: {{ paginator.count }}
+          </p>
+          <nav aria-label="Paginación">
+            <ul class="pagination pagination-sm mb-0 flex-wrap justify-content-center">
+              {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.previous_page_number }}"
+                   aria-label="Anterior">
+                  <i class="material-symbols-rounded fs-6">chevron_left</i>
+                </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link"><i class="material-symbols-rounded fs-6">chevron_left</i></span>
+              </li>
+              {% endif %}
+
+              {% for num in paginator.page_range %}
+                {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                  <a class="page-link" href="?q={{ request.GET.q }}&page={{ num }}">{{ num }}</a>
+                </li>
+                {% elif num == 1 or num == paginator.num_pages %}
+                <li class="page-item">
+                  <a class="page-link" href="?q={{ request.GET.q }}&page={{ num }}">{{ num }}</a>
+                </li>
+                {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.next_page_number }}"
+                   aria-label="Siguiente">
+                  <i class="material-symbols-rounded fs-6">chevron_right</i>
+                </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link"><i class="material-symbols-rounded fs-6">chevron_right</i></span>
+              </li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}

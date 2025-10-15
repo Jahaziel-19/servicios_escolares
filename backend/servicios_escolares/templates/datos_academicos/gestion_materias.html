@@ -1,0 +1,460 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Materias{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="row">
+    <!-- Encabezado -->
+    <div class="row gy-2 align-items-center mb-3">
+      <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+        <img src="{% static 'img/icons/dashboard.png' %}" alt="Materias" class="img-fluid" style="max-width: 60px;">
+        <div>
+          <h1 class="mb-0 fw-bold">Gestión de Materias</h1>
+          <p class="text-muted mb-0">Administra materias, planes de estudio y visualiza estadísticas del sistema académico.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Total Materias</p>
+              <h4 class="mb-0">{{ total_materias }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-primary shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">school</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-success font-weight-bolder">{{ materias_obligatorias }} <i class="material-symbols-rounded">trending_up</i></span>
+            materias obligatorias
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Planes de Estudio</p>
+              <h4 class="mb-0">{{ total_planes }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-warning shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">graduation_cap</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-success font-weight-bolder">{{ planes_activos }} <i class="material-symbols-rounded">trending_up</i></span>
+            planes activos
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Materias Optativas</p>
+              <h4 class="mb-0">{{ materias_optativas }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-success shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">auto_stories</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-info font-weight-bolder">{{ materias_especialidad }} <i class="material-symbols-rounded">star</i></span>
+            de especialidad
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Promedio Créditos</p>
+              <h4 class="mb-0">{{ promedio_creditos|floatformat:1 }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-info shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">calculate</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-success font-weight-bolder">Por materia</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="row mt-4">
+    <div class="col-lg-4 col-md-6 mt-4 mb-4">
+      <div class="card z-index-2">
+        <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2 bg-transparent">
+          <div class="bg-gradient shadow-primary border-radius-lg py-3 pe-1">
+            <div class="chart">
+              <canvas id="chart-materias-carrera" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <h6 class="mb-0">Materias por Carrera</h6>
+          <p class="text-sm">Distribución actual</p>
+          <hr class="dark horizontal">
+          <div class="d-flex">
+            <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
+            <p class="mb-0 text-sm">Actualizado hace 2 minutos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mt-4 mb-4">
+      <div class="card z-index-2">
+        <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2 bg-transparent">
+          <div class="bg-gradient shadow-success border-radius-lg py-3 pe-1">
+            <div class="chart">
+              <canvas id="chart-creditos-tipo" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <h6 class="mb-0">Créditos por Tipo</h6>
+          <p class="text-sm">Distribución de créditos</p>
+          <hr class="dark horizontal">
+          <div class="d-flex">
+            <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
+            <p class="mb-0 text-sm">Actualizado hace 2 minutos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 mt-4 mb-3">
+      <div class="card z-index-2">
+        <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2 bg-transparent">
+          <div class="bg-gradient shadow-dark border-radius-lg py-3 pe-1">
+            <div class="chart">
+              <canvas id="chart-materias-populares" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <h6 class="mb-0">Materias Más Utilizadas</h6>
+          <p class="text-sm">En calificaciones</p>
+          <hr class="dark horizontal">
+          <div class="d-flex">
+            <i class="material-symbols-rounded text-sm my-auto me-1">schedule</i>
+            <p class="mb-0 text-sm">Actualizado hace 2 minutos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones Principales -->
+  <div class="row mb-4">
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <div class="mb-3">
+            <i class="material-symbols-rounded text-primary" style="font-size: 3rem;">list</i>
+          </div>
+          <h5 class="card-title">Lista de Materias</h5>
+          <p class="card-text">Consulta, busca y filtra todas las materias registradas en el sistema.</p>
+          <a href="{% url 'datos_academicos:materia_list' %}" class="btn btn-primary">
+            <i class="material-symbols-rounded me-1">visibility</i>
+            Ver Lista
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <div class="mb-3">
+            <i class="material-symbols-rounded text-success" style="font-size: 3rem;">add_circle</i>
+          </div>
+          <h5 class="card-title">Registrar Materia</h5>
+          <p class="card-text">Agrega nuevas materias al catálogo del sistema educativo.</p>
+          <a href="{% url 'datos_academicos:materia_create' %}" class="btn btn-success">
+            <i class="material-symbols-rounded me-1">add</i>
+            Nueva Materia
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <div class="mb-3">
+            <i class="material-symbols-rounded text-info" style="font-size: 3rem;">school</i>
+          </div>
+          <h5 class="card-title">Planes de Estudio</h5>
+          <p class="card-text">Gestiona los planes de estudio y su estructura curricular.</p>
+          <a href="{% url 'datos_academicos:plan_estudio_list' %}" class="btn btn-info">
+            <i class="material-symbols-rounded me-1">school</i>
+            Ver Planes
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static "assets/js/plugins/chartjs.min.js" %}"></script>
+<script>
+  // Gráfico de materias por carrera
+  var ctxCarrera = document.getElementById("chart-materias-carrera").getContext("2d");
+  new Chart(ctxCarrera, {
+    type: "bar",
+    data: {
+      labels: {{ carreras_materias|safe }},
+      datasets: [{
+        label: "Materias",
+        data: {{ cantidades_materias|safe }},
+        backgroundColor: [
+          "#1976D2", "#43A047", "#FFC107", "#E53935", "#8E24AA",
+          "#00ACC1", "#FB8C00", "#3949AB", "#00897B", "#D81B60"
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.parsed.y + ' materias';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Gráfico de créditos por tipo
+  var ctxCreditos = document.getElementById("chart-creditos-tipo").getContext("2d");
+  new Chart(ctxCreditos, {
+    type: "doughnut",
+    data: {
+      labels: {{ tipos_materia|safe }},
+      datasets: [{
+        data: {{ creditos_por_tipo|safe }},
+        backgroundColor: ["#43A047", "#FFC107", "#1976D2", "#E53935"],
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } },
+    }
+  });
+
+  // Gráfico de materias más populares
+  var ctxPopulares = document.getElementById("chart-materias-populares").getContext("2d");
+  var materiasPopulares = [
+    {% for materia in materias_populares %}
+    "{{ materia.nombre|truncatechars:20 }}"{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+  var calificacionesPopulares = [
+    {% for materia in materias_populares %}
+    {{ materia.num_calificaciones }}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ];
+  
+  new Chart(ctxPopulares, {
+    type: "bar",
+    data: {
+      labels: materiasPopulares,
+      datasets: [{
+        label: "Calificaciones",
+        data: calificacionesPopulares,
+        backgroundColor: "#8E24AA",
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.parsed.y + ' calificaciones';
+            }
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endblock extra_js %}
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-university me-2"></i>
+                        Materias por Carrera
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for carrera, cantidad in materias_por_carrera.items %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-truncate" title="{{ carrera }}">{{ carrera }}</span>
+                        <div>
+                            <span class="badge bg-info">{{ cantidad }}</span>
+                            <div class="progress" style="width: 100px; height: 6px;">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                     style="width: {% widthratio cantidad total_materias 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Distribución de Créditos -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Distribución de Créditos por Tipo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for tipo, creditos in creditos_por_tipo.items %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ tipo|title }}</span>
+                        <div>
+                            <span class="badge bg-success">{{ creditos }} créditos</span>
+                            <div class="progress" style="width: 120px; height: 6px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {% widthratio creditos 200 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-3">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-trophy me-2"></i>
+                        Materias Más Utilizadas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for materia, cantidad in materias_mas_usadas %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-truncate" title="{{ materia }}">{{ materia }}</span>
+                        <div>
+                            <span class="badge bg-warning">{{ cantidad }} calificaciones</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No hay datos de calificaciones disponibles</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Principales -->
+    <div class="row">
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card h-100 border-primary">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-list fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Lista de Materias</h5>
+                    <p class="card-text">Consulta, busca y filtra todas las materias registradas en el sistema.</p>
+                    <a href="{% url 'datos_academicos:materia_list' %}" class="btn btn-primary">
+                        <i class="fas fa-eye me-1"></i>
+                        Ver Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card h-100 border-success">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-plus-circle fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">Registrar Materia</h5>
+                    <p class="card-text">Agrega nuevas materias al catálogo del sistema educativo.</p>
+                    <a href="{% url 'datos_academicos:materia_create' %}" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>
+                        Nueva Materia
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card h-100 border-info">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-graduation-cap fa-3x text-info"></i>
+                    </div>
+                    <h5 class="card-title">Planes de Estudio</h5>
+                    <p class="card-text">Gestiona los planes de estudio y su estructura curricular.</p>
+                    <a href="{% url 'datos_academicos:plan_estudio_list' %}" class="btn btn-info">
+                        <i class="fas fa-graduation-cap me-1"></i>
+                        Ver Planes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

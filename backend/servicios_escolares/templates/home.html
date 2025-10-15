@@ -1,0 +1,71 @@
+{% extends "layouts/base.html" %}
+{% block title %}Inicio | Control Escolar{% endblock %}
+{% load static %}
+
+{% block content %}
+<div class="hero-section text-center p-5 rounded-4 shadow-sm" style="background: linear-gradient(90deg, #e0f7fa 0%, #f7f9fb 100%);">
+    <h1 class="display-4 fw-bold mb-3" style="color:#222;">Sistema de Gestión para Servicios Escolares</h1>
+    <p class="lead mb-4 text-secondary">Administra alumnos, profesores, formularios y procesos escolares de manera fácil, rápida y segura.</p>
+</div>
+
+<div class="row mt-5 text-center">
+    <div class="col-md-3 mb-4">
+        <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+            <a href="{% url 'formbuilder:listar_formularios' %}" class="text-decoration-none">
+                <div style="font-size: 3rem; color: #1abc9c;">📋</div>
+                <h5 class="mt-3 mb-2 fw-bold text-dark">Gestión de Formularios</h5>
+                <p class="text-muted">Crea, edita y administra formularios personalizados para cualquier proceso escolar.</p>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+            <a href="{% url 'procedimientos:lista_tramites' %}" class="text-decoration-none">
+                <div style="font-size: 3rem; color: #1abc9c;">👨‍🏫</div>
+                <h5 class="mt-3 mb-2 fw-bold text-dark">Emisión de trámites</h5>
+                <p class="text-muted">Gestiona y emite trámites escolares de manera eficiente.</p>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+            <a href="{% url 'datos_academicos:gestion_alumnos' %}" class="text-decoration-none">
+                <div style="font-size: 3rem; color: #1abc9c;">👨‍🎓</div>
+                <h5 class="mt-3 mb-2 fw-bold text-dark">Gestión de Alumnos</h5>
+                <p class="text-muted">Administra alumnos, inscripciones y reinscripciones del sistema educativo.</p>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+            <a href="{% url 'datos_academicos:gestion_calificaciones' %}" class="text-decoration-none">
+                <div style="font-size: 3rem; color: #1abc9c;">📊</div>
+                <h5 class="mt-3 mb-2 fw-bold text-dark">Gestión de Calificaciones</h5>
+                <p class="text-muted">Administra calificaciones, boletas y estadísticas académicas por ciclo escolar.</p>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+            <a href="{% url 'admision:solicitud_admision' %}" class="text-decoration-none">
+                <div style="font-size: 3rem; color: #1abc9c;">🎓</div>
+                <h5 class="mt-3 mb-2 fw-bold text-dark">Proceso de Admisión</h5>
+                <p class="text-muted">Solicita tu admisión y consulta el estado de tu proceso.</p>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="p-4 bg-white rounded-4 shadow-sm h-100">
+            <a href="{% url 'datos_academicos:gestion_materias' %}" class="text-decoration-none">
+                <div style="font-size: 3rem; color: #1abc9c;">📚</div>
+                <h5 class="mt-3 mb-2 fw-bold text-dark">Gestión de Materias</h5>
+                <p class="text-muted">Administra materias, planes de estudio y asignaciones académicas.</p>
+            </a>
+        </div>
+    </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% include "includes/footer.html" %}
+{% endblock %}

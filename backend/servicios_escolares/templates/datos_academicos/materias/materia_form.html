@@ -1,0 +1,120 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{% if materia %}Editar Materia{% else %}Nueva Materia{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- Encabezado -->
+  <div class="row gy-2 align-items-center mb-3">
+    <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+      <div style="font-size: 3rem; color: #1abc9c;">📚</div>
+      <div>
+        <h1 class="mb-0 fw-bold">{% if materia %}Editar Materia{% else %}Nueva Materia{% endif %}</h1>
+        <p class="text-muted mb-0">{% if materia %}Modifica la información de la materia{% else %}Agrega una nueva materia al sistema{% endif %}</p>
+      </div>
+    </div>
+    <div class="col-12 col-md-4 text-md-end">
+      <a href="{% if materia %}{% url 'datos_academicos:materia_detail' materia.pk %}{% else %}{% url 'datos_academicos:materia_list' %}{% endif %}" class="btn btn-secondary d-inline-flex align-items-center gap-1" aria-label="Cancelar">
+        <i class="material-symbols-rounded">cancel</i> Cancelar
+      </a>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="row">
+    <div class="col-12 col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Información de la Materia</h5>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="clave" class="form-label fw-bold">Clave <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="clave" name="clave" 
+                       value="{% if materia %}{{ materia.clave }}{% endif %}" required>
+                <div class="form-text">Código único de identificación de la materia</div>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <label for="creditos" class="form-label fw-bold">Créditos <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="creditos" name="creditos" 
+                       value="{% if materia %}{{ materia.creditos }}{% endif %}" min="0" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="nombre" class="form-label fw-bold">Nombre de la Materia <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="nombre" name="nombre" 
+                     value="{% if materia %}{{ materia.nombre }}{% endif %}" required>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="horas_teoricas" class="form-label fw-bold">Horas Teóricas</label>
+                <input type="number" class="form-control" id="horas_teoricas" name="horas_teoricas" 
+                       value="{% if materia %}{{ materia.horas_teoricas }}{% endif %}" min="0">
+              </div>
+              
+              <div class="col-md-4 mb-3">
+                <label for="horas_practicas" class="form-label fw-bold">Horas Prácticas</label>
+                <input type="number" class="form-control" id="horas_practicas" name="horas_practicas" 
+                       value="{% if materia %}{{ materia.horas_practicas }}{% endif %}" min="0">
+              </div>
+              
+              <div class="col-md-4 mb-3">
+                <label for="tipo" class="form-label fw-bold">Tipo de Curso</label>
+                <select class="form-select" id="tipo" name="tipo">
+                  <option value="">Seleccionar tipo</option>
+                  <option value="Obligatoria" {% if materia.tipo == "Obligatoria" %}selected{% endif %}>Obligatoria</option>
+                  <option value="Optativa" {% if materia.tipo == "Optativa" %}selected{% endif %}>Optativa</option>
+                  <option value="Especialidad" {% if materia.tipo == "Especialidad" %}selected{% endif %}>Especialidad</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1">
+                <i class="material-symbols-rounded">save</i> 
+                {% if materia %}Actualizar{% else %}Guardar{% endif %}
+              </button>
+              <a href="{% if materia %}{% url 'datos_academicos:materia_detail' materia.pk %}{% else %}{% url 'datos_academicos:materia_list' %}{% endif %}" 
+                 class="btn btn-secondary d-inline-flex align-items-center gap-1">
+                <i class="material-symbols-rounded">cancel</i> Cancelar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Ayuda</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <h6 class="fw-bold">Clave</h6>
+            <p class="small text-muted">Código único que identifica la materia en el sistema académico.</p>
+          </div>
+          <div class="mb-3">
+            <h6 class="fw-bold">Créditos</h6>
+            <p class="small text-muted">Valor académico de la materia según el plan de estudios.</p>
+          </div>
+          <div class="mb-3">
+            <h6 class="fw-bold">Horas</h6>
+            <p class="small text-muted">Distribución de horas teóricas y prácticas por semana.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

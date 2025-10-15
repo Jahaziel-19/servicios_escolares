@@ -1,0 +1,307 @@
+{% extends 'admision/base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Formularios - Admisión{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+    }
+    
+    .form-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .status-active {
+        background-color: #1cc88a;
+        color: white;
+    }
+    
+    .status-inactive {
+        background-color: #e74a3b;
+        color: white;
+    }
+    
+    .status-draft {
+        background-color: #f6c23e;
+        color: white;
+    }
+    
+    .action-buttons .btn {
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stats-card {
+        background: linear-gradient(45deg, #4e73df, #224abe);
+        color: white;
+        border-radius: 0.35rem;
+    }
+    
+    .search-box {
+        border-radius: 2rem;
+        border: 1px solid #d1d3e2;
+        padding: 0.5rem 1rem;
+    }
+    
+    .search-box:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-clipboard-list text-primary"></i>
+            Gestión de Formularios
+        </h1>
+        <a href="{% url 'admision:admin_crear_formulario' %}" class="btn btn-primary btn-sm shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i>
+            Crear Nuevo Formulario
+        </a>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-white text-uppercase mb-1">
+                                Total Períodos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-white">{{ total_periodos }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-white-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Formularios Únicos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_periodos }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros y Búsqueda -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filtros y Búsqueda</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row">
+                <div class="col-md-6 mb-3">
+                    <input type="text" name="search" class="form-control search-box" 
+                           placeholder="Buscar por nombre del período..." 
+                           value="{{ search }}">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Formularios -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Períodos de Admisión
+                <span class="badge badge-secondary ml-2">{{ periodos_con_formularios.paginator.count }} total</span>
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if periodos_con_formularios %}
+                <div class="row">
+                    {% for item in periodos_con_formularios %}
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                        <div class="card form-card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="card-title mb-0 text-primary font-weight-bold">
+                                    {{ item.periodo.nombre|truncatechars:30 }}
+                                </h6>
+                                <span class="status-badge {% if item.periodo.activo %}status-active{% else %}status-inactive{% endif %}">
+                                    {% if item.periodo.activo %}
+                                        <i class="fas fa-check-circle"></i> Activo
+                                    {% else %}
+                                        <i class="fas fa-times-circle"></i> Inactivo
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text text-muted small mb-3">
+                                    {{ item.periodo.descripcion|truncatechars:100|default:"Sin descripción" }}
+                                </p>
+                                
+                                <div class="alert alert-info py-2 px-3 mb-3" style="font-size: 0.8rem;">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    <strong>Año:</strong> {{ item.periodo.año }}
+                                    <br>
+                                    <strong>Período:</strong> {{ item.periodo.fecha_inicio|date:"d/m/Y" }} - {{ item.periodo.fecha_fin|date:"d/m/Y" }}
+                                </div>
+                                
+                                {% if item.formulario_configurado %}
+                                <div class="alert alert-success py-2 px-3 mb-3" style="font-size: 0.8rem;">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    <strong>Formulario único configurado</strong> ({{ item.campos_count }} campos)
+                                </div>
+                                {% else %}
+                                <div class="alert alert-info py-2 px-3 mb-3" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <strong>Formulario base por defecto</strong> (listo para personalizar)
+                                </div>
+                                {% endif %}
+                                
+                                <div class="row text-center mb-3">
+                                    <div class="col-6">
+                                        <div class="text-xs text-muted">Campos</div>
+                                        <div class="font-weight-bold text-primary">
+                                            {{ item.campos_count }}
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-xs text-muted">Estado</div>
+                                        <div class="font-weight-bold text-gray-800">
+                                            {% if item.periodo.esta_abierto %}
+                                                <span class="text-success">Abierto</span>
+                                            {% else %}
+                                                <span class="text-danger">Cerrado</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="action-buttons">
+                                    <a href="{% url 'admision:admin_ver_formulario' item.periodo.id %}" 
+                                       class="btn btn-info btn-sm" title="Ver formulario único">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'admision:admin_editar_formulario' item.periodo.id %}" 
+                                       class="btn btn-warning btn-sm" title="Editar formulario único">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-footer text-muted small">
+                                <i class="fas fa-calendar"></i> {{ item.periodo.año }}
+                                <span class="float-right">
+                                    <i class="fas fa-clock"></i> {{ item.periodo.fecha_creacion|date:"d/m/Y"|default:"No disponible" }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Paginación -->
+                {% if periodos_con_formularios.has_other_pages %}
+                <nav aria-label="Paginación de períodos">
+                    <ul class="pagination justify-content-center">
+                        {% if periodos_con_formularios.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ periodos_con_formularios.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in periodos_con_formularios.paginator.page_range %}
+                            {% if periodos_con_formularios.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > periodos_con_formularios.number|add:'-3' and num < periodos_con_formularios.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if periodos_con_formularios.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ periodos_con_formularios.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ periodos_con_formularios.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-alt fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-600">No hay períodos de admisión disponibles</h5>
+                    <p class="text-muted">Crea un período de admisión para comenzar a configurar formularios.</p>
+                    <a href="{% url 'admision:admin_crear_formulario' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Configurar Formulario
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Animación suave para las tarjetas
+    $('.form-card').hover(
+        function() {
+            $(this).addClass('shadow-lg');
+        },
+        function() {
+            $(this).removeClass('shadow-lg');
+        }
+    );
+    
+    // Tooltip para los botones de acción
+    $('[title]').tooltip();
+});
+</script>
+{% endblock %}

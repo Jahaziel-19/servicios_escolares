@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Registro - {{ solicitud.folio }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px 20px;
+            border-radius: 0 0 10px 10px;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .highlight {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+        }
+        .important {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .contact-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .steps {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .step-number {
+            background: #28a745;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ institucion }}</h1>
+        <h2>✅ Registro Exitoso</h2>
+        <p>{{ periodo.nombre }} - {{ periodo.año }}</p>
+    </div>
+
+    <div class="content">
+        <h3>¡Felicitaciones!</h3>
+        
+        <p>Su solicitud de admisión ha sido <strong>registrada exitosamente</strong> en nuestro sistema.</p>
+
+        <div class="info-box">
+            <h4>📋 Información de su Registro</h4>
+            <p><strong>Folio de Solicitud:</strong> {{ solicitud.folio }}</p>
+            <p><strong>CURP:</strong> {{ solicitud.curp }}</p>
+            <p><strong>Email:</strong> {{ solicitud.email }}</p>
+            <p><strong>Fecha de Registro:</strong> {{ fecha_registro|date:"d/m/Y \a \l\a\s H:i" }}</p>
+            <p><strong>Estado Actual:</strong> {{ solicitud.get_estado_display }}</p>
+        </div>
+
+        <div class="highlight">
+            <h4>🔑 Número de Folio Importante</h4>
+            <p style="font-size: 1.2em; text-align: center; font-weight: bold;">
+                {{ solicitud.folio }}
+            </p>
+            <p><strong>¡GUARDE ESTE NÚMERO!</strong> Lo necesitará para consultar el estado de su solicitud 
+            y para cualquier trámite relacionado con su proceso de admisión.</p>
+        </div>
+
+        <div class="steps">
+            <h4>📝 Próximos Pasos</h4>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>
+                    <strong>Revisión de Documentos</strong><br>
+                    Nuestro equipo revisará la información proporcionada en su solicitud.
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>
+                    <strong>Evaluación</strong><br>
+                    Su solicitud será evaluada según los criterios de admisión del programa.
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>
+                    <strong>Notificación de Resultados</strong><br>
+                    Le notificaremos por email sobre el estado de su solicitud.
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div>
+                    <strong>Ficha de Admisión</strong><br>
+                    Si su solicitud es aceptada, recibirá su ficha de admisión por correo electrónico.
+                </div>
+            </div>
+        </div>
+
+        <div class="important">
+            <h4>⚠️ Importante</h4>
+            <ul>
+                <li>Mantenga este correo como comprobante de su registro</li>
+                <li>Guarde su número de folio: <strong>{{ solicitud.folio }}</strong></li>
+                <li>Puede consultar el estado de su solicitud en cualquier momento</li>
+                <li>Le notificaremos por email cualquier actualización</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{ url_consulta }}" class="btn">🔍 Consultar Estado de Solicitud</a>
+        </div>
+
+        <div class="contact-info">
+            <h4>📞 Información de Contacto</h4>
+            <p><strong>Departamento de Admisiones</strong></p>
+            <p>📧 Email: {{ contacto_email }}</p>
+            <p>📱 Teléfono: {{ contacto_telefono }}</p>
+            <p>🕒 Horario de atención: Lunes a Viernes, 8:00 AM - 6:00 PM</p>
+        </div>
+
+        <p>Gracias por elegir {{ institucion }}. Estamos emocionados de conocer más sobre usted 
+        y esperamos tenerle como parte de nuestra comunidad educativa.</p>
+
+        <p>Atentamente,<br>
+        <strong>Departamento de Admisiones</strong><br>
+        {{ institucion }}</p>
+    </div>
+
+    <div class="footer">
+        <p>Este es un correo automático, por favor no responda a esta dirección.</p>
+        <p>Para consultas, utilice: {{ contacto_email }}</p>
+        <p>© {{ fecha_registro.year }} {{ institucion }}. Todos los derechos reservados.</p>
+    </div>
+</body>
+</html>

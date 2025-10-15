@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,16 +32,24 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'admin_material.apps.AdminMaterialDashboardConfig',
+    'django_admin_material',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'template_tags',
     'corsheaders',
     'rest_framework',
-    'app',
+    #'coreapi',
+    'formbuilder',  
+    'datos_academicos',
+    'docsbuilder',
+    'excel_importer',
+    'procedimientos',
+    'admision',
+    'theme',
 ]
 
 MIDDLEWARE = [
@@ -59,13 +68,18 @@ ROOT_URLCONF = 'servicios_escolares.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+            ],
+            'builtins': [
+                'template_tags.templatetags.compat',
             ],
         },
     },
@@ -80,7 +94,7 @@ WSGI_APPLICATION = 'servicios_escolares.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'db_servicios_escolares',
+        'NAME': 'servicios_escolares',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': 'localhost',
@@ -107,13 +121,25 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# ========== CONFIGURACIÓN DE AUTENTICACIÓN PERSONALIZADA ==========
+# Backend de autenticación personalizado para alumnos
+AUTHENTICATION_BACKENDS = [
+    'datos_academicos.auth_backends.AlumnoAuthBackend',  # Autenticación con matrícula y CURP
+    'django.contrib.auth.backends.ModelBackend',        # Autenticación estándar de Django
+]
+
+# URLs de redirección después del login/logout
+LOGIN_URL = '/datos_academicos/auth/login/'
+LOGIN_REDIRECT_URL = '/datos_academicos/auth/dashboard/'
+LOGOUT_REDIRECT_URL = '/datos_academicos/auth/login/'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-mx'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Mexico_City'
 
 USE_I18N = True
 
@@ -123,8 +149,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_ROOT = 'static/' 
+#STATIC_ROOT = 'static/' 
 STATIC_URL = 'static/'
+MEDIA_URL = '/media/'
+
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+    #BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -135,3 +170,37 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
 ]
+
+TAILWIND_APP_NAME = 'theme'
+
+'''
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+}'''
+
+
+#BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+# Opcional para django-weasyprint
+#WEASYPRINT_BASEURL = MEDIA_ROOT  # o usa STATIC_ROOT si tienes CSS e imágenes
+
+# Email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'jahazielvazquez19@gmail.com'
+EMAIL_HOST_PASSWORD = 'plvuzbwdlxlornnd'  # Contraseña de aplicación
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Para desarrollo, usar console backend por defecto, salvo que se fuerce SMTP
+'''
+FORCE_SMTP_EMAIL = os.getenv('FORCE_SMTP_EMAIL', '0')
+EMAIL_BACKEND_ENV = os.getenv('EMAIL_BACKEND', '')
+
+if DEBUG and not FORCE_SMTP_EMAIL in ['1', 'true', 'True'] and not EMAIL_BACKEND_ENV:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+elif EMAIL_BACKEND_ENV:
+    EMAIL_BACKEND = EMAIL_BACKEND_ENV
+'''

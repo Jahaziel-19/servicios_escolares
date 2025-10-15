@@ -1,0 +1,35 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Plantillas</h1>
+    <a href="{% url 'docsbuilder:subir_plantilla' %}" class="btn btn-primary mb-3">Subir nueva plantilla</a>
+    <table class="table table-bordered table-hover">
+        <thead class="table table-striped">
+            <tr>
+                <th>Nombre</th>
+                <th>Archivo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for plantilla in plantillas %}
+            <tr>
+                <td>{{ plantilla.nombre }}</td>
+                <td><a href="{{ plantilla.archivo.url }}" target="_blank">Ver archivo</a></td>
+                <td>
+                    <a href="{% url 'docsbuilder:mapeo_variables' plantilla.id %}" class="btn btn-sm btn-warning">Mapear variables</a>
+                    {# Para generar documento se requiere alumno_id, por eso no se puede pasar solo plantilla.id #}
+                    {# Puedes crear un formulario o enlace que permita seleccionar alumno antes de generar #}
+                    <a href="#" class="btn btn-sm btn-success disabled" title="Seleccione alumno para generar documento">Generar documento</a>
+                    <a href="{% url 'docsbuilder:eliminar_plantilla' plantilla.id %}" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar plantilla?')">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center">No hay plantillas cargadas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

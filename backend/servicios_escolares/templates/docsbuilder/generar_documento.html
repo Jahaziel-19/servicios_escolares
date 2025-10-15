@@ -1,0 +1,27 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<h2>Generar documento: {{ plantilla.nombre }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="objeto_id">Selecciona {{ plantilla.modelo_autorizado.nombre_modelo }}:</label>
+        <select name="objeto_id" id="objeto_id" class="form-select" required>
+            {% for obj in objetos %}
+                <option value="{{ obj.id }}">{{ obj }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {% for mapeo in mapeos %}
+        {% if mapeo.tipo == 'especial' and mapeo.especial == 'fecha_emision' %}
+            <div class="mb-3">
+                <label for="fecha_emision_especifica">Fecha de emisión (opcional):</label>
+                <input type="date" name="fecha_emision_especifica" id="fecha_emision_especifica" class="form-control">
+                <small>Si no seleccionas fecha, se usará la fecha actual.</small>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Generar documento</button>
+</form>
+{% endblock %}

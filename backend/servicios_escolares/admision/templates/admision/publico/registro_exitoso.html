@@ -1,0 +1,470 @@
+{% extends 'admision/publico/base_publico.html' %}
+{% load admision_extras %}
+
+{% block title %}Registro Exitoso - {{ solicitud.folio }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-container {
+        text-align: center;
+        padding: 3rem 2rem;
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+        color: var(--success-color);
+        margin-bottom: 2rem;
+        animation: bounce 1s ease-in-out;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-20px);
+        }
+        60% {
+            transform: translateY(-10px);
+        }
+    }
+    
+    .folio-card {
+        background: linear-gradient(135deg, var(--success-color), #28a745);
+        color: white;
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        margin: 2rem 0;
+        box-shadow: var(--box-shadow);
+    }
+    
+    .folio-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        margin: 1rem 0;
+    }
+    
+    .info-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 3rem 0;
+    }
+    
+    .info-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--box-shadow);
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .info-card h4 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .info-card h4 i {
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+    
+    .timeline {
+        position: relative;
+        padding: 2rem 0;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--primary-color);
+        transform: translateX(-50%);
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin: 2rem 0;
+        padding: 0 2rem;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 12px;
+        height: 12px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+    }
+    
+    .timeline-content {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        width: 45%;
+    }
+    
+    .timeline-item:nth-child(odd) .timeline-content {
+        margin-left: auto;
+    }
+    
+    .timeline-item:nth-child(even) .timeline-content {
+        margin-right: auto;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: 3rem 0;
+    }
+    
+    .contact-info {
+        background: rgba(23, 162, 184, 0.1);
+        border: 1px solid var(--info-color);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin: 2rem 0;
+    }
+    
+    .contact-info h5 {
+        color: var(--info-color);
+        margin-bottom: 1rem;
+    }
+    
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    
+    .social-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        color: white;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+    
+    .social-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .social-link.facebook { background: #3b5998; }
+    .social-link.twitter { background: #1da1f2; }
+    .social-link.instagram { background: #e4405f; }
+    .social-link.whatsapp { background: #25d366; }
+    
+    @media (max-width: 768px) {
+        .timeline::before {
+            left: 20px;
+        }
+        
+        .timeline-item::before {
+            left: 20px;
+        }
+        
+        .timeline-content {
+            width: calc(100% - 60px);
+            margin-left: 60px !important;
+        }
+        
+        .folio-number {
+            font-size: 2rem;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="content-card fade-in-up">
+            <div class="success-container">
+                <div class="success-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                
+                <h1 class="mb-3">¡Registro Exitoso!</h1>
+                <p class="lead">Tu solicitud de admisión ha sido registrada correctamente</p>
+                
+                <div class="folio-card">
+                    <h3>Tu Número de Folio</h3>
+                    <div class="folio-number">{{ solicitud.folio }}</div>
+                    <p class="mb-0">Guarda este número para consultar el estado de tu solicitud</p>
+                </div>
+                
+                <div class="info-cards">
+                    <div class="info-card">
+                        <h4><i class="bi bi-person-check"></i>Datos Registrados</h4>
+                        <p><strong>Nombre:</strong> {{ solicitud.get_nombre_completo }}</p>
+                        <p><strong>CURP:</strong> {{ solicitud.curp }}</p>
+                        <p><strong>Email:</strong> {{ solicitud.email }}</p>
+                        <p><strong>Carrera:</strong> {{ solicitud.respuestas_json|get_json_value_any:"carrera_primera_opcion,carrera_interes"|default:"No especificada" }}</p>
+                        <p class="mb-0"><strong>Fecha de Registro:</strong> {{ solicitud.fecha_registro|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h4><i class="bi bi-envelope-check"></i>Confirmación Enviada</h4>
+                        <p>Se ha enviado un correo de confirmación a:</p>
+                        <p><strong>{{ solicitud.email }}</strong></p>
+                        <p class="mb-0">
+                            <small class="text-muted">
+                                Si no recibes el correo en los próximos minutos, 
+                                revisa tu carpeta de spam o correo no deseado.
+                            </small>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <h4><i class="bi bi-list-check"></i>Próximos Pasos</h4>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <h6><i class="bi bi-1-circle-fill text-success me-2"></i>Registro Completado</h6>
+                                <p class="mb-0">Tu solicitud ha sido registrada exitosamente en nuestro sistema.</p>
+                                <small class="text-muted">Completado - {{ solicitud.fecha_registro|date:"d/m/Y" }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <h6><i class="bi bi-2-circle text-primary me-2"></i>Revisión de Documentos</h6>
+                                <p class="mb-0">Nuestro equipo revisará tu solicitud y documentos.</p>
+                                <small class="text-muted">En proceso - 2-3 días hábiles</small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <h6><i class="bi bi-3-circle text-warning me-2"></i>Generación de Ficha</h6>
+                                <p class="mb-0">Si tu solicitud es aprobada, recibirás tu ficha de admisión.</p>
+                                <small class="text-muted">Pendiente - 5-7 días hábiles</small>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <h6><i class="bi bi-4-circle text-info me-2"></i>Examen de Admisión</h6>
+                                <p class="mb-0">Presenta tu examen en la fecha indicada en tu ficha.</p>
+                                <small class="text-muted">Próximamente</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="{% url 'admision:admision_publico:consultar_solicitud' %}" class="btn btn-primary">
+                    <i class="bi bi-search me-2"></i>
+                    Consultar mi Solicitud
+                </a>
+                <a href="{% url 'admision:admision_publico:informacion_proceso' %}" class="btn btn-outline-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Información del Proceso
+                    </a>
+                    
+                    <button onclick="window.print()" class="btn btn-outline-secondary">
+                        <i class="bi bi-printer me-2"></i>
+                        Imprimir Comprobante
+                    </button>
+                    
+                    <button onclick="compartirFolio()" class="btn btn-outline-success">
+                        <i class="bi bi-share me-2"></i>
+                        Compartir Folio
+                    </button>
+                </div>
+                
+                <div class="contact-info">
+                    <h5><i class="bi bi-headset me-2"></i>¿Necesitas Ayuda?</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Teléfono:</strong><br>
+                            <i class="bi bi-telephone me-1"></i> (555) 123-4567</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Email:</strong><br>
+                            <i class="bi bi-envelope me-1"></i> admisiones@institucion.edu.mx</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Horario:</strong><br>
+                            <i class="bi bi-clock me-1"></i> Lun-Vie 8:00-16:00</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="social-links">
+                    <a href="#" class="social-link facebook" title="Facebook">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="#" class="social-link twitter" title="Twitter">
+                        <i class="bi bi-twitter"></i>
+                    </a>
+                    <a href="#" class="social-link instagram" title="Instagram">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="#" class="social-link whatsapp" title="WhatsApp">
+                        <i class="bi bi-whatsapp"></i>
+                    </a>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="text-muted">
+                        <i class="bi bi-shield-check me-1"></i>
+                        Tus datos están seguros y protegidos conforme a la Ley Federal de Protección de Datos Personales.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Compartir -->
+<div class="modal fade" id="compartirModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Compartir Folio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Comparte tu número de folio:</p>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="folioText" value="Mi folio de admisión es: {{ solicitud.folio }}" readonly>
+                    <button class="btn btn-outline-secondary" type="button" onclick="copiarFolio()">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+                <div class="mt-3">
+                    <p>O comparte por:</p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success" onclick="compartirWhatsApp()">
+                            <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                        </button>
+                        <button class="btn btn-primary" onclick="compartirEmail()">
+                            <i class="bi bi-envelope me-1"></i> Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function compartirFolio() {
+    $('#compartirModal').modal('show');
+}
+
+function copiarFolio() {
+    const folioText = document.getElementById('folioText');
+    folioText.select();
+    folioText.setSelectionRange(0, 99999); // Para móviles
+    
+    try {
+        document.execCommand('copy');
+        showToast('Folio copiado al portapapeles', 'success');
+    } catch (err) {
+        showToast('Error al copiar folio', 'danger');
+    }
+}
+
+function compartirWhatsApp() {
+    const mensaje = encodeURIComponent(`Mi folio de admisión es: {{ solicitud.folio }}`);
+    const url = `https://wa.me/?text=${mensaje}`;
+    window.open(url, '_blank');
+}
+
+function compartirEmail() {
+    const asunto = encodeURIComponent('Folio de Admisión');
+    const cuerpo = encodeURIComponent(`Mi folio de admisión es: {{ solicitud.folio }}`);
+    const url = `mailto:?subject=${asunto}&body=${cuerpo}`;
+    window.location.href = url;
+}
+
+// Animaciones de entrada
+$(document).ready(function() {
+    // Animar elementos al cargar
+    $('.info-card').each(function(index) {
+        $(this).delay(index * 200).animate({
+            opacity: 1,
+            transform: 'translateY(0)'
+        }, 500);
+    });
+    
+    // Animar timeline items
+    $('.timeline-item').each(function(index) {
+        $(this).delay(index * 300).animate({
+            opacity: 1,
+            transform: 'translateX(0)'
+        }, 500);
+    });
+});
+
+// Configurar impresión
+window.addEventListener('beforeprint', function() {
+    // Ocultar elementos no necesarios para impresión
+    $('.social-links, .action-buttons').hide();
+});
+
+window.addEventListener('afterprint', function() {
+    // Mostrar elementos después de imprimir
+    $('.social-links, .action-buttons').show();
+});
+</script>
+
+<style media="print">
+    .social-links,
+    .action-buttons,
+    .btn {
+        display: none !important;
+    }
+    
+    .content-card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+    
+    .folio-card {
+        background: #f8f9fa !important;
+        color: #000 !important;
+        border: 2px solid #000 !important;
+    }
+    
+    .timeline::before {
+        background: #000 !important;
+    }
+    
+    .timeline-item::before {
+        background: #000 !important;
+    }
+</style>
+{% endblock %}

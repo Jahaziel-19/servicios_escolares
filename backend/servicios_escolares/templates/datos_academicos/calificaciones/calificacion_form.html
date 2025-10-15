@@ -1,0 +1,414 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Nueva Calificación{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<style>
+  /* Estilos mejorados para Select2 */
+  .select2-container .select2-selection--single {
+    height: 38px;
+    padding: 5px;
+    border-color: #ced4da;
+    border-radius: 0.375rem;
+  }
+  
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+  }
+  
+  /* Mejora visual de los resultados de búsqueda */
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #0d6efd;
+    color: white;
+  }
+  
+  .select2-container--default .select2-results__option {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .select2-container--default .select2-results__option:last-child {
+    border-bottom: none;
+  }
+  
+  .select2-dropdown {
+    border-color: #ced4da;
+    box-shadow: 0 4px 8px rgba(0,0,0,.15);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  
+  .select2-search--dropdown .select2-search__field {
+    padding: 10px;
+    border-radius: 4px;
+    border-color: #ced4da;
+    margin-bottom: 5px;
+  }
+  
+  /* Estilo especial para campos de búsqueda */
+  .select2-search-field {
+    margin-bottom: 1.5rem;
+  }
+  
+  .select2-search-field label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  
+  .select2-search-field .form-text {
+    margin-top: 0.25rem;
+    font-style: italic;
+    color: #6c757d;
+  }
+  
+  /* Mejora del campo seleccionado */
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 28px;
+    padding-left: 12px;
+    color: #212529;
+  }
+  
+  /* Mejora del placeholder */
+  .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #6c757d;
+  }
+  
+  /* Estilos para autocompletado */
+  .autocomplete-results {
+    position: absolute;
+    border: 1px solid #ced4da;
+    border-top: none;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    background: white;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    display: none;
+  }
+  
+  .autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .autocomplete-item:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .autocomplete-item.selected {
+    background-color: #e9ecef;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-center flex-wrap">
+  <h2 class="fw-bold mb-2 mb-md-0">
+    {% if form.instance.pk %}Editar Calificación{% else %}Agregar Calificación{% endif %}
+  </h2>
+  <a href="{% url 'datos_academicos:calificacion_list' %}" class="btn btn-outline-secondary d-flex align-items-center" aria-label="Volver a la lista de calificaciones">
+    <i class="bi bi-arrow-left-circle me-1"></i> Volver a la lista
+  </a>
+</div>
+
+<div class="card shadow-sm p-4">
+  <form method="post" novalidate id="calificacionForm">
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger" role="alert">
+        <ul class="mb-0">
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <div class="row g-3">
+      <!-- Campos ocultos -->
+      {{ form.alumno }}
+      {{ form.materia }}
+      
+      <!-- Alumno -->
+      <div class="col-md-6">
+        <label for="{{ form.alumno_search.id_for_label }}" class="form-label fw-medium">Alumno</label>
+        {{ form.alumno_search }}
+        <div id="alumno-results" class="autocomplete-results"></div>
+        {% for error in form.alumno.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Periodo Escolar -->
+      <div class="col-md-6">
+        <label for="{{ form.periodo_escolar.id_for_label }}" class="form-label fw-medium">{{ form.periodo_escolar.label }}</label>
+        {{ form.periodo_escolar }}
+        {% if form.periodo_escolar.help_text %}
+          <div class="form-text">{{ form.periodo_escolar.help_text }}</div>
+        {% endif %}
+        {% for error in form.periodo_escolar.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Materia (búsqueda simple) -->
+      <div class="col-md-12">
+        <label for="{{ form.materia_search.id_for_label }}" class="form-label fw-medium">Materia</label>
+        {{ form.materia_search }}
+        <div id="materia-results" class="autocomplete-results"></div>
+        <div class="form-text">Escribe para buscar materias</div>
+        {% for error in form.materia.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+      
+      <!-- Materia no listada -->
+      <div class="col-md-12">
+        <label for="{{ form.materia_nueva.id_for_label }}" class="form-label fw-medium">{{ form.materia_nueva.label }}</label>
+        {{ form.materia_nueva }}
+        <div class="form-text">Si la materia no aparece en la búsqueda, puedes agregarla aquí</div>
+      </div>
+
+
+
+      <!-- Calificación -->
+      <div class="col-md-4">
+        <label for="{{ form.calificacion.id_for_label }}" class="form-label fw-medium">{{ form.calificacion.label }}</label>
+        {{ form.calificacion }}
+        {% if form.calificacion.help_text %}
+          <div class="form-text">{{ form.calificacion.help_text }}</div>
+        {% endif %}
+        {% for error in form.calificacion.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Créditos -->
+      <div class="col-md-4">
+        <label for="{{ form.creditos.id_for_label }}" class="form-label fw-medium">{{ form.creditos.label }}</label>
+        {{ form.creditos }}
+        {% if form.creditos.help_text %}
+          <div class="form-text">{{ form.creditos.help_text }}</div>
+        {% endif %}
+        {% for error in form.creditos.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Acreditación -->
+      <div class="col-md-4">
+        <label for="{{ form.acreditacion.id_for_label }}" class="form-label fw-medium">{{ form.acreditacion.label }}</label>
+        {{ form.acreditacion }}
+        {% if form.acreditacion.help_text %}
+          <div class="form-text">{{ form.acreditacion.help_text }}</div>
+        {% endif %}
+        {% for error in form.acreditacion.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Observaciones -->
+      <div class="col-md-12">
+        <label for="{{ form.observaciones.id_for_label }}" class="form-label">{{ form.observaciones.label }}</label>
+        {{ form.observaciones }}
+        {% if form.observaciones.help_text %}
+          <div class="form-text">{{ form.observaciones.help_text }}</div>
+        {% endif %}
+        {% for error in form.observaciones.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="mt-4 d-flex justify-content-end">
+      <button type="submit" class="btn btn-success d-flex align-items-center" aria-label="Guardar calificación">
+        <i class="bi bi-check-lg me-1"></i> Guardar
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/es.js"></script>
+<script>
+  // Datos de materias pasados desde la vista
+  const materias = {{ materias_json|safe }};
+  
+  $(document).ready(function() {
+    // Inicializar Select2 para otros campos (periodo escolar, acreditación)
+    $('.select2').select2({
+      theme: 'bootstrap-5',
+      width: '100%',
+      minimumResultsForSearch: 10
+    });
+    
+    // Función para buscar alumnos
+    $('#id_alumno_search').on('input', function() {
+        const query = $(this).val();
+        if (query.length < 2) {
+            $('#alumno-results').hide();
+            return;
+        }
+        
+        $.ajax({
+            url: '/datos_academicos/api/alumnos/',
+            data: { q: query },
+            dataType: 'json',
+            success: function(data) {
+                const resultsDiv = $('#alumno-results');
+                resultsDiv.empty();
+                
+                if (data.length === 0) {
+                    resultsDiv.append('<div class="autocomplete-item">No se encontraron resultados</div>');
+                } else {
+                    data.forEach(function(alumno) {
+                        const item = $('<div class="autocomplete-item" data-id="' + alumno.id + '">' + 
+                            alumno.nombre + ' ' + alumno.apellido_paterno + ' ' + (alumno.apellido_materno || '') + 
+                            ' (' + alumno.matricula + ')</div>');
+                        
+                        item.on('click', function() {
+                            // Usar directamente el ID del alumno
+                            $('#id_alumno').val(alumno.id);
+                            $('#id_alumno_search').val(alumno.nombre + ' ' + alumno.apellido_paterno + ' ' + (alumno.apellido_materno || '') + ' (' + alumno.matricula + ')');
+                            resultsDiv.hide();
+                        });
+                        
+                        resultsDiv.append(item);
+                    });
+                }
+                
+                resultsDiv.show();
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en búsqueda de alumnos:', error);
+                const resultsDiv = $('#alumno-results');
+                resultsDiv.empty();
+                resultsDiv.append('<div class="autocomplete-item">Error al buscar alumnos</div>');
+                resultsDiv.show();
+            }
+        });
+    });
+    
+    // Función para buscar materias
+        $('#id_materia_search').on('input', function() {
+            const query = $(this).val();
+            if (query.length < 2) {
+                $('#materia-results').hide();
+                return;
+            }
+            
+            $.ajax({
+                url: '/datos_academicos/api/materias/',
+                data: { q: query },
+                dataType: 'json',
+                success: function(data) {
+                    const resultsDiv = $('#materia-results');
+                    resultsDiv.empty();
+                    
+                    if (data.length === 0) {
+                        resultsDiv.append('<div class="autocomplete-item">No se encontraron resultados</div>');
+                    } else {
+                        data.forEach(function(materia) {
+                            const item = $('<div class="autocomplete-item" data-id="' + materia.id + '" data-creditos="' + materia.creditos + '">' + 
+                                materia.nombre + ' (' + materia.clave + ') - ' + materia.creditos + ' créditos</div>');
+                            
+                            item.on('click', function() {
+                                $('#id_materia').val(materia.id);
+                                $('#id_materia_search').val(materia.nombre + ' (' + materia.clave + ')');
+                                $('#id_creditos').attr('max', materia.creditos);
+                                $('#id_creditos').val(materia.creditos); // Establecer valor por defecto
+                                resultsDiv.hide();
+                                
+                                // Limpiar campo de materia nueva
+                                $('#id_materia_nueva').val('');
+                            });
+                            
+                            resultsDiv.append(item);
+                        });
+                    }
+                    
+                    resultsDiv.show();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error en búsqueda de materias:', error);
+                    const resultsDiv = $('#materia-results');
+                    resultsDiv.empty();
+                    resultsDiv.append('<div class="autocomplete-item">Error al buscar materias</div>');
+                    resultsDiv.show();
+                }
+            });
+        });
+    
+    // Cerrar resultados al hacer clic fuera
+    $(document).on('click', function(e) {
+      if (!$(e.target).closest('.autocomplete-input, .autocomplete-results').length) {
+        $('.autocomplete-results').hide();
+      }
+    });
+    
+    // Lógica para materia no listada
+    $('#id_materia_nueva').on('input', function() {
+      if ($(this).val()) {
+        // Si hay texto en el campo de materia nueva, limpiamos el campo de búsqueda y el ID
+        $('#id_materia').val('');
+        $('#id_materia_search').val('');
+      }
+    });
+    
+    // Validación del formulario
+    $('#calificacionForm').on('submit', function(e) {
+      // Si no hay materia seleccionada ni materia nueva, mostrar error
+      if (!$('#id_materia').val() && !$('#id_materia_nueva').val()) {
+        alert('Debes seleccionar una materia existente o ingresar una nueva');
+        e.preventDefault();
+        return false;
+      }
+      
+      // Si no hay alumno seleccionado, mostrar error
+      if (!$('#id_alumno').val()) {
+        alert('Debes seleccionar un alumno');
+        e.preventDefault();
+        return false;
+      }
+      
+      // Validar créditos
+      const creditos = parseInt($('#id_creditos').val());
+      const maxCreditos = parseInt($('#id_creditos').attr('max'));
+      
+      if (maxCreditos && creditos > maxCreditos) {
+        alert('Los créditos no pueden ser mayores a ' + maxCreditos + ' para esta materia');
+        e.preventDefault();
+        return false;
+      }
+      
+      return true;
+    });
+    
+    // Validación en tiempo real de créditos
+    $('#id_creditos').on('input', function() {
+      const creditos = parseInt($(this).val());
+      const maxCreditos = parseInt($(this).attr('max'));
+      
+      if (maxCreditos && creditos > maxCreditos) {
+        $(this).addClass('is-invalid');
+        if (!$(this).next('.invalid-feedback').length) {
+          $(this).after('<div class="invalid-feedback">Los créditos no pueden ser mayores a ' + maxCreditos + '</div>');
+        }
+      } else {
+        $(this).removeClass('is-invalid');
+        $(this).next('.invalid-feedback').remove();
+      }
+    });
+  });
+</script>
+{% endblock %}

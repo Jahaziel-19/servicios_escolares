@@ -1,0 +1,232 @@
+{% extends "layouts/base.html" %}
+{% load group_filters %}
+
+{% load static %}
+
+{% block title %}Configuraciones del Sistema{% endblock %}
+
+{% block content %}
+<style>
+  /* Contenedor principal */
+  .config-container {
+    max-width: 900px;
+    margin: 0 auto 3rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+
+  /* Título */
+  .config-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .config-header h1 {
+    font-weight: 700;
+    font-size: 2rem;
+  }
+  .config-header p {
+    color: #666;
+    font-size: 1rem;
+  }
+
+  /* Formulario */
+  form.config-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Etiquetas y campos */
+  label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+    color: #333;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: 1.5px solid #ccc;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #0d6efd;
+    outline: none;
+  }
+
+  /* Checkbox container */
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .checkbox-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Botón guardar */
+  .btn-save {
+    align-self: flex-start;
+    background-color: #0d6efd;
+    color: white;
+    font-weight: 700;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  .btn-save:hover {
+    background-color: #0b5ed7;
+    transform: scale(1.05);
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .config-container {
+      padding: 1.5rem 1rem;
+    }
+    .btn-save {
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>
+
+<div class="container-fluid py-4">
+  <div class="config-container" aria-label="Configuraciones del sistema">
+    <header class="config-header">
+      <h1>Configuraciones del Sistema</h1>
+      <p>Gestiona los parámetros institucionales y módulos según tu rol.</p>
+    </header>
+<form method="post" novalidate>
+  {% csrf_token %}
+  
+  <fieldset>
+    <legend><strong>Editar Periodo Escolar Actual</strong></legend>
+    {{ form_periodo.non_field_errors }}
+    {{ form_periodo.as_p }}
+    <button type="submit" name="guardar_periodo">Guardar Periodo Actual</button>
+  </fieldset>
+</form>
+
+<form method="post" novalidate style="margin-top:2rem;">
+  {% csrf_token %}
+  
+  <fieldset>
+    <legend><strong>Valores por Defecto para Nuevos Periodos</strong></legend>
+    {{ form_valores.non_field_errors }}
+    {{ form_valores.as_p }}
+    <button type="submit" name="guardar_valores_defecto">Guardar Valores por Defecto</button>
+  </fieldset>
+</form>
+    <form class="config-form" method="post" novalidate>
+      {% csrf_token %}
+
+      <!-- SECCIÓN GLOBAL: todo el personal administrativo -->
+      {% if user|has_group:"Aspirante" %}
+      <fieldset>
+        <legend><strong>Datos institucionales</strong></legend>
+        <label for="site_name">Nombre de la institución</label>
+        <input type="text" id="site_name" name="site_name" value="{{ config.site_name|default:'' }}">
+        <label for="school_cycle">Ciclo escolar activo</label>
+        <input type="text" id="school_cycle" name="school_cycle" value="{{ config.school_cycle|default:'' }}">
+      </fieldset>
+      {% endif %}
+
+
+      <!-- Solo para administradores o superusuarios -->
+      {% if user|has_group:"servicios escolares" %}
+      <fieldset>
+        <legend><strong>Seguridad del sistema</strong></legend>
+        <label for="maintenance_mode">
+          <input type="checkbox" id="maintenance_mode" name="maintenance_mode" {% if config.maintenance_mode %}checked{% endif %}>
+          Activar modo mantenimiento
+        </label>
+        <label for="password_min_length">Longitud mínima de contraseña</label>
+        <select id="password_min_length" name="password_min_length">
+          <option value="6" {% if config.password_min_length == 6 %}selected{% endif %}>6</option>
+          <option value="8" {% if config.password_min_length == 8 %}selected{% endif %}>8</option>
+          <option value="10" {% if config.password_min_length == 10 %}selected{% endif %}>10</option>
+        </select>
+        <label>
+          <input type="checkbox" id="two_factor_auth" name="two_factor_auth" {% if config.two_factor_auth %}checked{% endif %}>
+          Activar autenticación en dos pasos (2FA)
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend><strong>Gestión global de procesos</strong></legend>
+        <label>Activar procesos en el sistema:</label>
+        <label><input type="checkbox" name="admision_enabled" {% if config.admision_enabled %}checked{% endif %}> Admisión</label>
+        <label><input type="checkbox" name="reinscripcion_enabled" {% if config.reinscripcion_enabled %}checked{% endif %}> Reinscripción</label>
+        <label><input type="checkbox" name="residencia_enabled" {% if config.residencia_enabled %}checked{% endif %}> Residencia profesional</label>
+        <label for="admin_email">Correo contacto principal</label>
+        <input type="email" id="admin_email" name="admin_email" value="{{ config.admin_email|default:'' }}">
+      </fieldset>
+      {% endif %}
+
+      <!-- Solo para personal de control escolar -->
+      
+      <fieldset>
+        <legend><strong>Trámites escolares</strong></legend>
+        <label>Habilitar emisión automatizada de:</label>
+        <label><input type="checkbox" name="constancia_estudios" {% if config.constancia_estudios %}checked{% endif %}> Constancia de estudios</label>
+        <label><input type="checkbox" name="certificado_final" {% if config.certificado_final %}checked{% endif %}> Certificados finales</label>
+        <label for="output_format">Formato de descarga:</label>
+        <select id="output_format" name="output_format">
+          <option value="PDF" {% if config.output_format == "PDF" %}selected{% endif %}>PDF</option>
+          <option value="Word" {% if config.output_format == "Word" %}selected{% endif %}>Word</option>
+          <option value="Excel" {% if config.output_format == "Excel" %}selected{% endif %}>Excel</option>
+        </select>
+      </fieldset>
+      <fieldset>
+        <legend><strong>Exportación de datos</strong></legend>
+        <label><input type="checkbox" name="allow_export_alumnos" {% if config.allow_export_alumnos %}checked{% endif %}> Permitir exportar datos de alumnos</label>
+        <label><input type="checkbox" name="allow_export_process" {% if config.allow_export_process %}checked{% endif %}> Permitir exportar situación de procesos</label>
+      </fieldset>
+      
+
+      <!-- Solo para coordinadores de procesos -->
+      
+      <fieldset>
+        <legend><strong>Gestión de procesos asignados</strong></legend>
+        <label for="proceso_selector">Seleccionar proceso a configurar:</label>
+        <select id="proceso_selector" name="proceso_selector">
+          <option value="residencia" {% if config.proceso_selector == "residencia" %}selected{% endif %}>Residencia profesional</option>
+          <option value="servicio" {% if config.proceso_selector == "servicio" %}selected{% endif %}>Servicio social</option>
+        </select>
+        <label for="fecha_inicio">Fecha de inicio</label>
+        <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ config.fecha_inicio|default:'' }}">
+        <label for="fecha_fin">Fecha de cierre</label>
+        <input type="date" id="fecha_fin" name="fecha_fin" value="{{ config.fecha_fin|default:'' }}">
+        <label>Documentos requeridos:</label>
+        <label><input type="checkbox" name="doc_carta_presentacion" {% if config.doc_carta_presentacion %}checked{% endif %}> Carta presentación</label>
+        <label><input type="checkbox" name="doc_reporte_final" {% if config.doc_reporte_final %}checked{% endif %}> Reporte final</label>
+      </fieldset>
+      
+
+      <button type="submit" class="btn-save">Guardar Configuración</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% if mostrar_modal_creacion %}
+<script>
+  // código que abre modal al cargar la página (ej. Bootstrap modal show())
+</script>
+{% endif %}

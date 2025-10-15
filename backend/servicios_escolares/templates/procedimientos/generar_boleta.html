@@ -1,0 +1,435 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Generar Boleta de Calificaciones{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 10px 30px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        padding: 12px 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .alert {
+        border-radius: 10px;
+        border: none;
+    }
+    
+    .loading {
+        display: none;
+    }
+    
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+    }
+    
+    /* Progress Bar Styles */
+    .progress-container {
+        display: none;
+        margin-top: 20px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .progress-container.show {
+        display: block;
+    }
+    
+    .progress {
+        height: 8px;
+        border-radius: 10px;
+        background-color: #e9ecef;
+        overflow: hidden;
+        margin-bottom: 15px;
+    }
+    
+    .progress-bar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.3s ease;
+        border-radius: 10px;
+    }
+    
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    
+    .progress-step {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+        color: #6c757d;
+        transition: color 0.3s ease;
+    }
+    
+    .progress-step.active {
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .progress-step.completed {
+        color: #28a745;
+    }
+    
+    .progress-step i {
+        margin-right: 8px;
+        font-size: 1.1rem;
+    }
+    
+    .progress-info {
+        text-align: center;
+        color: #495057;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>
+                        Generar Boleta de Calificaciones
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8 mx-auto">
+                            <form id="boletaForm" method="post">
+                                {% csrf_token %}
+                                
+                                <div class="mb-4">
+                                    <label for="alumno" class="form-label fw-bold">
+                                        <i class="fas fa-user me-2"></i>Alumno
+                                    </label>
+                                    <select class="form-select" id="alumno" name="alumno_id" required>
+                                        <option value="">Seleccione un alumno...</option>
+                                        {% for alumno in alumnos %}
+                                            <option value="{{ alumno.id }}">
+                                                {{ alumno.matricula }} - {{ alumno.apellido_paterno }} {{ alumno.apellido_materno }} {{ alumno.nombre }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="periodo" class="form-label fw-bold">
+                                        <i class="fas fa-calendar me-2"></i>Período Escolar
+                                    </label>
+                                    <select class="form-select" id="periodo" name="periodo_id" required>
+                                        <option value="">Seleccione un período...</option>
+                                        {% for periodo in periodos %}
+                                            <option value="{{ periodo.id }}">
+                                                {{ periodo.ciclo|title }} {{ periodo.año }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <span class="loading">
+                                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                            Generando...
+                                        </span>
+                                        <span class="normal">
+                                            <i class="fas fa-download me-2"></i>
+                                            Generar Boleta
+                                        </span>
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <!-- Progress Bar Container -->
+                            <div id="progressContainer" class="progress-container">
+                                <div class="progress-steps">
+                                    <div class="progress-step" id="step1">
+                                        <i class="fas fa-search"></i>
+                                        <span>Validando datos</span>
+                                    </div>
+                                    <div class="progress-step" id="step2">
+                                        <i class="fas fa-database"></i>
+                                        <span>Obteniendo calificaciones</span>
+                                    </div>
+                                    <div class="progress-step" id="step3">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>Generando documento</span>
+                                    </div>
+                                    <div class="progress-step" id="step4">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Finalizando</span>
+                                    </div>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-info" id="progressInfo">
+                                    Iniciando proceso...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de información -->
+    <div class="modal fade" id="infoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Información</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="modalMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <a id="downloadLink" href="#" class="btn btn-primary" style="display: none;">
+                        <i class="fas fa-download me-2"></i>Descargar Boleta
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Función para mostrar modal de error
+        function showErrorModal(message) {
+            alert('Error: ' + message);
+        }
+
+        // Función para mostrar modal de éxito
+        function showSuccessModal(message, downloadUrl = null) {
+            let alertMessage = 'Éxito: ' + message;
+            if (downloadUrl) {
+                alertMessage += '\n\n¿Desea descargar el archivo ahora?';
+                if (confirm(alertMessage)) {
+                    window.open(downloadUrl, '_blank');
+                }
+            } else {
+                alert(alertMessage);
+            }
+        }
+
+        // Función para mostrar modal de carga
+        function showLoadingModal() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        // Función para ocultar modal de carga
+        function hideLoadingModal() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Progress Bar Functions
+    function showProgressBar() {
+        const progressContainer = document.getElementById('progressContainer');
+        progressContainer.classList.add('show');
+        resetProgress();
+    }
+    
+    function hideProgressBar() {
+        const progressContainer = document.getElementById('progressContainer');
+        progressContainer.classList.remove('show');
+    }
+    
+    function resetProgress() {
+        const progressBar = document.getElementById('progressBar');
+        const progressInfo = document.getElementById('progressInfo');
+        const steps = document.querySelectorAll('.progress-step');
+        
+        progressBar.style.width = '0%';
+        progressInfo.textContent = 'Iniciando proceso...';
+        
+        steps.forEach(step => {
+            step.classList.remove('active', 'completed');
+        });
+    }
+    
+    function updateProgress(step, percentage, message) {
+        const progressBar = document.getElementById('progressBar');
+        const progressInfo = document.getElementById('progressInfo');
+        const currentStep = document.getElementById(`step${step}`);
+        const steps = document.querySelectorAll('.progress-step');
+        
+        // Update progress bar
+        progressBar.style.width = percentage + '%';
+        progressInfo.textContent = message;
+        
+        // Update steps
+        steps.forEach((stepEl, index) => {
+            if (index + 1 < step) {
+                stepEl.classList.remove('active');
+                stepEl.classList.add('completed');
+            } else if (index + 1 === step) {
+                stepEl.classList.add('active');
+                stepEl.classList.remove('completed');
+            } else {
+                stepEl.classList.remove('active', 'completed');
+            }
+        });
+    }
+    
+    function completeProgress() {
+        const progressBar = document.getElementById('progressBar');
+        const progressInfo = document.getElementById('progressInfo');
+        const steps = document.querySelectorAll('.progress-step');
+        
+        progressBar.style.width = '100%';
+        progressInfo.textContent = '¡Proceso completado exitosamente!';
+        
+        steps.forEach(step => {
+            step.classList.remove('active');
+            step.classList.add('completed');
+        });
+        
+        // Hide progress bar after 2 seconds
+        setTimeout(() => {
+            hideProgressBar();
+        }, 2000);
+    }
+
+        document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('boletaForm');
+    const loadingSpan = form.querySelector('.loading');
+    const normalSpan = form.querySelector('.normal');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const alumnoId = document.getElementById('alumno').value;
+        const periodoId = document.getElementById('periodo').value;
+        
+        if (!alumnoId || !periodoId) {
+            showModal('Error', 'Por favor seleccione un alumno y un período escolar.');
+            return;
+        }
+        
+        // Show progress bar and hide any existing modals
+        showProgressBar();
+        loadingSpan.style.display = 'inline';
+        normalSpan.style.display = 'none';
+        submitBtn.disabled = true;
+        
+        // Start progress simulation
+        updateProgress(1, 10, 'Validando datos del alumno y período...');
+        
+        setTimeout(() => {
+            updateProgress(2, 30, 'Obteniendo calificaciones del estudiante...');
+            
+            setTimeout(() => {
+                updateProgress(3, 60, 'Generando documento de boleta...');
+                
+                // Crear FormData
+                const formData = new FormData();
+                formData.append('alumno_id', alumnoId);
+                formData.append('periodo_id', periodoId);
+                formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+                
+                // Enviar petición AJAX
+                fetch('{% url "procedimientos:ajax_generar_boleta" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    updateProgress(4, 90, 'Finalizando proceso...');
+                    
+                    setTimeout(() => {
+                        if (data.success) {
+                            completeProgress();
+                            setTimeout(() => {
+                                showModal('Éxito', data.message, data.download_url);
+                            }, 1000);
+                        } else {
+                            hideProgressBar();
+                            showModal('Error', data.error || 'Ocurrió un error al generar la boleta.');
+                        }
+                    }, 500);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    hideProgressBar();
+                    showModal('Error', 'Ocurrió un error de conexión. Por favor intente nuevamente.');
+                })
+                .finally(() => {
+                    // Ocultar loading
+                    loadingSpan.style.display = 'none';
+                    normalSpan.style.display = 'inline';
+                    submitBtn.disabled = false;
+                });
+            }, 800);
+        }, 800);
+    });
+    
+    function showModal(title, message, downloadUrl = null) {
+        const modal = new bootstrap.Modal(document.getElementById('infoModal'));
+        const modalTitle = document.querySelector('#infoModal .modal-title');
+        const modalMessage = document.getElementById('modalMessage');
+        const downloadLink = document.getElementById('downloadLink');
+        
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        
+        if (downloadUrl) {
+            downloadLink.href = downloadUrl;
+            downloadLink.style.display = 'inline-block';
+        } else {
+            downloadLink.style.display = 'none';
+        }
+        
+        modal.show();
+    }
+});
+</script>
+{% endblock %}

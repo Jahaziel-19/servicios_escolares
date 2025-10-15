@@ -1,0 +1,20 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Subir plantilla</h1>
+    <form method="post" enctype="multipart/form-data" class="mt-3">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.nombre.label_tag }}
+            {{ form.nombre }}
+        </div>
+        <div class="mb-3">
+            {{ form.archivo.label_tag }}
+            {{ form.archivo }}
+        </div>
+        <button type="submit" class="btn btn-primary">Subir</button>
+        <a href="{% url 'docsbuilder:listar_plantillas' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

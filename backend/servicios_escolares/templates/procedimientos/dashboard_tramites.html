@@ -1,0 +1,544 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Trámites{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="row">
+    <!-- Encabezado -->
+    <div class="row gy-2 align-items-center mb-3">
+      <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+        <img src="{% static 'img/icons/tramite.png' %}" alt="Trámites" class="img-fluid" style="max-width: 60px;">
+        <div>
+          <h1 class="mb-0 fw-bold">Gestión de Trámites</h1>
+          <p class="text-muted mb-0">Administra trámites, visualiza estadísticas y genera reportes del estado de los procedimientos.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 text-md-end">
+        <div class="btn-group">
+          <button type="button" class="btn btn-outline-success btn-sm" onclick="generarReporte()">
+            <i class="material-symbols-rounded me-1">assessment</i>Reportes
+          </button>
+          <button type="button" class="btn btn-outline-warning btn-sm" onclick="mostrarImportador()">
+            <i class="material-symbols-rounded me-1">upload</i>Importar
+          </button>
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportarDatos()">
+            <i class="material-symbols-rounded me-1">download</i>Exportar
+          </button>
+          <button type="button" class="btn btn-outline-info btn-sm" onclick="actualizarDatos()">
+            <i class="material-symbols-rounded me-1">refresh</i>Actualizar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Total Trámites</p>
+              <h4 class="mb-0">{{ total_tramites }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-primary shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">description</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-success font-weight-bolder">+{{ tramites_mes|default:0 }} <i class="material-symbols-rounded">trending_up</i></span>
+            este mes
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Trámites Procesados</p>
+              <h4 class="mb-0">{{ tramites_procesados }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-success shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">check_circle</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-success font-weight-bolder">{{ porcentaje_procesados|floatformat:1 }}% <i class="material-symbols-rounded">trending_up</i></span>
+            de eficiencia
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Trámites Pendientes</p>
+              <h4 class="mb-0">{{ tramites_pendientes }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-warning shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">pending_actions</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-warning font-weight-bolder">{{ tiempo_promedio|floatformat:1 }} días <i class="material-symbols-rounded">schedule</i></span>
+            tiempo promedio
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Trámites Rechazados</p>
+              <h4 class="mb-0">{{ tramites_rechazados }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-danger shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">cancel</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-danger font-weight-bolder">{{ porcentaje_rechazados|floatformat:1 }}% <i class="material-symbols-rounded">trending_down</i></span>
+            de rechazo
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="row mt-4">
+    <div class="col-lg-7 mb-lg-0 mb-4">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6>Trámites por Mes</h6>
+          <p class="text-sm">Evolución mensual de trámites</p>
+          <div class="pe-2">
+            <div class="chart">
+              <canvas id="chart-tramites-mes" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card h-100">
+        <div class="card-header pb-0">
+          <h6 class="mb-0">Trámites por Tipo</h6>
+          <p class="text-sm">Distribución actual</p>
+          <div class="pe-2">
+            <div class="chart">
+              <canvas id="chart-tramites-tipo" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de trámites recientes -->
+  <div class="row mb-4">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+          <h6>Trámites Recientes</h6>
+          <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-primary" onclick="filtrarTramites('todos')">Todos</button>
+            <button type="button" class="btn btn-outline-warning" onclick="filtrarTramites('pendientes')">Pendientes</button>
+            <button type="button" class="btn btn-outline-success" onclick="filtrarTramites('procesados')">Procesados</button>
+          </div>
+        </div>
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0" id="tablaTramites">
+              <thead>
+                <tr>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Folio</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Alumno</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Tipo</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Estado</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Fecha Solicitud</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for tramite in tramites_recientes %}
+                <tr data-estado="{{ tramite.estado|lower }}">
+                  <td class="text-center">
+                    <span class="text-xs font-weight-bold">#{{ tramite.id|stringformat:"04d" }}</span>
+                  </td>
+                  <td>
+                    <h6 class="mb-0 text-sm">{{ tramite.alumno.nombre }} {{ tramite.alumno.apellido_paterno }}</h6>
+                    <p class="text-xs text-secondary mb-0">{{ tramite.alumno.matricula }}</p>
+                  </td>
+                  <td class="text-center">
+                    <span class="text-xs font-weight-bold">{{ tramite.get_tipo_display }}</span>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="badge badge-sm 
+                      {% if tramite.estado == 'En proceso' %}bg-gradient-warning
+                      {% elif tramite.estado == 'Procesado' %}bg-gradient-success
+                      {% elif tramite.estado == 'Rechazado' %}bg-gradient-danger
+                      {% else %}bg-gradient-secondary
+                      {% endif %}">
+                      {{ tramite.estado }}
+                    </span>
+                  </td>
+                  <td class="align-middle text-center">
+                    <span class="text-xs font-weight-bold">{{ tramite.fecha_solicitud|date:"d/m/Y H:i" }}</span>
+                  </td>
+                  <td class="align-middle text-center">
+                    <div class="btn-group btn-group-sm">
+                      <button type="button" class="btn btn-outline-info btn-sm" onclick="verDetalle({{ tramite.id }})" title="Ver detalle">
+                        <i class="material-symbols-rounded">visibility</i>
+                      </button>
+                      {% if tramite.estado == 'En proceso' %}
+                      <button type="button" class="btn btn-outline-success btn-sm" onclick="procesarTramite({{ tramite.id }})" title="Procesar">
+                        <i class="material-symbols-rounded">check</i>
+                      </button>
+                      <button type="button" class="btn btn-outline-danger btn-sm" onclick="rechazarTramite({{ tramite.id }})" title="Rechazar">
+                        <i class="material-symbols-rounded">close</i>
+                      </button>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center">No hay trámites recientes.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones Principales -->
+  <div class="row">
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card h-100 border-primary">
+        <div class="card-body text-center">
+          <div class="mb-3">
+            <i class="fas fa-file-alt fa-3x text-primary"></i>
+          </div>
+          <h5 class="card-title">Generar Boleta</h5>
+          <p class="card-text">Genera boletas de calificaciones para estudiantes de manera individual o masiva.</p>
+          <a href="{% url 'procedimientos:generar_boleta' %}" class="btn btn-primary">
+            <i class="fas fa-file-pdf me-1"></i>
+            Generar
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card h-100 border-success">
+        <div class="card-body text-center">
+          <div class="mb-3">
+            <i class="fas fa-list fa-3x text-success"></i>
+          </div>
+          <h5 class="card-title">Lista de Trámites</h5>
+          <p class="card-text">Consulta, busca y filtra todos los trámites registrados en el sistema.</p>
+          <a href="{% url 'procedimientos:lista_tramites' %}" class="btn btn-success">
+            <i class="fas fa-eye me-1"></i>
+            Ver Lista
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4 col-md-6 mb-3">
+      <div class="card h-100 border-warning">
+        <div class="card-body text-center">
+          <div class="mb-3">
+            <i class="fas fa-cogs fa-3x text-warning"></i>
+          </div>
+          <h5 class="card-title">Configuración</h5>
+          <p class="card-text">Administra plantillas, tipos de trámites y configuraciones del sistema.</p>
+          <a href="#" class="btn btn-warning" onclick="mostrarConfiguracion()">
+            <i class="fas fa-cog me-1"></i>
+            Configurar
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+
+<!-- Modal para detalles del trámite -->
+<div class="modal fade" id="detalleModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detalle del Trámite</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detalleContent">
+        <!-- Contenido dinámico -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para configuración -->
+<div class="modal fade" id="configuracionModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Configuración de Trámites</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Plantillas de Documentos</h6>
+            <div class="list-group">
+              {% for plantilla in plantillas %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="mb-1">{{ plantilla.nombre }}</h6>
+                  <p class="mb-1 text-muted">{{ plantilla.descripcion }}</p>
+                </div>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" onclick="editarPlantilla({{ plantilla.id }})">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" onclick="eliminarPlantilla({{ plantilla.id }})">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h6>Tipos de Trámites</h6>
+            <div class="list-group">
+              <div class="list-group-item">
+                <strong>Boleta de Calificaciones</strong>
+                <p class="mb-0 text-muted">Documento oficial con calificaciones del estudiante</p>
+              </div>
+              <div class="list-group-item">
+                <strong>Certificado de Estudios</strong>
+                <p class="mb-0 text-muted">Certificado parcial o total de estudios</p>
+              </div>
+              <div class="list-group-item">
+                <strong>Constancia de Estudios</strong>
+                <p class="mb-0 text-muted">Constancia de inscripción y estudios actuales</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static "assets/js/plugins/chartjs.min.js" %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Gráfico de trámites por mes
+  var ctxMes = document.getElementById("chart-tramites-mes").getContext("2d");
+  new Chart(ctxMes, {
+    type: "line",
+    data: {
+      labels: {{ meses|safe }},
+      datasets: [{
+        label: "Trámites",
+        data: {{ tramites_por_mes|safe }},
+        backgroundColor: "rgba(102, 126, 234, 0.1)",
+        borderColor: "#667eea",
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.parsed.y + ' trámites';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Gráfico de trámites por tipo
+  var ctxTipo = document.getElementById("chart-tramites-tipo").getContext("2d");
+  new Chart(ctxTipo, {
+    type: "doughnut",
+    data: {
+      labels: {{ tipos_tramites|safe }},
+      datasets: [{
+        data: {{ cantidades_tipos|safe }},
+        backgroundColor: ["#667eea", "#764ba2", "#f093fb", "#f5576c", "#4facfe"],
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { 
+        legend: { position: 'bottom' },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.label + ': ' + context.parsed + ' trámites';
+            }
+          }
+        }
+      },
+    }
+  });
+});
+
+// Funciones para manejo de trámites
+function filtrarTramites(estado) {
+  const tabla = document.getElementById('tablaTramites');
+  const filas = tabla.querySelectorAll('tbody tr');
+  
+  filas.forEach(fila => {
+    if (estado === 'todos') {
+      fila.style.display = '';
+    } else {
+      const estadoFila = fila.getAttribute('data-estado');
+      if (estado === 'pendientes' && estadoFila === 'en proceso') {
+        fila.style.display = '';
+      } else if (estado === 'procesados' && estadoFila === 'procesado') {
+        fila.style.display = '';
+      } else if (estado !== 'todos') {
+        fila.style.display = 'none';
+      }
+    }
+  });
+}
+
+function verDetalle(tramiteId) {
+  // Simular carga de detalles
+  const modal = new bootstrap.Modal(document.getElementById('detalleModal'));
+  document.getElementById('detalleContent').innerHTML = `
+    <div class="text-center">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2">Cargando detalles del trámite #${tramiteId.toString().padStart(4, '0')}...</p>
+    </div>
+  `;
+  modal.show();
+  
+  // Simular respuesta del servidor
+  setTimeout(() => {
+    document.getElementById('detalleContent').innerHTML = `
+      <div class="row">
+        <div class="col-md-6">
+          <h6>Información del Trámite</h6>
+          <p><strong>Folio:</strong> #${tramiteId.toString().padStart(4, '0')}</p>
+          <p><strong>Tipo:</strong> Boleta de Calificaciones</p>
+          <p><strong>Estado:</strong> <span class="badge bg-warning">En proceso</span></p>
+          <p><strong>Fecha de solicitud:</strong> ${new Date().toLocaleDateString()}</p>
+        </div>
+        <div class="col-md-6">
+          <h6>Información del Estudiante</h6>
+          <p><strong>Nombre:</strong> Juan Pérez García</p>
+          <p><strong>Matrícula:</strong> 2021001</p>
+          <p><strong>Carrera:</strong> Ingeniería en Sistemas</p>
+          <p><strong>Semestre:</strong> 6°</p>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col-12">
+          <h6>Observaciones</h6>
+          <p class="text-muted">Trámite en proceso de revisión por el departamento académico.</p>
+        </div>
+      </div>
+    `;
+  }, 1000);
+}
+
+function procesarTramite(tramiteId) {
+  if (confirm('¿Está seguro de que desea procesar este trámite?')) {
+    // Aquí iría la lógica para procesar el trámite
+    alert('Trámite procesado exitosamente');
+    location.reload();
+  }
+}
+
+function rechazarTramite(tramiteId) {
+  const motivo = prompt('Ingrese el motivo del rechazo:');
+  if (motivo) {
+    // Aquí iría la lógica para rechazar el trámite
+    alert('Trámite rechazado');
+    location.reload();
+  }
+}
+
+function mostrarConfiguracion() {
+  const modal = new bootstrap.Modal(document.getElementById('configuracionModal'));
+  modal.show();
+}
+
+function generarReporte() {
+  alert('Funcionalidad de reportes en desarrollo');
+}
+
+function mostrarImportador() {
+  alert('Funcionalidad de importación en desarrollo');
+}
+
+function exportarDatos() {
+  alert('Funcionalidad de exportación en desarrollo');
+}
+
+function actualizarDatos() {
+  location.reload();
+}
+
+function editarPlantilla(plantillaId) {
+  alert('Editar plantilla #' + plantillaId);
+}
+
+function eliminarPlantilla(plantillaId) {
+  if (confirm('¿Está seguro de que desea eliminar esta plantilla?')) {
+    alert('Plantilla eliminada');
+  }
+}
+</script>
+{% endblock extra_js %}

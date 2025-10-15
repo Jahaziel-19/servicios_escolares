@@ -1,0 +1,66 @@
+{{ institucion }}
+REGISTRO EXITOSO
+{{ periodo.nombre }} - {{ periodo.año }}
+
+¡Felicitaciones!
+
+Su solicitud de admisión ha sido REGISTRADA EXITOSAMENTE en nuestro sistema.
+
+INFORMACIÓN DE SU REGISTRO
+==========================
+Folio de Solicitud: {{ solicitud.folio }}
+CURP: {{ solicitud.curp }}
+Email: {{ solicitud.email }}
+Fecha de Registro: {{ fecha_registro|date:"d/m/Y \a \l\a\s H:i" }}
+Estado Actual: {{ solicitud.get_estado_display }}
+
+NÚMERO DE FOLIO IMPORTANTE
+==========================
+{{ solicitud.folio }}
+
+¡GUARDE ESTE NÚMERO! Lo necesitará para consultar el estado de su solicitud 
+y para cualquier trámite relacionado con su proceso de admisión.
+
+PRÓXIMOS PASOS
+==============
+1. REVISIÓN DE DOCUMENTOS
+   Nuestro equipo revisará la información proporcionada en su solicitud.
+
+2. EVALUACIÓN
+   Su solicitud será evaluada según los criterios de admisión del programa.
+
+3. NOTIFICACIÓN DE RESULTADOS
+   Le notificaremos por email sobre el estado de su solicitud.
+
+4. FICHA DE ADMISIÓN
+   Si su solicitud es aceptada, recibirá su ficha de admisión por correo electrónico.
+
+IMPORTANTE
+==========
+- Mantenga este correo como comprobante de su registro
+- Guarde su número de folio: {{ solicitud.folio }}
+- Puede consultar el estado de su solicitud en cualquier momento
+- Le notificaremos por email cualquier actualización
+
+CONSULTAR ESTADO DE SOLICITUD
+==============================
+Visite: {{ url_consulta }}
+
+INFORMACIÓN DE CONTACTO
+=======================
+Departamento de Admisiones
+Email: {{ contacto_email }}
+Teléfono: {{ contacto_telefono }}
+Horario de atención: Lunes a Viernes, 8:00 AM - 6:00 PM
+
+Gracias por elegir {{ institucion }}. Estamos emocionados de conocer más sobre usted 
+y esperamos tenerle como parte de nuestra comunidad educativa.
+
+Atentamente,
+Departamento de Admisiones
+{{ institucion }}
+
+---
+Este es un correo automático, por favor no responda a esta dirección.
+Para consultas, utilice: {{ contacto_email }}
+© {{ fecha_registro.year }} {{ institucion }}. Todos los derechos reservados.

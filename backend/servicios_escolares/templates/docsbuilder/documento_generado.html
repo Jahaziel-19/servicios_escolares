@@ -1,0 +1,9 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Documento generado</h1>
+    <p>Archivo generado: <a href="{{ url_archivo }}" target="_blank">{{ nombre_archivo }}</a></p>
+    <a href="{% url 'docsbuilder:listar_plantillas' %}" class="btn btn-secondary">Volver</a>
+</div>
+{% endblock %}

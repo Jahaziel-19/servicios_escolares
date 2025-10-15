@@ -1,0 +1,108 @@
+{% extends "layouts/base.html" %}
+{% block title %}Detalle del Alumno{% endblock %}
+{% load static %}
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-center">
+  <h2 class="fw-bold d-flex align-items-center gap-2">
+    <img src="{% static 'assets/img/icons/student.png' %}" height="60" width="60" alt="">
+    Detalle del Alumno
+  </h2>
+  <div class="d-flex align-items-center gap-2">
+    <!-- Botón Editar -->
+    <a href="{% url 'datos_academicos:alumno_editar' alumno.pk %}" class="btn btn-warning btn-sm" title="Editar">
+      <span class="material-symbols-rounded" style="font-size: 1rem !important;">edit</span> Editar alumno
+    </a>
+    <!-- Botón Volver -->
+    <a href="{% url 'datos_academicos:alumno_list' %}" class="btn btn-secondary btn-sm d-flex align-items-center gap-1" title="Volver a la lista">
+      <span class="material-symbols-rounded" style="font-size: 1rem;">arrow_back</span> Volver a la lista
+    </a>
+  </div>
+</div>
+
+
+<div class="card shadow-sm p-4">
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <h5>Datos Personales</h5>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item"><strong>Nombre Completo:</strong> {{ alumno.nombre }} {{ alumno.apellido_paterno }}
+          {{ alumno.apellido_materno }}</li>
+        <li class="list-group-item"><strong>CURP:</strong> {{ alumno.curp|default:"-" }}</li>
+        <li class="list-group-item"><strong>Fecha de Nacimiento:</strong> {{ alumno.fecha_nacimiento|date:"d/m/Y" }}
+        </li>
+        <li class="list-group-item"><strong>Sexo:</strong> {{ alumno.get_sexo_display|default:"-" }}</li>
+        <li class="list-group-item"><strong>Estado Civil:</strong> {{ alumno.get_estado_civil_display|default:"-" }}
+        </li>
+      </ul>
+    </div>
+    <div class="col-md-6">
+      <h5>Contacto y domicilio</h5>
+      <ul class="list-group list-group-flush">
+
+        <li class="list-group-item"><strong>Correo:</strong> {{ alumno.email|default:"-" }}</li>
+        <li class="list-group-item"><strong>Teléfono:</strong> {{ alumno.telefono|default:"-" }}</li>
+        <li class="list-group-item"><strong>Dirección:</strong>
+          {{ alumno.calle|default:"" }} {{ alumno.numero_exterior|default:"" }} {{ alumno.numero_interior|default:"" }},
+          {{ alumno.colonia|default:"" }}, {{ alumno.municipio|default:"" }}, {{ alumno.estado|default:"" }},
+          C.P. {{ alumno.codigo_postal|default:"" }}
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <h5>Datos académicos</h5>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item"><strong>Matrícula:</strong> {{ alumno.matricula }}</li>
+        <li class="list-group-item"><strong>Carrera:</strong> {{ alumno.carrera.nombre }}</li>
+        <li class="list-group-item"><strong>Semestre:</strong> {{ alumno.semestre }}</li>
+        <li class="list-group-item"><strong>Modalidad:</strong> {{ alumno.get_modalidad_display }}</li>
+        <li class="list-group-item"><strong>Estado:</strong> {{ alumno.estatus }}</li>
+        <li class="list-group-item"><strong>Promedio:</strong> {{ alumno.promedio }}</li>
+        <li class="list-group-item"><strong>Fecha de ingreso:</strong> {{ alumno.fecha_inscripcion }}</li>
+        <li class="list-group-item"><strong>Inicio de semestre:</strong> {{ alumno.inicio_semestre|date:"d/m/Y" }}</li>
+        <li class="list-group-item"><strong>Fin de semestre:</strong> {{ alumno.fin_semestre|date:"d/m/Y" }}</li>
+        <li class="list-group-item"><strong>Inicio de vacaciones:</strong> {{ alumno.inicio_vacaciones|date:"d/m/Y" }}
+        </li>
+        <li class="list-group-item"><strong>Fin de vacaciones:</strong> {{ alumno.fin_vacaciones|date:"d/m/Y" }}</li>
+        <li class="list-group-item"><strong>Créditos Aprobados:</strong> {{ alumno.creditos_aprobados }} / {{ alumno.creditos_totales }}</li>
+        <li class="list-group-item"><strong>Plan de Estudios:</strong> {{ alumno.plan_estudio }}</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row">
+ <h5>Trámites</h5>
+ <div class="d-flex flex-wrap gap-3 mt-3">
+  <div class="card shadow-sm border-0" style="width: 14rem;">
+   <div class="card-body d-flex flex-column align-items-center">
+    <img src="{% static 'img/icons/constancia.png' %}" alt="Constancia" height="60" width="60">
+    <h6 class="card-title mt-2">Constancia</h6>
+    <a href="{% url 'procedimientos:descargar_constancia' alumno.matricula %}" class="btn btn-sm btn-primary mt-2 w-100">Descargar</a>
+   </div>
+  </div>
+  <div class="card shadow-sm border-0" style="width: 14rem;">
+   <div class="card-body d-flex flex-column align-items-center">
+    <img src="{% static 'img/icons/kardex.png' %}" alt="Kárdex" height="60" width="60">
+    <h6 class="card-title mt-2">Kárdex</h6>
+    <a href="{% url 'procedimientos:descargar_kardex' alumno.matricula %}" class="btn btn-sm btn-success mt-2 w-100">Descargar</a>
+   </div>
+  </div>
+  <div class="card shadow-sm border-0" style="width: 14rem;">
+   <div class="card-body d-flex flex-column align-items-center">
+    <img src="{% static 'img/icons/boleta.png' %}" alt="Boleta" height="60" width="60">
+    <h6 class="card-title mt-2">Boleta</h6>
+    <a href="{% url 'procedimientos:descargar_boleta' alumno.matricula %}" class="btn btn-sm btn-warning mt-2 w-100">Descargar</a>
+   </div>
+  </div>
+ </div>
+</div>
+
+
+  <div class="mt-4 d-flex justify-content-end gap-2">
+
+
+  </div>
+</div>
+{% endblock %}

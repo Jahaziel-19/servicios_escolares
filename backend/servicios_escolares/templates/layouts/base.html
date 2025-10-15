@@ -1,0 +1,154 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    {% include "includes/head.html" %}
+    {% block extrastyle %}{% endblock extrastyle %}
+    {% block extrahead %}{% endblock extrahead %}
+    <style>
+        :root {
+            --color-primary: #1B396A;
+        }
+
+        /* Contenedor principal centrado */
+        .container-main {
+            max-width: 1100px;
+            margin: 3rem auto;
+            padding: 2rem;
+        }
+
+        /* Efecto Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 0 20px 10px rgba(255, 255, 255, 1);
+            position: relative;
+            overflow: hidden;
+            padding: 2rem;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+        }
+
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), transparent, rgba(255, 255, 255, 0.3));
+        }
+
+        /* Botones reutilizables */
+        .btn-primary {
+            background: linear-gradient(135deg, #3182ce, #2c5282);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(49, 130, 206, 0.5);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2c5282, #3182ce);
+            box-shadow: 0 6px 20px rgba(49, 130, 206, 0.7);
+            transform: translateY(-2px);
+        }
+
+        /* Tabla moderna */
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(25, 55, 109, 0.1);
+            margin-top: 2rem;
+        }
+
+        .table thead {
+            background: var(--color-primary);
+            color: #fff !important;
+            font-weight: 600;
+        }
+
+        .table thead th {
+            border: none;
+            padding: 1rem 1.25rem;
+            color: #fff !important;
+        }
+
+        .table tbody tr:hover {
+            background-color: #e2f6f3;
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+            padding: 1rem 1.25rem;
+        }
+
+        /* Encabezado */
+        h1 {
+            color: var(--color-primary);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body class="g-sidenav-show bg-gray-100">
+
+    {% block sidebar %}
+        {% include "includes/sidebar_material.html" %}
+    {% endblock sidebar %}
+
+    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+        {% block navigation %}
+            {% include "includes/navigation.html" %}
+        {% endblock navigation %}
+
+        {% block content %}{% endblock content %}
+    </main>
+
+    {% include "includes/scripts.html" %}
+    {% block extra_js %}{% endblock extra_js %}
+
+</body>
+
+{% include "includes/modal_periodo.html" %}
+{% include "includes/success_modal.html" %}
+{% include "includes/error_modal.html" %}
+{% include "includes/success_auto_modal.html" %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Auto mostrar errores desde messages
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'error' in message.tags %}
+                showErrorModal("{{ message|escapejs }}");
+            {% elif 'success' in message.tags %}
+                showSuccessModal("{{ message|escapejs }}");
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+});
+</script>
+
+</html>

@@ -1,0 +1,615 @@
+{% extends 'admision/publico/base_publico.html' %}
+
+{% block title %}Consultar Solicitud{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-container {
+        background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .search-form {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: var(--box-shadow);
+    }
+    
+    .search-form .form-control,
+    .search-form .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: var(--border-radius);
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .search-form .form-control:focus,
+    .search-form .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .solicitud-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin: 2rem 0;
+        box-shadow: var(--box-shadow);
+        border-left: 4px solid var(--primary-color);
+    }
+    
+    .estado-badge {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .estado-registrada {
+        background: linear-gradient(135deg, #17a2b8, #20c997);
+        color: white;
+    }
+    
+    .estado-en-revision {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        color: white;
+    }
+    
+    .estado-aprobada {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .estado-rechazada {
+        background: linear-gradient(135deg, #dc3545, #e83e8c);
+        color: white;
+    }
+    
+    .estado-ficha-generada {
+        background: linear-gradient(135deg, #6f42c1, #e83e8c);
+        color: white;
+    }
+    
+    .datos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .dato-item {
+        background: rgba(248, 249, 250, 0.8);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        border-left: 3px solid var(--primary-color);
+    }
+    
+    .dato-label {
+        font-weight: 600;
+        color: var(--primary-color);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+    
+    .dato-value {
+        font-size: 1rem;
+        color: #495057;
+    }
+    
+    .timeline-estado {
+        position: relative;
+        padding: 2rem 0;
+        margin: 2rem 0;
+    }
+    
+    .timeline-estado::before {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--primary-color);
+    }
+    
+    .timeline-step {
+        position: relative;
+        padding-left: 60px;
+        margin-bottom: 2rem;
+    }
+    
+    .timeline-step::before {
+        content: '';
+        position: absolute;
+        left: 11px;
+        top: 8px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 3px solid var(--primary-color);
+        background: white;
+        z-index: 1;
+    }
+    
+    .timeline-step.completed::before {
+        background: var(--success-color);
+        border-color: var(--success-color);
+    }
+    
+    .timeline-step.current::before {
+        background: var(--warning-color);
+        border-color: var(--warning-color);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+        }
+    }
+    
+    .timeline-content {
+        background: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .timeline-title {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .timeline-date {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .acciones-disponibles {
+        background: rgba(23, 162, 184, 0.1);
+        border: 1px solid var(--info-color);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin: 2rem 0;
+        text-align: center;
+    }
+    
+    .acciones-disponibles h5 {
+        color: var(--info-color);
+        margin-bottom: 1.5rem;
+    }
+    
+    .acciones-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .no-encontrada {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #6c757d;
+    }
+    
+    .no-encontrada i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #dee2e6;
+    }
+    
+    .tips-busqueda {
+        background: rgba(255, 243, 205, 0.8);
+        border: 1px solid #ffeaa7;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .tips-busqueda h6 {
+        color: #856404;
+        margin-bottom: 1rem;
+    }
+    
+    .tips-busqueda ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+    
+    .tips-busqueda li {
+        color: #856404;
+        margin-bottom: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .search-container {
+            padding: 2rem 1rem;
+        }
+        
+        .search-form {
+            padding: 1.5rem;
+        }
+        
+        .datos-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .acciones-buttons {
+            flex-direction: column;
+        }
+        
+        .acciones-buttons .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Encabezado de Búsqueda -->
+        <div class="search-container fade-in-up">
+            <h1><i class="bi bi-search me-2"></i>Consultar Solicitud</h1>
+            <p class="lead mb-0">Ingresa tu folio o CURP para consultar el estado de tu solicitud de admisión</p>
+            
+            <div class="search-form">
+                <form method="post" id="consulta-form">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.tipo_busqueda.id_for_label }}" class="form-label">Buscar por:</label>
+                                {{ form.tipo_busqueda }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.valor_busqueda.id_for_label }}" class="form-label">Folio o CURP:</label>
+                                {{ form.valor_busqueda }}
+                                <div class="form-text">
+                                    <span id="help-folio" style="display: none;">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Ejemplo: ADM-2024-001234
+                                    </span>
+                                    <span id="help-curp" style="display: none;">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        18 caracteres, ejemplo: ABCD123456HDFGHI01
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-search me-1"></i>
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Mensajes -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'warning' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Resultado de la Búsqueda -->
+        {% if solicitud %}
+            <div class="solicitud-card fade-in-up">
+                <!-- Encabezado de la Solicitud -->
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h2><i class="bi bi-person-badge me-2"></i>{{ solicitud.get_nombre_completo }}</h2>
+                        <p class="text-muted mb-0">Folio: <strong>{{ solicitud.folio }}</strong></p>
+                    </div>
+                    <div class="text-end">
+                        <span class="estado-badge estado-{{ solicitud.estado|lower }}">
+                            {{ solicitud.get_estado_display }}
+                        </span>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Registrado: {{ solicitud.fecha_registro|date:"d/m/Y H:i" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Datos de la Solicitud -->
+                <div class="datos-grid">
+                    <div class="dato-item">
+                        <div class="dato-label">CURP</div>
+                        <div class="dato-value">{{ solicitud.curp }}</div>
+                    </div>
+                    <div class="dato-item">
+                        <div class="dato-label">Email</div>
+                        <div class="dato-value">{{ solicitud.email }}</div>
+                    </div>
+                    <div class="dato-item">
+                        <div class="dato-label">Teléfono</div>
+                        <div class="dato-value">{{ solicitud.respuestas_json.telefono|default:'No especificado' }}</div>
+                    </div>
+                    <div class="dato-item">
+                        <div class="dato-label">Carrera de Interés</div>
+                        <div class="dato-value">{{ solicitud.respuestas_json.carrera_interes|default:'No especificada' }}</div>
+                    </div>
+                    <div class="dato-item">
+                        <div class="dato-label">Modalidad</div>
+                        <div class="dato-value">{{ solicitud.respuestas_json.modalidad|default:'No especificada' }}</div>
+                    </div>
+                    <div class="dato-item">
+                        <div class="dato-label">Escuela de Procedencia</div>
+                        <div class="dato-value">{{ solicitud.respuestas_json.escuela_procedencia|default:'No especificada' }}</div>
+                    </div>
+                </div>
+                
+                <!-- Timeline del Estado -->
+                <h4><i class="bi bi-clock-history me-2"></i>Seguimiento del Proceso</h4>
+                <div class="timeline-estado">
+                    <div class="timeline-step completed">
+                        <div class="timeline-content">
+                            <div class="timeline-title">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Solicitud Registrada
+                            </div>
+                            <div class="timeline-date">{{ solicitud.fecha_registro|date:"d/m/Y H:i" }}</div>
+                            <p class="mb-0">Tu solicitud ha sido registrada exitosamente en nuestro sistema.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-step {% if solicitud.estado != 'registrada' %}completed{% else %}current{% endif %}">
+                        <div class="timeline-content">
+                            <div class="timeline-title">
+                                <i class="bi bi-file-earmark-text me-2"></i>
+                                Revisión de Documentos
+                            </div>
+                            <div class="timeline-date">
+                                {% if solicitud.estado != 'registrada' %}
+                                    {{ solicitud.fecha_actualizacion|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    En proceso
+                                {% endif %}
+                            </div>
+                            <p class="mb-0">Nuestro equipo está revisando tu solicitud y documentos.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-step {% if solicitud.estado == 'aceptada' or solicitud.estado == 'ficha_generada' %}completed{% elif solicitud.estado == 'en_revision' %}current{% endif %}">
+                        <div class="timeline-content">
+                            <div class="timeline-title">
+                                <i class="bi bi-clipboard-check me-2"></i>
+                                Evaluación Completada
+                            </div>
+                            <div class="timeline-date">
+                                {% if solicitud.estado == 'aceptada' or solicitud.estado == 'ficha_generada' %}
+                                    {{ solicitud.fecha_actualizacion|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Pendiente
+                                {% endif %}
+                            </div>
+                            <p class="mb-0">Evaluación de tu solicitud y documentos.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-step {% if solicitud.estado == 'ficha_generada' %}completed{% elif solicitud.estado == 'aceptada' %}current{% endif %}">
+                        <div class="timeline-content">
+                            <div class="timeline-title">
+                                <i class="bi bi-file-earmark-pdf me-2"></i>
+                                Generación de Ficha
+                            </div>
+                            <div class="timeline-date">
+                                {% if solicitud.estado == 'ficha_generada' %}
+                                    {{ solicitud.fecha_actualizacion|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Pendiente
+                                {% endif %}
+                            </div>
+                            <p class="mb-0">Generación de tu ficha de admisión para el examen.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Acciones Disponibles -->
+                {% if solicitud.ficha %}
+                    <div class="acciones-disponibles">
+                        <h5><i class="bi bi-download me-2"></i>Acciones Disponibles</h5>
+                        <div class="acciones-buttons">
+                            {% if solicitud.ficha.archivo_pdf %}
+                                <a href="{{ solicitud.ficha.archivo_pdf.url }}" class="btn btn-success" target="_blank">
+                                    <i class="bi bi-file-earmark-pdf me-2"></i>
+                                    Descargar Ficha
+                                </a>
+                            {% endif %}
+                            <button class="btn btn-info" onclick="enviarFichaPorEmail()">
+                                <i class="bi bi-envelope me-2"></i>
+                                Enviar por Email
+                            </button>
+                        </div>
+                    </div>
+                {% elif solicitud.estado == 'aceptada' %}
+                    <div class="acciones-disponibles">
+                        <h5><i class="bi bi-hourglass-split me-2"></i>Próximo Paso</h5>
+                        <p>Tu solicitud ha sido aceptada. En breve recibirás tu ficha de admisión.</p>
+                    </div>
+                {% elif solicitud.estado == 'rechazada' %}
+                    <div class="alert alert-danger">
+                        <h5><i class="bi bi-exclamation-triangle me-2"></i>Solicitud Rechazada</h5>
+                        <p class="mb-0">
+                            Lamentamos informarte que tu solicitud fue rechazada en esta ocasión. 
+                            Para más información, contacta al departamento de admisiones.
+                        </p>
+                    </div>
+                {% endif %}
+                
+                <!-- Información de Contacto -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6><i class="bi bi-info-circle me-2"></i>¿Tienes Preguntas?</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <small><strong>Teléfono:</strong> (555) 123-4567</small>
+                        </div>
+                        <div class="col-md-4">
+                            <small><strong>Email:</strong> admisiones@institucion.edu.mx</small>
+                        </div>
+                        <div class="col-md-4">
+                            <small><strong>Horario:</strong> Lun-Vie 8:00-16:00</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        {% elif form.is_bound and not solicitud %}
+            <!-- No se encontró la solicitud -->
+            <div class="content-card fade-in-up">
+                <div class="no-encontrada">
+                    <i class="bi bi-search"></i>
+                    <h3>No se encontró la solicitud</h3>
+                    <p>No se encontró ninguna solicitud con los datos proporcionados.</p>
+                    
+                    <div class="tips-busqueda">
+                        <h6><i class="bi bi-lightbulb me-2"></i>Consejos de Búsqueda:</h6>
+                        <ul>
+                            <li>Verifica que el folio esté escrito correctamente</li>
+                            <li>Asegúrate de que el CURP tenga 18 caracteres</li>
+                            <li>Revisa que no haya espacios adicionales</li>
+                            <li>Si registraste tu solicitud recientemente, espera unos minutos</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'admision:admision_publico:registro_aspirante' %}" class="btn btn-primary">
+                            <i class="bi bi-person-plus me-2"></i>
+                            Registrar Nueva Solicitud
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Información Adicional -->
+        {% if not solicitud %}
+            <div class="content-card fade-in-up">
+                <div class="content-header">
+                    <h3><i class="bi bi-info-circle me-2"></i>Información Importante</h3>
+                </div>
+                <div class="content-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>¿No tienes tu folio?</h5>
+                            <p>Si no recuerdas tu folio, puedes buscarlo usando tu CURP. También puedes revisar el correo de confirmación que recibiste al registrarte.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>¿Problemas para encontrar tu solicitud?</h5>
+                            <p>Si tienes problemas para encontrar tu solicitud, contacta al departamento de admisiones para recibir asistencia personalizada.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Cambiar ayuda según el tipo de búsqueda
+    $('#id_tipo_busqueda').on('change', function() {
+        const tipo = $(this).val();
+        $('#help-folio, #help-curp').hide();
+        
+        if (tipo === 'folio') {
+            $('#help-folio').show();
+            $('#id_valor_busqueda').attr('placeholder', 'Ejemplo: ADM-2024-001234');
+        } else if (tipo === 'curp') {
+            $('#help-curp').show();
+            $('#id_valor_busqueda').attr('placeholder', 'Ejemplo: ABCD123456HDFGHI01');
+        }
+    });
+    
+    // Trigger inicial
+    $('#id_tipo_busqueda').trigger('change');
+    
+    // Validación en tiempo real
+    $('#id_valor_busqueda').on('input', function() {
+        const tipo = $('#id_tipo_busqueda').val();
+        const valor = $(this).val().toUpperCase();
+        
+        $(this).val(valor);
+        
+        if (tipo === 'curp' && valor.length > 18) {
+            $(this).val(valor.substring(0, 18));
+        }
+    });
+    
+    // Envío del formulario
+    $('#consulta-form').on('submit', function(e) {
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        
+        showLoading(submitBtn);
+        
+        // El formulario se enviará normalmente
+        // Restaurar botón si hay error
+        setTimeout(() => {
+            hideLoading(submitBtn, originalText);
+        }, 5000);
+    });
+});
+
+function enviarFichaPorEmail() {
+    if (confirm('¿Deseas que enviemos tu ficha de admisión a tu correo electrónico?')) {
+        $.post('{% url "admision:admision_publico:ajax_reenviar_ficha" %}', {
+            folio: '{{ solicitud.folio|default:"" }}'
+        }).done(function(response) {
+            if (response.success) {
+                showToast('Ficha enviada exitosamente a tu correo', 'success');
+            } else {
+                showToast(response.message || 'Error al enviar la ficha', 'danger');
+            }
+        }).fail(function() {
+            showToast('Error al procesar la solicitud', 'danger');
+        });
+    }
+}
+
+// Actualizar automáticamente cada 30 segundos si hay una solicitud visible
+{% if solicitud %}
+setInterval(function() {
+    // Solo actualizar si la página está visible
+    if (!document.hidden) {
+        location.reload();
+    }
+}, 30000);
+{% endif %}
+</script>
+{% endblock %}

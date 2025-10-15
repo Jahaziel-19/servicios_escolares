@@ -1,0 +1,31 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<h2>Configurar mapeo de variables para: {{ plantilla.nombre }}</h2>
+<form method="post">
+    {% csrf_token %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Campo detectado</th>
+                <th>Tipo de campo</th>
+                <th>Detalles</th>
+            </tr>
+        </thead>
+        <tbody>
+{% for campo in campos %}
+<tr>
+    <td><strong>{{ campo.nombre }}</strong></td>
+    <td>{{ campo.tipo }}</td>
+    <td>
+        {{ campo.campo_modelo }}
+        {{ campo.especial }}
+    </td>
+</tr>
+{% endfor %}
+
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-success">Guardar mapeo</button>
+</form>
+<a href="{% url 'docsbuilder:listar_plantillas' %}" class="btn btn-secondary mt-3">Volver a plantillas</a>
+{% endblock %}

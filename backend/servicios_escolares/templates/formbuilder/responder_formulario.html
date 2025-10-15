@@ -1,0 +1,35 @@
+{% extends "layouts/base.html" %}
+{% block title %}Responder Formulario{% endblock %}
+{% block content %}
+<h1>{{ formulario.nombre }}</h1>
+<p>{{ formulario.descripcion }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {% for campo in campos %}
+        <div class="mb-3">
+            <label class="form-label">{{ campo.label }}{% if campo.required %} *{% endif %}</label>
+            {% if campo.type == 'text' %}
+                <input type="text" class="form-control" name="{{ campo.id }}" {% if campo.required %}required{% endif %}>
+            {% elif campo.type == 'email' %}
+                <input type="email" class="form-control" name="{{ campo.id }}" {% if campo.required %}required{% endif %}>
+            {% elif campo.type == 'radio' %}
+                {% for opcion in campo.options %}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="{{ campo.id }}" id="{{ campo.id }}_{{ forloop.counter }}" value="{{ opcion }}" {% if campo.required %}required{% endif %}>
+                    <label class="form-check-label" for="{{ campo.id }}_{{ forloop.counter }}">{{ opcion }}</label>
+                </div>
+                {% endfor %}
+            {% elif campo.type == 'checkbox' %}
+                {% for opcion in campo.options %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="{{ campo.id }}" id="{{ campo.id }}_{{ forloop.counter }}" value="{{ opcion }}">
+                    <label class="form-check-label" for="{{ campo.id }}_{{ forloop.counter }}">{{ opcion }}</label>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-black">Enviar</button>
+</form>
+{% endblock %}

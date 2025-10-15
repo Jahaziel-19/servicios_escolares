@@ -1,0 +1,212 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Lista de Formularios{% endblock %}
+
+{% block content %}
+<!-->
+<style>
+/* Contenedor general */
+.container-lista {
+  max-width: 1100px;
+  margin: 2.5rem auto 4rem auto;
+  padding: 1rem 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(25, 55, 109, 0.1);
+}
+
+/* Encabezado con icono */
+.header-lista {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.header-lista h1 {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 700;
+  color: #19376d;
+  background: #f8f9fa;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(25, 55, 109, 0.15);
+}
+
+.header-lista h1 img {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(25, 55, 109, 0.2);
+}
+
+/* Botón Crear / Importar */
+.btn-crear-importar {
+  background: linear-gradient(135deg, #28a745, #218838);
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.btn-crear-importar:hover {
+  background: linear-gradient(135deg, #218838, #28a745);
+  box-shadow: 0 6px 20px rgba(72, 180, 97, 0.7);
+  transform: translateY(-3px);
+}
+
+/* Imagen dentro del botón */
+.btn-crear-importar img {
+  width: 40px;
+  height: 40px;
+}
+
+/* Tabla estilizada */
+.table {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(25, 55, 109, 0.1);
+}
+
+.table thead {
+  background: #19376d;
+  color: #fff;
+  font-weight: 600;
+}
+
+.table thead th {
+  border: none;
+  padding: 1rem 1.25rem;
+}
+
+.table tbody tr {
+  transition: background-color 0.3s ease;
+}
+
+.table tbody tr:hover {
+  background-color: #e2f6f3;
+}
+
+.table tbody td {
+  vertical-align: middle;
+  padding: 1rem 1.25rem;
+}
+
+/* Botones de acción */
+.btn-sm {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(25, 55, 109, 0.15);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3182ce, #2c5282);
+  border: none;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2c5282, #3182ce);
+  box-shadow: 0 4px 15px rgba(49, 130, 206, 0.7);
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #e53e3e, #9b2c2c);
+  border: none;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #9b2c2c, #e53e3e);
+  box-shadow: 0 4px 15px rgba(229, 62, 62, 0.7);
+  transform: translateY(-2px);
+}
+
+.btn-outline-primary {
+  border: 2px solid #3182ce;
+  color: #3182ce;
+  background: transparent;
+}
+
+.btn-outline-primary:hover {
+  background: #3182ce;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(49, 130, 206, 0.7);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #38a169, #276749);
+  border: none;
+  color: #fff;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #276749, #38a169);
+  box-shadow: 0 4px 15px rgba(56, 161, 105, 0.7);
+  transform: translateY(-2px);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #0bc5ea, #0987a0);
+  border: none;
+  color: #fff;
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, #0987a0, #0bc5ea);
+  box-shadow: 0 4px 15px rgba(11, 197, 234, 0.7);
+  transform: translateY(-2px);
+}
+</style>
+-->
+<div class="container-lista">
+  <div class="header-lista">
+    <h1>
+      <img width="94" height="94" src="https://img.icons8.com/3d-fluency/200/form.png" alt="form"/>
+      Formularios
+    </h1>
+    <a href="{% url 'formbuilder:crear_formulario' %}" class="btn-crear-importar">
+      <img src="https://img.icons8.com/3d-fluency/200/add.png" alt="add"/>
+      Crear / Importar Formulario
+    </a>
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for formulario in formularios %}
+      <tr>
+        <td>{{ formulario.nombre }}</td>
+        <td>{{ formulario.descripcion|default:"-" }}</td>
+        <td>
+          <a href="{% url 'formbuilder:editar_formulario' formulario.id %}" class="btn btn-sm btn-primary">Editar</a>
+          <a href="{% url 'formbuilder:eliminar_formulario' formulario.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+          <a href="{% url 'formbuilder:exportar_formulario' formulario.id %}" class="btn btn-sm btn-outline-primary" target="_blank">Exportar JSON</a>
+          <a href="{% url 'formbuilder:responder_formulario' formulario.id %}" class="btn btn-sm btn-success">Responder</a>
+          <a href="{% url 'formbuilder:ver_respuestas' formulario.id %}" class="btn btn-sm btn-info">Ver Respuestas</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" class="text-center py-3">No hay formularios creados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

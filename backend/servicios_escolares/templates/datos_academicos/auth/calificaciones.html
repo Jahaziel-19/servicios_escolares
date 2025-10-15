@@ -1,0 +1,331 @@
+{% extends 'layouts/base_alumno.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Portal de Alumnos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .stats-summary {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 30px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .semestre-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+    }
+    
+    .semestre-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .materia-row {
+        padding: 15px;
+        border-left: 4px solid #e9ecef;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .materia-row:hover {
+        border-left-color: #667eea;
+        background: #f0f4ff;
+    }
+    
+    .materia-row.aprobada {
+        border-left-color: #28a745;
+        background: #f8fff9;
+    }
+    
+    .materia-row.reprobada {
+        border-left-color: #dc3545;
+        background: #fff8f8;
+    }
+    
+    .grade-badge {
+        padding: 8px 15px;
+        border-radius: 25px;
+        font-weight: bold;
+        font-size: 1rem;
+        min-width: 60px;
+        text-align: center;
+    }
+    
+    .grade-excellent {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .grade-good {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .grade-regular {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .grade-poor {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .creditos-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .back-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+    
+    .no-data i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-chart-line me-3"></i>Mis Calificaciones</h2>
+                <p class="mb-0">{{ alumno.nombre }} • {{ alumno.carrera.nombre }}</p>
+            </div>
+            <a href="{% url 'datos_academicos:alumno_dashboard' %}" class="back-btn">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <!-- Resumen estadístico -->
+    <div class="stats-summary">
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <div class="stat-number">{{ promedio_general }}</div>
+                    <div class="stat-label">Promedio General</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <div class="stat-number">{{ total_materias }}</div>
+                    <div class="stat-label">Total de Materias</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <div class="stat-number text-success">{{ materias_aprobadas }}</div>
+                    <div class="stat-label">Materias Aprobadas</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-item">
+                    <div class="stat-number text-danger">{{ materias_reprobadas }}</div>
+                    <div class="stat-label">Materias Reprobadas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Calificaciones por semestre -->
+    {% if calificaciones_por_semestre %}
+        {% for semestre, calificaciones in calificaciones_por_semestre.items %}
+            <div class="semestre-card">
+                <div class="semestre-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-book me-2"></i>
+                            {% if semestre == 0 %}
+                                Materias sin semestre asignado
+                            {% else %}
+                                {{ semestre }}° Semestre
+                            {% endif %}
+                        </h4>
+                        <span class="badge bg-light text-dark">
+                            {{ calificaciones|length }} materia{{ calificaciones|length|pluralize }}
+                        </span>
+                    </div>
+                </div>
+                
+                {% for calificacion in calificaciones %}
+                    <div class="materia-row {% if calificacion.calificacion >= 6 %}aprobada{% else %}reprobada{% endif %}">
+                        <div class="row align-items-center">
+                            <div class="col-lg-6">
+                                <h6 class="mb-1">{{ calificacion.materia.nombre }}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ calificacion.periodo_escolar|default:"Sin período asignado" }}
+                                </small>
+                            </div>
+                            <div class="col-lg-2 text-center">
+                                <span class="creditos-badge">
+                                    <i class="fas fa-medal me-1"></i>
+                                    {{ calificacion.materia.creditos }} crédito{{ calificacion.materia.creditos|pluralize }}
+                                </span>
+                            </div>
+                            <div class="col-lg-2 text-center">
+                                {% if calificacion.calificacion >= 6 %}
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <span class="text-success">Aprobada</span>
+                                {% else %}
+                                    <i class="fas fa-times-circle text-danger me-2"></i>
+                                    <span class="text-danger">Reprobada</span>
+                                {% endif %}
+                            </div>
+                            <div class="col-lg-2 text-end">
+                                <span class="grade-badge 
+                                    {% if calificacion.calificacion >= 9 %}grade-excellent
+                                    {% elif calificacion.calificacion >= 8 %}grade-good
+                                    {% elif calificacion.calificacion >= 6 %}grade-regular
+                                    {% else %}grade-poor{% endif %}">
+                                    {{ calificacion.calificacion }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="semestre-card">
+            <div class="no-data">
+                <i class="fas fa-chart-line"></i>
+                <h4>No hay calificaciones registradas</h4>
+                <p>Aún no tienes calificaciones en el sistema. Contacta a servicios escolares si crees que esto es un error.</p>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Información adicional -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="semestre-card">
+                <h5><i class="fas fa-info-circle me-2 text-primary"></i>Información Académica</h5>
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <small class="text-muted">Carrera</small>
+                        <p class="mb-2"><strong>{{ alumno.carrera.nombre }}</strong></p>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Matrícula</small>
+                        <p class="mb-2"><strong>{{ alumno.matricula }}</strong></p>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Semestre Actual</small>
+                        <p class="mb-2"><strong>{{ alumno.semestre }}°</strong></p>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Modalidad</small>
+                        <p class="mb-2"><strong>{{ alumno.get_modalidad_display }}</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="semestre-card">
+                <h5><i class="fas fa-graduation-cap me-2 text-primary"></i>Progreso Académico</h5>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <small class="text-muted">Créditos Aprobados</small>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>{{ alumno.creditos_aprobados }} / {{ alumno.carrera.creditos_totales }}</strong></span>
+                            <span class="text-primary">
+                                <strong>
+                                    {% widthratio alumno.creditos_aprobados alumno.carrera.creditos_totales 100 %}%
+                                </strong>
+                            </span>
+                        </div>
+                        <div class="progress mt-2" style="height: 10px;">
+                            <div class="progress-bar bg-primary" 
+                                 style="width: {% widthratio alumno.creditos_aprobados alumno.carrera.creditos_totales 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animación de entrada para las tarjetas
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.semestre-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

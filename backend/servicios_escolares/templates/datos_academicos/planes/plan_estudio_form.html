@@ -1,0 +1,156 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if plan %}Editar Plan de Estudio{% else %}Nuevo Plan de Estudio{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h3 class="card-title mb-0">
+                                <i class="fas fa-graduation-cap me-2"></i>
+                                {% if plan %}
+                                    Editar Plan de Estudio
+                                {% else %}
+                                    Nuevo Plan de Estudio
+                                {% endif %}
+                            </h3>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{% url 'datos_academicos:plan_estudio_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Volver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="clave" class="form-label">Clave del Plan <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="clave" name="clave" 
+                                           value="{% if plan %}{{ plan.clave }}{% endif %}" required>
+                                    <div class="form-text">Ejemplo: PLAN-2024-ISC</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="año" class="form-label">Año <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="año" name="año" 
+                                           value="{% if plan %}{{ plan.año }}{% endif %}" required>
+                                    <div class="form-text">Ejemplo: 2024</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="creditos" class="form-label">Créditos Totales</label>
+                                    <input type="number" class="form-control" id="creditos" name="creditos" 
+                                           value="{% if plan %}{{ plan.creditos }}{% else %}0{% endif %}" min="0" max="400">
+                                    <div class="form-text">Número total de créditos del plan</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="carrera" class="form-label">Carrera <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="carrera" name="carrera" required>
+                                        <option value="">Seleccionar carrera...</option>
+                                        <!-- Aquí se cargarían las carreras disponibles -->
+                                        {% if plan %}
+                                            <option value="{{ plan.carrera.id }}" selected>{{ plan.carrera.nombre }}</option>
+                                        {% endif %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="descripcion" class="form-label">Descripción</label>
+                                    <textarea class="form-control" id="descripcion" name="descripcion" rows="3" 
+                                              placeholder="Descripción opcional del plan de estudios">{% if plan %}{{ plan.descripcion }}{% endif %}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información adicional si es edición -->
+                        {% if plan %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    <strong>Plan existente:</strong> {{ plan.clave }} - {{ plan.carrera.nombre }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <span class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Los campos marcados con <span class="text-danger">*</span> son obligatorios
+                                </span>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-secondary me-2" onclick="history.back()">
+                                    <i class="fas fa-times me-1"></i>
+                                    Cancelar
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>
+                                    {% if plan %}
+                                        Actualizar Plan
+                                    {% else %}
+                                        Crear Plan
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información adicional para planes existentes -->
+            {% if plan %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Información Adicional
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb me-1"></i> Gestión de Materias</h6>
+                        <p class="mb-0">
+                            Para asignar materias a este plan de estudios, utiliza la sección de 
+                            <a href="{% url 'datos_academicos:materia_list' %}" class="alert-link">Gestión de Materias</a>
+                            donde puedes vincular materias con carreras y semestres.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

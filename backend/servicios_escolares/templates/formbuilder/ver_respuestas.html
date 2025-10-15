@@ -1,0 +1,44 @@
+{% extends "layouts/base.html" %}
+
+{% load custom_tags %}
+
+{% block title %}Respuestas - {{ formulario.nombre }}{% endblock %}
+{% block content %}
+
+<h1>Respuestas para: {{ formulario.nombre }}</h1>
+<p>{{ formulario.descripcion }}</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            {% for campo in formulario.fields %}
+            <th>{{ campo.label }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for respuesta in respuestas %}
+        <tr>
+            <td>{{ respuesta.fecha_respuesta }}</td>
+            {% for campo in formulario.fields %}
+                <td>
+                    {% with valor=respuesta.datos|get_item:campo.id %}
+                        {% if valor %}
+                            {{ valor|display_value }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    {% endwith %}
+
+                </td>
+            {% endfor %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="{{ formulario.fields|length|add:'1' }}">No hay respuestas aún.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'admision:admin_formularios' %}" class="btn btn-black">Volver</a>
+{% endblock %}

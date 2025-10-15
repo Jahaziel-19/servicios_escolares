@@ -1,0 +1,753 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Alumnos{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="row">
+    <!-- Encabezado -->
+    <div class="row gy-2 align-items-center mb-3">
+      <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+        <img src="{% static 'img/icons/alumno.png' %}" alt="Alumnos" class="img-fluid" style="max-width: 60px;">
+        <div>
+          <h1 class="mb-0 fw-bold">Gestión de Alumnos</h1>
+          <p class="text-muted mb-0">Administra alumnos, procesos de inscripción y reinscripción del sistema educativo.</p>
+        </div>
+      </div>
+      <div class="col-12 col-md-4 text-md-end">
+        <div class="btn-group">
+          <button type="button" class="btn btn-outline-success btn-sm" onclick="generarReporteAlumnos()">
+            <i class="material-symbols-rounded me-1">assessment</i>Reportes
+          </button>
+          <button type="button" class="btn btn-outline-warning btn-sm" onclick="mostrarImportadorAlumnos()">
+            <i class="material-symbols-rounded me-1">upload</i>Importar
+          </button>
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportarDatosAlumnos()">
+            <i class="material-symbols-rounded me-1">download</i>Exportar
+          </button>
+          <button type="button" class="btn btn-outline-info btn-sm" onclick="actualizarDatosAlumnos()">
+            <i class="material-symbols-rounded me-1">refresh</i>Actualizar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Total Alumnos</p>
+              <h4 class="mb-0">{{ total_alumnos }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-primary shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">school</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-success font-weight-bolder">+{{ alumnos_mes|default:0 }} <i class="material-symbols-rounded">trending_up</i></span>
+            este mes
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Alumnos Inscritos</p>
+              <h4 class="mb-0">{{ alumnos_inscritos }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-success shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">check_circle</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-success font-weight-bolder">{{ porcentaje_inscritos|floatformat:1 }}% <i class="material-symbols-rounded">trending_up</i></span>
+            del total
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Nuevos Ingresos</p>
+              <h4 class="mb-0">{{ nuevos_ingresos }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-warning shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">person_add</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-warning font-weight-bolder">{{ reingresos|default:0 }} <i class="material-symbols-rounded">refresh</i></span>
+            reingresos
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Promedio General</p>
+              <h4 class="mb-0">{{ promedio_general|floatformat:2 }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-info shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">analytics</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            <span class="text-info font-weight-bolder">{{ total_creditos_aprobados|default:0 }} <i class="material-symbols-rounded">star</i></span>
+            créditos aprobados
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos Principales -->
+  <div class="row mt-4">
+    <div class="col-lg-8 mb-lg-0 mb-4">
+      <div class="card">
+        <div class="card-body p-3">
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="d-flex flex-column h-100">
+                <p class="mb-1 pt-2 text-bold">Alumnos por Carrera</p>
+                <h5 class="font-weight-bolder">Distribución Académica</h5>
+                <p class="mb-5">Visualización de alumnos registrados por carrera</p>
+                <div class="d-flex">
+                  <button class="btn btn-sm btn-outline-primary me-2" onclick="cambiarTipoGraficoAlumnos('bar')">Barras</button>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="cambiarTipoGraficoAlumnos('pie')">Circular</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="chart">
+                <canvas id="chart-alumnos-carrera" class="chart-canvas" height="170"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header pb-0 p-3">
+          <h6 class="mb-0">Distribución por Estatus</h6>
+        </div>
+        <div class="card-body p-3">
+          <div class="chart">
+            <canvas id="chart-estatus-alumnos" class="chart-canvas" height="170"></canvas>
+          </div>
+          <div class="mt-3">
+            {% for estatus in estatus_distribucion %}
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+              <div class="d-flex align-items-center">
+                <div class="icon icon-shape icon-xxs shadow border-radius-sm me-3" 
+                     style="background-color: {{ estatus.color }};">
+                </div>
+                <span class="text-sm">{{ estatus.estatus }}</span>
+              </div>
+              <span class="text-xs font-weight-bold">{{ estatus.cantidad }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tablas de información -->
+  <div class="row mt-4">
+    <div class="col-lg-8 mb-lg-0 mb-4">
+      <div class="card">
+        <div class="card-header pb-0 p-3">
+          <div class="d-flex justify-content-between">
+            <h6 class="mb-0">Carreras con Más Alumnos</h6>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-primary" onclick="ordenarTablaAlumnos('alumnos')">Por Alumnos</button>
+              <button class="btn btn-outline-secondary" onclick="ordenarTablaAlumnos('promedio')">Por Promedio</button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-3">
+          <div class="table-responsive">
+            <table class="table align-items-center mb-0" id="tabla-carreras-alumnos">
+              <thead>
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Carrera</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Alumnos</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Promedio</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Inscritos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for carrera in carreras_populares %}
+                <tr>
+                  <td>
+                    <div class="d-flex px-2 py-1">
+                      <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">{{ carrera.carrera__nombre }}</h6>
+                        <p class="text-xs text-secondary mb-0">{{ carrera.carrera__clave }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="text-xs font-weight-bold">{{ carrera.num_alumnos }}</span>
+                  </td>
+                  <td>
+                    <span class="text-xs font-weight-bold">{{ carrera.promedio|floatformat:2 }}</span>
+                  </td>
+                  <td>
+                    <div class="progress-wrapper w-75 mx-auto">
+                      <div class="progress-info">
+                        <div class="progress-percentage">
+                          <span class="text-xs font-weight-bold">{{ carrera.porcentaje_inscritos|floatformat:1 }}%</span>
+                        </div>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar bg-gradient-success" role="progressbar" 
+                             style="width: {{ carrera.porcentaje_inscritos }}%" 
+                             aria-valuenow="{{ carrera.porcentaje_inscritos }}" 
+                             aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center">No hay datos disponibles</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header pb-0 p-3">
+          <h6 class="mb-0">Acciones Principales</h6>
+        </div>
+        <div class="card-body p-3">
+          <ul class="list-group">
+            <li class="list-group-item border-0 d-flex justify-content-between ps-0 mb-2 border-radius-lg">
+              <div class="d-flex align-items-center">
+                <div class="icon icon-shape icon-sm me-3 bg-gradient-primary shadow text-center">
+                  <i class="material-symbols-outlined text-white opacity-10">
+                    assignment
+                  </i>
+                </div>
+                <div class="d-flex flex-column">
+                  <a href="{% url 'datos_academicos:alumno_list' %}">
+                    <h6 class="mb-1 text-dark text-sm">Ver Alumnos</h6>
+                    <span class="text-xs">Lista completa de alumnos</span>
+                  </a>
+                </div>
+              </div>
+              <div class="d-flex">
+                <button class="btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto">
+                  <i class="ni ni-bold-right" aria-hidden="true"></i>
+                </button>
+              </div>
+            </li>
+                    <div class="col-md-6 mb-3">
+                        <button type="button" class="btn btn-success btn-lg w-100 shadow-sm" onclick="mostrarFormularioInscripcion()">
+                            <i class="fas fa-user-plus me-2"></i>
+                            <div>
+                                <strong>Nueva Inscripción</strong>
+                                <small class="d-block">Registrar nuevo alumno</small>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <button type="button" class="btn btn-warning btn-lg w-100 shadow-sm" onclick="mostrarFormularioReinscripcion()">
+                            <i class="fas fa-user-edit me-2"></i>
+                            <div>
+                                <strong>Reinscripción</strong>
+                                <small class="d-block">Proceso de reinscripción</small>
+                            </div>
+                        </button>
+                    </div>
+            <li class="list-group-item border-0 d-flex justify-content-between ps-0 border-radius-lg">
+              <div class="d-flex align-items-center">
+                <div class="icon icon-shape icon-sm me-3 bg-gradient-info shadow text-center">
+                  <i class="material-symbols-outlined text-white opacity-10">
+                    description
+                  </i>
+                </div>
+                <div class="d-flex flex-column">
+                  <a href="#" onclick="generarReporteAlumnos()">
+                    <h6 class="mb-1 text-dark text-sm">Generar Reportes</h6>
+                    <span class="text-xs">Reportes y estadísticas</span>
+                  </a>
+                </div>
+              </div>
+              <div class="d-flex">
+                <button class="btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto">
+                  <i class="ni ni-bold-right" aria-hidden="true"></i>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Inscripción -->
+<div class="modal fade" id="inscripcionModal" tabindex="-1" aria-labelledby="inscripcionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="inscripcionModalLabel">
+                    <i class="fas fa-user-plus me-2"></i>Nueva Inscripción
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="inscripcionFormContainer">
+                    <!-- El formulario se cargará aquí dinámicamente -->
+                    <div class="text-center">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando formulario de inscripción...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Reinscripción -->
+<div class="modal fade" id="reinscripcionModal" tabindex="-1" aria-labelledby="reinscripcionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="reinscripcionModalLabel">
+                    <i class="fas fa-user-edit me-2"></i>Reinscripción de Alumno
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="reinscripcionFormContainer">
+                    <!-- El formulario se cargará aquí dinámicamente -->
+                    <div class="text-center">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando formulario de reinscripción...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Datos para gráficos (pasados desde Django)
+    const carrerasData = {{ carreras_data|safe }};
+    const cantidadesData = {{ cantidades_data|safe }};
+    const estatusData = {{ estatus_data|safe }};
+    const estatusCantidades = {{ estatus_cantidades|safe }};
+
+    // Gráfico de Alumnos por Carrera
+    const ctxCarrera = document.getElementById('chart-alumnos-carrera').getContext('2d');
+    let chartAlumnosCarrera = new Chart(ctxCarrera, {
+        type: 'bar',
+        data: {
+            labels: carrerasData,
+            datasets: [{
+                label: 'Alumnos',
+                data: cantidadesData,
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(255, 205, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 205, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y + ' alumnos';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Gráfico de Distribución por Estatus
+    const ctxEstatus = document.getElementById('chart-estatus-alumnos').getContext('2d');
+    const chartEstatusAlumnos = new Chart(ctxEstatus, {
+        type: 'doughnut',
+        data: {
+            labels: estatusData,
+            datasets: [{
+                data: estatusCantidades,
+                backgroundColor: [
+                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(139, 92, 246, 0.8)'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Función para cambiar tipo de gráfico
+    window.cambiarTipoGraficoAlumnos = function(tipo) {
+        chartAlumnosCarrera.destroy();
+        chartAlumnosCarrera = new Chart(ctxCarrera, {
+            type: tipo,
+            data: {
+                labels: carrerasData,
+                datasets: [{
+                    label: 'Alumnos',
+                    data: cantidadesData,
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(255, 205, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(255, 205, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: tipo === 'pie'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' alumnos';
+                            }
+                        }
+                    }
+                },
+                scales: tipo === 'bar' ? {
+                    y: {
+                        beginAtZero: true
+                    }
+                } : {}
+            }
+        });
+    };
+
+    // Funciones para modales y acciones
+    window.mostrarFormularioInscripcion = function() {
+        const modal = new bootstrap.Modal(document.getElementById('inscripcionModal'));
+        const container = document.getElementById('inscripcionFormContainer');
+        
+        // Mostrar loading
+        container.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2">Cargando formulario de inscripción...</p>
+            </div>
+        `;
+        
+        modal.show();
+        
+        // Cargar formulario dinámicamente
+        fetch('/datos_academicos/inscripcion/nueva/')
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error al cargar el formulario de inscripción. Por favor, intente nuevamente.
+                    </div>
+                `;
+                console.error('Error:', error);
+            });
+    }
+    
+    // Función para mostrar formulario de reinscripción
+    window.mostrarFormularioReinscripcion = function() {
+        const modal = new bootstrap.Modal(document.getElementById('reinscripcionModal'));
+        const container = document.getElementById('reinscripcionFormContainer');
+        
+        // Mostrar loading
+        container.innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-warning" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-2">Cargando formulario de reinscripción...</p>
+            </div>
+        `;
+        
+        modal.show();
+        
+        // Cargar formulario dinámicamente
+        fetch('/datos_academicos/reinscripcion/nueva/')
+            .then(response => response.text())
+            .then(html => {
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error al cargar el formulario de reinscripción. Por favor, intente nuevamente.
+                    </div>
+                `;
+                console.error('Error:', error);
+            });
+    }
+    
+    // Función para procesar formulario de inscripción
+    function procesarInscripcion(form) {
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        // Mostrar loading en botón
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+        submitBtn.disabled = true;
+        
+        fetch('/datos_academicos/inscripcion/crear/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Inscripción Exitosa!',
+                    html: `
+                        <p>Folio: <strong>${data.folio}</strong></p>
+                        <p>La inscripción ha sido registrada correctamente.</p>
+                        <div class="mt-3">
+                            <a href="/datos_academicos/inscripcion/${data.inscripcion_id}/documento/" 
+                               class="btn btn-primary btn-sm" target="_blank">
+                                <i class="fas fa-download me-2"></i>Descargar Formato
+                            </a>
+                        </div>
+                    `,
+                    confirmButtonText: 'Cerrar'
+                }).then(() => {
+                    // Cerrar modal y recargar datos
+                    bootstrap.Modal.getInstance(document.getElementById('inscripcionModal')).hide();
+                    location.reload();
+                });
+            } else {
+                // Mostrar errores
+                let errorMsg = 'Por favor, corrija los siguientes errores:\n';
+                for (let field in data.errors) {
+                    errorMsg += `- ${data.errors[field].join(', ')}\n`;
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error en la Inscripción',
+                    text: errorMsg,
+                    confirmButtonText: 'Aceptar'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error del Sistema',
+                text: 'Ocurrió un error al procesar la inscripción. Por favor, intente nuevamente.',
+                confirmButtonText: 'Aceptar'
+            });
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            // Restaurar botón
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+        
+        return false; // Prevenir envío normal del formulario
+    }
+    
+    // Función para procesar formulario de reinscripción
+    window.procesarReinscripcion = function(form) {
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        // Mostrar loading en botón
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+        submitBtn.disabled = true;
+        
+        fetch('/datos_academicos/reinscripcion/crear/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Reinscripción Exitosa!',
+                    html: `
+                        <p>Folio: <strong>${data.folio}</strong></p>
+                        <p>La reinscripción ha sido registrada correctamente.</p>
+                        <div class="mt-3">
+                            <a href="/datos_academicos/reinscripcion/${data.reinscripcion_id}/documento/" 
+                               class="btn btn-primary btn-sm" target="_blank">
+                                <i class="fas fa-download me-2"></i>Descargar Formato
+                            </a>
+                        </div>
+                    `,
+                    confirmButtonText: 'Cerrar'
+                }).then(() => {
+                    // Cerrar modal y recargar datos
+                    bootstrap.Modal.getInstance(document.getElementById('reinscripcionModal')).hide();
+                    location.reload();
+                });
+            } else {
+                // Mostrar errores
+                let errorMsg = 'Por favor, corrija los siguientes errores:\n';
+                for (let field in data.errors) {
+                    errorMsg += `- ${data.errors[field].join(', ')}\n`;
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error en la Reinscripción',
+                    text: errorMsg,
+                    confirmButtonText: 'Aceptar'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error del Sistema',
+                text: 'Ocurrió un error al procesar la reinscripción. Por favor, intente nuevamente.',
+                confirmButtonText: 'Aceptar'
+            });
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            // Restaurar botón
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+        
+        return false; // Prevenir envío normal del formulario
+    }
+
+    // Funciones de utilidad
+    window.generarReporteAlumnos = function() {
+        alert('Función de reportes de alumnos en desarrollo');
+    };
+
+    window.mostrarImportadorAlumnos = function() {
+        alert('Función de importación de alumnos en desarrollo');
+    };
+
+    window.exportarDatosAlumnos = function() {
+        alert('Función de exportación de alumnos en desarrollo');
+    };
+
+    window.actualizarDatosAlumnos = function() {
+        location.reload();
+    };
+
+    window.ordenarTablaAlumnos = function(criterio) {
+        alert('Función de ordenamiento por ' + criterio + ' en desarrollo');
+    };
+});
+</script>
+{% endblock %}

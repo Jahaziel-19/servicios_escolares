@@ -1,0 +1,55 @@
+Marca temporal	
+Dirección de correo electrónico	
+¿Por que medio te convenciste para estudiar en el ITSTlaxco?	
+Nombre	
+Apellido paterno	
+Apellido materno	
+Sexo	
+Dirección	
+Código postal	
+Colonia / comunidad	
+Zona de procedencia	
+Municipio	
+Estado	
+Número de teléfono	
+Ingeniería que desea cursar... (PRIMERA OPCIÓN)	
+Ingeniería que desea cursar... (SEGUNDA OPCIÓN)	
+Modalidad	
+¿Trabajas?	
+¿ERES TRABAJADOR DE LA SECRETARÍA DE SEGURIDAD CIUDADANA DEL ESTADO DE TLAXCALA?	
+Mencione el nombre de la empresa o institución donde trabaja	
+Dirección de la empresa o institución donde labora	
+Teléfono de su trabajo	
+Nombre del puesto que desempeña	
+Días y horario de trabajo	
+CURP	
+Fecha de nacimiento	
+Número de seguridad social	
+Estado civil	
+Preparatoria donde cursó	
+tipo de preparatoria o bachillerato.	
+Municipio donde se ubica la preparatoria 	
+Estado donde se ubica la preparatoria 	
+Promedio general	
+Año de egreso	
+¿Tienes alguna discapacidad?	
+¿Cuál?	
+¿Habla alguna lengua indígena?	
+¿Cuál?	
+¿Es alérgico a algún medicamento?	
+¿Cuál?	
+Nombre del padre / tutor	
+Primer apellido del padre / tutor	
+Segundo apellido del padre / tutor	
+Número Telefónico del padre / tutor	
+Dirección del padre / tutor	
+Código postal	Colonia / Comunidad	
+Municipio	
+Estado	
+Nombre de la persona en caso de una emergencia 	
+Parentesco	
+Número de teléfono	
+Primer persona que puede consultar tu expediente	
+Parentesco	
+Segunda persona que puede consultar tu expediente	
+Parentesco

@@ -1,0 +1,94 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Detalle de Materia{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- Encabezado -->
+  <div class="row gy-2 align-items-center mb-3">
+    <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+      <div style="font-size: 3rem; color: #1abc9c;">📚</div>
+      <div>
+        <h1 class="mb-0 fw-bold">{{ materia.nombre }}</h1>
+        <p class="text-muted mb-0">Clave: {{ materia.clave }}</p>
+      </div>
+    </div>
+    <div class="col-12 col-md-4 text-md-end">
+      <a href="{% url 'datos_academicos:materia_edit' materia.pk %}" class="btn btn-warning d-inline-flex align-items-center gap-1" aria-label="Editar materia">
+        <i class="material-symbols-rounded">edit</i> Editar
+      </a>
+      <a href="{% url 'datos_academicos:materia_list' %}" class="btn btn-secondary d-inline-flex align-items-center gap-1" aria-label="Volver a la lista">
+        <i class="material-symbols-rounded">arrow_back</i> Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Información de la materia -->
+  <div class="row">
+    <div class="col-12 col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Información General</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Clave:</label>
+              <p class="mb-0">{{ materia.clave }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Nombre:</label>
+              <p class="mb-0">{{ materia.nombre }}</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-bold">Créditos:</label>
+              <p class="mb-0">{{ materia.creditos }}</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-bold">Horas Teóricas:</label>
+              <p class="mb-0">{{ materia.horas_teoricas }}</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label fw-bold">Horas Prácticas:</label>
+              <p class="mb-0">{{ materia.horas_practicas }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Tipo de Curso:</label>
+              <p class="mb-0">{{ materia.tipo|default:"No especificado" }}</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-bold">Estado:</label>
+              <span class="badge bg-success">Activa</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Estadísticas</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Total de Horas:</label>
+            <p class="mb-0">{{ materia.horas_teoricas|add:materia.horas_practica }} horas</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Alumnos Inscritos:</label>
+            <p class="mb-0">-</p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Grupos Activos:</label>
+            <p class="mb-0">-</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

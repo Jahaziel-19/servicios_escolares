@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ formulario.nombre }} - Previsualización</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .preview-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .form-header {
+            background: linear-gradient(45deg, #4e73df, #224abe);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .form-body {
+            padding: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .required-asterisk {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        
+        .form-check {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .form-check:hover {
+            background: #e3f2fd;
+            border-color: #4e73df;
+        }
+        
+        .form-check-input {
+            width: 1.2em;
+            height: 1.2em;
+            margin-right: 0.5rem;
+        }
+        
+        .form-check-label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #4e73df;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8f9fc;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .file-upload-area:hover {
+            background: #e3f2fd;
+            border-color: #224abe;
+        }
+        
+        .file-upload-icon {
+            font-size: 3rem;
+            color: #4e73df;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-submit {
+            background: linear-gradient(45deg, #1cc88a, #13855c);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(28, 200, 138, 0.3);
+        }
+        
+        .preview-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #e74c3c;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .form-description {
+            background: #e3f2fd;
+            border-left: 4px solid #4e73df;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .field-help {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        
+        .form-progress {
+            background: #e9ecef;
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .form-progress-bar {
+            background: linear-gradient(45deg, #4e73df, #224abe);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .close-preview {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: 600;
+            z-index: 1000;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .close-preview:hover {
+            background: #495057;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .preview-container {
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+            }
+            
+            .form-header {
+                padding: 1.5rem;
+            }
+            
+            .form-body {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Badges de previsualización -->
+    <div class="preview-badge">
+        <i class="fas fa-eye"></i> PREVISUALIZACIÓN
+    </div>
+    
+    <a href="javascript:window.close();" class="close-preview">
+        <i class="fas fa-times"></i> Cerrar
+    </a>
+
+    <div class="preview-container">
+        <div class="form-card">
+            <!-- Header del formulario -->
+            <div class="form-header">
+                <h1 class="mb-3">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    {{ formulario.nombre }}
+                </h1>
+                {% if formulario.descripcion %}
+                <p class="mb-0 opacity-75">{{ formulario.descripcion }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Cuerpo del formulario -->
+            <div class="form-body">
+                {% if formulario.descripcion %}
+                <div class="form-description">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ formulario.descripcion }}
+                </div>
+                {% endif %}
+
+                <!-- Barra de progreso simulada -->
+                <div class="form-progress">
+                    <div class="form-progress-bar" id="progress-bar"></div>
+                </div>
+
+                <form id="preview-form">
+                    <div id="form-fields">
+                        <!-- Los campos se generarán dinámicamente -->
+                    </div>
+
+                    <!-- Botón de envío -->
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn-submit" onclick="simulateSubmit()">
+                            <i class="fas fa-paper-plane me-2"></i>
+                            Enviar Solicitud
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Información adicional -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6 class="text-muted mb-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Información de la Previsualización
+                    </h6>
+                    <ul class="list-unstyled mb-0 small text-muted">
+                        <li><i class="fas fa-check me-1 text-success"></i> Esta es una previsualización del formulario</li>
+                        <li><i class="fas fa-check me-1 text-success"></i> Los datos no se guardarán al enviar</li>
+                        <li><i class="fas fa-check me-1 text-success"></i> Todos los campos son funcionales para pruebas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const formFields = {{ formulario.fields|safe }};
+        let currentProgress = 0;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (formFields && Array.isArray(formFields)) {
+                generateFormFields();
+                setupProgressTracking();
+                updateProgress();
+            } else {
+                showEmptyState();
+            }
+        });
+
+        function generateFormFields() {
+            const container = document.getElementById('form-fields');
+            let html = '';
+
+            formFields.forEach((field, index) => {
+                html += generateFieldHTML(field, index);
+            });
+
+            container.innerHTML = html;
+        }
+
+        function generateFieldHTML(field, index) {
+            let html = `<div class="form-group" data-field-index="${index}">`;
+            
+            // Label
+            html += `<label class="form-label">
+                ${field.label}
+                ${field.required ? '<span class="required-asterisk">*</span>' : ''}
+            </label>`;
+
+            // Campo según el tipo
+            switch (field.type) {
+                case 'text':
+                    html += `<input type="text" class="form-control" name="${field.name}" 
+                             placeholder="${field.placeholder || ''}" 
+                             ${field.required ? 'required' : ''}>`;
+                    break;
+
+                case 'email':
+                    html += `<input type="email" class="form-control" name="${field.name}" 
+                             placeholder="${field.placeholder || 'ejemplo@correo.com'}" 
+                             ${field.required ? 'required' : ''}>`;
+                    break;
+
+                case 'number':
+                    html += `<input type="number" class="form-control" name="${field.name}" 
+                             placeholder="${field.placeholder || ''}" 
+                             ${field.required ? 'required' : ''}>`;
+                    break;
+
+                case 'textarea':
+                    html += `<textarea class="form-control" name="${field.name}" rows="4" 
+                             placeholder="${field.placeholder || ''}" 
+                             ${field.required ? 'required' : ''}></textarea>`;
+                    break;
+
+                case 'select':
+                    html += `<select class="form-select" name="${field.name}" ${field.required ? 'required' : ''}>`;
+                    html += `<option value="">Selecciona una opción</option>`;
+                    if (field.options && field.options.length > 0) {
+                        field.options.forEach(option => {
+                            html += `<option value="${option}">${option}</option>`;
+                        });
+                    }
+                    html += `</select>`;
+                    break;
+
+                case 'date':
+                    html += `<input type="date" class="form-control" name="${field.name}" 
+                             ${field.required ? 'required' : ''}>`;
+                    break;
+
+                case 'checkbox':
+                    html += `<div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="${field.name}" 
+                               id="${field.name}" ${field.required ? 'required' : ''}>
+                        <label class="form-check-label" for="${field.name}">
+                            ${field.placeholder || 'Acepto los términos y condiciones'}
+                        </label>
+                    </div>`;
+                    break;
+
+                case 'file':
+                    html += `<div class="file-upload-area" onclick="document.getElementById('${field.name}').click()">
+                        <div class="file-upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div>
+                            <strong>Haz clic para seleccionar archivo</strong>
+                            <div class="text-muted small mt-1">o arrastra y suelta aquí</div>
+                        </div>
+                        <input type="file" id="${field.name}" name="${field.name}" 
+                               style="display: none;" ${field.required ? 'required' : ''}>
+                    </div>`;
+                    break;
+            }
+
+            // Texto de ayuda si existe
+            if (field.placeholder && field.type !== 'checkbox' && field.type !== 'file') {
+                html += `<div class="field-help">${field.placeholder}</div>`;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        function setupProgressTracking() {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('input', updateProgress);
+                input.addEventListener('change', updateProgress);
+            });
+        }
+
+        function updateProgress() {
+            const totalFields = formFields.length;
+            if (totalFields === 0) return;
+
+            const filledFields = Array.from(document.querySelectorAll('input, select, textarea'))
+                .filter(input => {
+                    if (input.type === 'checkbox') {
+                        return input.checked;
+                    } else if (input.type === 'file') {
+                        return input.files.length > 0;
+                    } else {
+                        return input.value.trim() !== '';
+                    }
+                }).length;
+
+            const progress = Math.round((filledFields / totalFields) * 100);
+            document.getElementById('progress-bar').style.width = progress + '%';
+        }
+
+        function simulateSubmit() {
+            // Validar campos requeridos
+            const requiredFields = document.querySelectorAll('[required]');
+            let allValid = true;
+
+            requiredFields.forEach(field => {
+                if (field.type === 'checkbox') {
+                    if (!field.checked) {
+                        allValid = false;
+                        field.focus();
+                    }
+                } else if (field.type === 'file') {
+                    if (field.files.length === 0) {
+                        allValid = false;
+                        field.focus();
+                    }
+                } else {
+                    if (!field.value.trim()) {
+                        allValid = false;
+                        field.focus();
+                    }
+                }
+            });
+
+            if (!allValid) {
+                alert('Por favor, completa todos los campos obligatorios marcados con *');
+                return;
+            }
+
+            // Simular envío exitoso
+            const submitBtn = document.querySelector('.btn-submit');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+            submitBtn.disabled = true;
+
+            setTimeout(() => {
+                alert('¡Formulario enviado exitosamente!\n\nEsta es solo una previsualización. En el sistema real, los datos se guardarían en la base de datos.');
+                
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 2000);
+        }
+
+        function showEmptyState() {
+            document.getElementById('form-fields').innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay campos configurados</h5>
+                    <p class="text-muted">Este formulario no tiene campos definidos para mostrar.</p>
+                </div>
+            `;
+        }
+
+        // Manejar archivos drag & drop
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const fileAreas = document.querySelectorAll('.file-upload-area');
+            fileAreas.forEach(area => {
+                area.style.background = '#f8f9fc';
+                area.style.borderColor = '#4e73df';
+            });
+        });
+    </script>
+</body>
+</html>

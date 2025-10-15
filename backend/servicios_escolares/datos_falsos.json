@@ -1,0 +1,184 @@
+{
+  "ciclos_escolares": [
+    {
+      "id": 1,
+      "ciclo": "Febrero - Julio",
+      "año": 2023
+    },
+    {
+      "id": 2,
+      "ciclo": "Agosto - Diciembre",
+      "año": 2023
+    },
+    {
+      "id": 3,
+      "ciclo": "Febrero - Julio",
+      "año": 2024
+    }
+  ],
+  "carreras": [
+    {
+      "id": 1,
+      "clave": "ISC",
+      "nombre": "Ingeniería en Sistemas Computacionales"
+    },
+    {
+      "id": 2,
+      "clave": "IIA",
+      "nombre": "Ingeniería Industrial Administrativa"
+    },
+    {
+      "id": 3,
+      "clave": "IME",
+      "nombre": "Ingeniería Mecatrónica"
+    }
+  ],
+  "materias": [
+    {
+      "id": 1,
+      "clave": "ISC-101",
+      "nombre": "Programación Básica",
+      "creditos": 8,
+      "carrera": 1,
+      "tipo": "Obligatoria"
+    },
+    {
+      "id": 2,
+      "clave": "ISC-102",
+      "nombre": "Estructuras de Datos",
+      "creditos": 8,
+      "carrera": 1,
+      "tipo": "Obligatoria"
+    },
+    {
+      "id": 3,
+      "clave": "IIA-201",
+      "nombre": "Procesos Industriales",
+      "creditos": 6,
+      "carrera": 2,
+      "tipo": "Obligatoria"
+    },
+    {
+      "id": 4,
+      "clave": "IME-301",
+      "nombre": "Robótica Industrial",
+      "creditos": 8,
+      "carrera": 3,
+      "tipo": "Especialidad"
+    }
+  ],
+  "planes_estudio": [
+    {
+      "id": 1,
+      "clave": "PLAN-2020",
+      "plan": "Plan de Estudios 2020",
+      "carrera": 1,
+      "materias": [1, 2]
+    },
+    {
+      "id": 2,
+      "clave": "PLAN-2021",
+      "plan": "Plan de Estudios 2021",
+      "carrera": 2,
+      "materias": [3]
+    }
+  ],
+  "grupos": [
+    {
+      "id": 1,
+      "nombre": "101-A",
+      "ciclo_escolar": 1,
+      "carrera": 1,
+      "materias": [1, 2]
+    },
+    {
+      "id": 2,
+      "nombre": "201-B",
+      "ciclo_escolar": 2,
+      "carrera": 2,
+      "materias": [3]
+    }
+  ],
+  "alumnos": [
+    {
+      "id": 1,
+      "matricula": "ISC2023001",
+      "nombre": "Juan",
+      "apellido_paterno": "Pérez",
+      "apellido_materno": "López",
+      "carrera": 1,
+      "semestre": 3,
+      "promedio": 8.5,
+      "modalidad": "A",
+      "grupo": 1,
+      "estatus": "Inscrito",
+      "division_estudio": "Nuevo Ingreso",
+      "curp": "PELJ000101HDFLPN01",
+      "email": "juan.perez@example.com",
+      "fecha_nacimiento": "2000-01-01",
+      "sexo": "M",
+      "estado_civil": "Soltero",
+      "telefono": "5512345678",
+      "rfc": "PELJ000101ABC",
+      "nss": "12345678901",
+      "calle": "Av. Siempre Viva",
+      "numero_exterior": "123",
+      "numero_interior": "A",
+      "colonia": "Centro",
+      "municipio": "Ciudad de México",
+      "estado": "Ciudad de México",
+      "codigo_postal": "01000",
+      "zona_procedencia": "Urbana"
+    },
+    {
+      "id": 2,
+      "matricula": "IIA2023001",
+      "nombre": "María",
+      "apellido_paterno": "Gómez",
+      "apellido_materno": null,
+      "carrera": 2,
+      "semestre": 5,
+      "promedio": 9.1,
+      "modalidad": "B",
+      "grupo": 2,
+      "estatus": "Inscrito",
+      "division_estudio": "Reingreso",
+      "curp": "GOMX000101MDFMRS02",
+      "email": "maria.gomez@example.com",
+      "fecha_nacimiento": "1999-05-15",
+      "sexo": "F",
+      "estado_civil": "Soltero",
+      "telefono": "5598765432",
+      "rfc": "GOMX990515ABC",
+      "nss": "98765432109",
+      "calle": "Calle Falsa",
+      "numero_exterior": "456",
+      "numero_interior": null,
+      "colonia": "Reforma",
+      "municipio": "Toluca",
+      "estado": "Estado de México",
+      "codigo_postal": "50000",
+      "zona_procedencia": "Urbana"
+    }
+  ],
+  "docentes": [
+    {
+      "id": 1,
+      "nombre": "Carlos",
+      "apellido_paterno": "Rodríguez",
+      "apellido_materno": "Martínez",
+      "titulo": "M.C. en Ciencias Computacionales",
+      "email": "c.rodriguez@example.com",
+      "materias": [1, 2]
+    },
+    {
+      "id": 2,
+      "nombre": "Laura",
+      "apellido_paterno": "Hernández",
+      "apellido_materno": null,
+      "titulo": "Ing. Industrial",
+      "email": "l.hernandez@example.com",
+      "materias": [3]
+    }
+  ]
+}

@@ -1,0 +1,465 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard de Inscripciones{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos específicos para el dashboard que complementan el base.html */
+    .stats-card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stats-card .card-body {
+        padding: 2rem;
+        color: white;
+        text-align: center;
+    }
+    
+    .stats-number {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .chart-card {
+        border: none;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        overflow: hidden;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        padding: 1rem;
+    }
+    
+    .recent-card {
+        border: none;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .recent-item {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        transition: background-color 0.3s ease;
+    }
+    
+    .recent-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .recent-item:last-child {
+        border-bottom: none;
+    }
+    
+    .quick-actions {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 2rem;
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: translateX(5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-main">
+    <div class="glass-card">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Dashboard de Inscripciones
+                </h1>
+                <p class="text-muted mb-0">Resumen general del sistema de inscripciones</p>
+            </div>
+            <div>
+                <a href="{% url 'datos_academicos:inscripcion_simple' %}" class="btn-primary me-2">
+                    <i class="fas fa-plus me-2"></i>Nueva Inscripción
+                </a>
+                <a href="{% url 'datos_academicos:inscripcion_list' %}" class="btn-primary">
+                    <i class="fas fa-list me-2"></i>Ver Todas
+                </a>
+            </div>
+        </div>
+
+    <!-- Estadísticas Principales -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card card">
+                <div class="card-body" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="stats-number">{{ stats.total }}</div>
+                    <div class="stats-label">Total Inscripciones</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card card">
+                <div class="card-body" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="stats-number">{{ stats.pendientes }}</div>
+                    <div class="stats-label">Pendientes</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card card">
+                <div class="card-body" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div class="stats-number">{{ stats.aprobadas }}</div>
+                    <div class="stats-label">Aprobadas</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card card">
+                <div class="card-body" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    <div class="stats-number">{{ stats.rechazadas }}</div>
+                    <div class="stats-label">Rechazadas</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Gráficos -->
+        <div class="col-lg-8">
+            <!-- Distribución por Estado -->
+            <div class="chart-card card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Distribución por Estado
+                    </h5>
+                </div>
+                <div class="chart-container">
+                    <canvas id="estadosChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Inscripciones por Carrera -->
+            <div class="chart-card card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Inscripciones por Carrera
+                    </h5>
+                </div>
+                <div class="chart-container">
+                    <canvas id="carrerasChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tendencia Mensual -->
+            <div class="chart-card card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Tendencia Mensual
+                    </h5>
+                </div>
+                <div class="chart-container">
+                    <canvas id="tendenciaChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="col-lg-4">
+            <!-- Acciones Rápidas -->
+            <div class="quick-actions mb-4">
+                <h5 class="mb-3">
+                    <i class="fas fa-bolt me-2"></i>
+                    Acciones Rápidas
+                </h5>
+                <a href="{% url 'datos_academicos:inscripcion_simple' %}" class="action-btn">
+                    <i class="fas fa-plus me-2"></i>
+                    Nueva Inscripción
+                </a>
+                <a href="{% url 'datos_academicos:inscripcion_list' %}" class="action-btn">
+                    <i class="fas fa-list me-2"></i>
+                    Ver Todas las Inscripciones
+                </a>
+                <a href="{% url 'datos_academicos:inscripcion_list' %}?estado=pendiente" class="action-btn">
+                    <i class="fas fa-clock me-2"></i>
+                    Revisar Pendientes
+                </a>
+                <a href="{% url 'datos_academicos:inscripcion_list' %}?estado=aprobada" class="action-btn">
+                    <i class="fas fa-check me-2"></i>
+                    Ver Aprobadas
+                </a>
+            </div>
+
+            <!-- Inscripciones Recientes -->
+            <div class="recent-card card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        Inscripciones Recientes
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    {% if inscripciones_recientes %}
+                        {% for inscripcion in inscripciones_recientes %}
+                            <div class="recent-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'datos_academicos:inscripcion_detail' inscripcion.pk %}" 
+                                               class="text-decoration-none">
+                                                {{ inscripcion.nombre_completo }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">
+                                            {{ inscripcion.carrera_solicitada.nombre }}
+                                        </small>
+                                        <div class="mt-1">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                {{ inscripcion.fecha_solicitud|date:"d/m/Y H:i" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="badge 
+                                            {% if inscripcion.estado == 'pendiente' %}bg-warning text-dark
+                                            {% elif inscripcion.estado == 'aprobada' %}bg-success
+                                            {% elif inscripcion.estado == 'rechazada' %}bg-danger
+                                            {% endif %}">
+                                            {{ inscripcion.get_estado_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox text-muted" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">No hay inscripciones recientes</p>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if inscripciones_recientes %}
+                    <div class="card-footer text-center">
+                        <a href="{% url 'datos_academicos:inscripcion_list' %}" class="btn btn-sm btn-outline-primary">
+                            Ver Todas
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Estadísticas Adicionales -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Estadísticas Adicionales
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="border-end">
+                                <h4 class="text-primary mb-1">{{ stats.hoy }}</h4>
+                                <small class="text-muted">Hoy</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h4 class="text-success mb-1">{{ stats.esta_semana }}</h4>
+                            <small class="text-muted">Esta Semana</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-info mb-1">{{ stats.este_mes }}</h4>
+                                <small class="text-muted">Este Mes</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-warning mb-1">{{ stats.alumnos_creados }}</h4>
+                            <small class="text-muted">Alumnos Creados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuración de colores
+    const colors = {
+        primary: '#667eea',
+        success: '#28a745',
+        warning: '#ffc107',
+        danger: '#dc3545',
+        info: '#17a2b8',
+        gradient1: ['#667eea', '#764ba2'],
+        gradient2: ['#f093fb', '#f5576c'],
+        gradient3: ['#4facfe', '#00f2fe'],
+        gradient4: ['#43e97b', '#38f9d7']
+    };
+
+    // Datos desde Django
+    const stats = {{ stats_json|safe }};
+
+    // Gráfico de Estados
+    const estadosCtx = document.getElementById('estadosChart').getContext('2d');
+    new Chart(estadosCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pendientes', 'Aprobadas', 'Rechazadas'],
+            datasets: [{
+                data: [stats.pendientes, stats.aprobadas, stats.rechazadas],
+                backgroundColor: [colors.warning, colors.success, colors.danger],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+
+    // Gráfico de Carreras
+    if (stats.por_carrera && stats.por_carrera.length > 0) {
+        const carrerasCtx = document.getElementById('carrerasChart').getContext('2d');
+        new Chart(carrerasCtx, {
+            type: 'bar',
+            data: {
+                labels: stats.por_carrera.map(item => item.carrera),
+                datasets: [{
+                    label: 'Inscripciones',
+                    data: stats.por_carrera.map(item => item.total),
+                    backgroundColor: colors.primary,
+                    borderRadius: 5,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Tendencia
+    if (stats.tendencia_mensual && stats.tendencia_mensual.length > 0) {
+        const tendenciaCtx = document.getElementById('tendenciaChart').getContext('2d');
+        new Chart(tendenciaCtx, {
+            type: 'line',
+            data: {
+                labels: stats.tendencia_mensual.map(item => item.mes),
+                datasets: [{
+                    label: 'Inscripciones',
+                    data: stats.tendencia_mensual.map(item => item.total),
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primary + '20',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: colors.primary,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+    }
+});
+</script>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,278 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="row">
+  <div class="row gy-2 align-items-center mb-3">
+    <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+      <img src="{% static 'img/icons/dashboard.png' %}" alt="Dashboard" class="img-fluid" style="max-width: 60px;">
+      <div>
+        <h1 class="mb-0 fw-bold">Panel de control</h1>
+        <p class="text-muted mb-0">Visualiza el estado actual de los procesos y estadísticas clave del departamento.</p>
+      </div>
+    </div>
+  </div>
+    <!-- KPIs -->
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Alumnos Inscritos</p>
+              <h4 class="mb-0">{{ alumnos_inscritos }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-primary shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">school</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            {% if variacion_alumnos >= 0 %}
+            <span class="text-success font-weight-bolder">+{{ variacion_alumnos }}% <i
+                class="material-symbols-rounded">trending_up</i></span>
+            {% else %}
+            <span class="text-danger font-weight-bolder">{{ variacion_alumnos }}% <i
+                class="material-symbols-rounded">trending_down</i></span>
+            {% endif %}
+            vs. mes anterior
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Trámites en Curso</p>
+              <h4 class="mb-0">{{ tramites_en_curso }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-warning shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">pending_actions</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            {% if variacion_tramites >= 0 %}
+            <span class="text-success font-weight-bolder">+{{ variacion_tramites }}% <i
+                class="material-symbols-rounded">trending_up</i></span>
+            {% else %}
+            <span class="text-danger font-weight-bolder">{{ variacion_tramites }}% <i
+                class="material-symbols-rounded">trending_down</i></span>
+            {% endif %}
+            vs. semana anterior
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Egresados</p>
+              <h4 class="mb-0">{{ egresados }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-success shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">emoji_events</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            {% if variacion_egresados >= 0 %}
+            <span class="text-success font-weight-bolder">+{{ variacion_egresados }}% <i
+                class="material-symbols-rounded">trending_up</i></span>
+            {% else %}
+            <span class="text-danger font-weight-bolder">{{ variacion_egresados }}% <i
+                class="material-symbols-rounded">trending_down</i></span>
+            {% endif %}
+            vs. año pasado
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-sm-6">
+      <div class="card">
+        <div class="card-header p-2 ps-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <p class="text-sm mb-0 text-capitalize">Certificados Emitidos</p>
+              <h4 class="mb-0">{{ certificados_emitidos }}</h4>
+            </div>
+            <div class="icon icon-md icon-shape bg-gradient-info shadow text-center border-radius-lg">
+              <i class="material-symbols-rounded opacity-10">description</i>
+            </div>
+          </div>
+        </div>
+        <hr class="dark horizontal my-0">
+        <div class="card-footer p-2 ps-3">
+          <p class="mb-0 text-sm">
+            {% if variacion_certificados >= 0 %}
+            <span class="text-info font-weight-bolder">+{{ variacion_certificados }}% <i
+                class="material-symbols-rounded">trending_up</i></span>
+            {% else %}
+            <span class="text-danger font-weight-bolder">{{ variacion_certificados }}% <i
+                class="material-symbols-rounded">trending_down</i></span>
+            {% endif %}
+            vs. mes anterior
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficas -->
+  <div class="row">
+    <div class="col-lg-6 mt-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="mb-0">Alumnos por Carrera</h6>
+          <p class="text-sm">Distribución actual</p>
+          <div class="pe-2">
+            <div class="chart">
+              <canvas id="chart-alumnos-carrera" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 mt-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="mb-0">Trámites por Tipo</h6>
+          <p class="text-sm">Distribución actual</p>
+          <div class="pe-2">
+            <div class="chart">
+              <canvas id="chart-tramites" class="chart-canvas" height="170"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de trámites recientes -->
+  <div class="row mb-4">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <h6>Trámites Recientes</h6>
+        </div>
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+              <thead>
+                <tr>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Alumno</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Trámite</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Estado</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for tramite in tramites_recientes %}
+                <tr>
+                  <td>
+                    <h6 class="mb-0 text-sm">{{ tramite.alumno }}</h6>
+                  </td>
+                  <td>
+                    <span class="text-xs font-weight-bold">{{ tramite.tipo }}</span>
+                  </td>
+                  <td class="align-middle text-center text-sm">
+                    <span class="badge badge-sm 
+                      {% if tramite.estado == 'En proceso' %}bg-gradient-warning
+                      {% elif tramite.estado == 'Completado' %}bg-gradient-success
+                      {% else %}bg-gradient-secondary
+                      {% endif %}">
+                      {{ tramite.estado }}
+                    </span>
+                  </td>
+                  <td class="align-middle text-center">
+                    <span class="text-xs font-weight-bold">{{ tramite.fecha|date:"d/m/Y" }}</span>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center">No hay trámites recientes.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static "assets/js/plugins/chartjs.min.js" %}"></script>
+<script>
+  // Gráfico de alumnos por carrera
+  var ctxCarrera = document.getElementById("chart-alumnos-carrera").getContext("2d");
+  new Chart(ctxCarrera, {
+    type: "bar",
+    data: {
+      labels: {{ carreras|safe }},
+      datasets: [{
+        label: "Alumnos",
+        data: {{ cantidades_carreras|safe }},
+        backgroundColor: [
+          "#1976D2", "#43A047", "#FFC107", "#E53935", "#8E24AA",
+          "#00ACC1", "#FB8C00", "#3949AB", "#00897B", "#D81B60"
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.parsed.y + ' alumnos';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Gráfica de trámites por tipo
+  var ctxTramites = document.getElementById("chart-tramites").getContext("2d");
+  new Chart(ctxTramites, {
+    type: "doughnut",
+    data: {
+      labels: {{ tramites_tipos|safe }},
+      datasets: [{
+        data: {{ tramites_cantidades|safe }},
+        backgroundColor: ["#43A047", "#FFC107", "#1976D2", "#E53935"],
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } },
+    }
+  });
+</script>
+{% endblock extra_js %}

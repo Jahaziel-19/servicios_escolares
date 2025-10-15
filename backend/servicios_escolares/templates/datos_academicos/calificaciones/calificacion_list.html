@@ -1,0 +1,170 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Calificaciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- Encabezado -->
+  <div class="row gy-2 align-items-center mb-3">
+    <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+      <img src="{% static 'img/icons/calificacion.png' %}" alt="Calificaciones" class="img-fluid" style="max-width: 60px;">
+      <div>
+        <h1 class="mb-0 fw-bold">Gestión de Calificaciones</h1>
+        <p class="text-muted mb-0">Administra y visualiza las calificaciones registradas en el sistema.</p>
+      </div>
+    </div>
+    <div class="col-12 col-md-4 text-md-end">
+      <a href="{% url 'datos_academicos:calificacion_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-1" aria-label="Agregar nueva calificación">
+        <i class="bi bi-plus-lg"></i> Nueva Calificación
+      </a>
+    </div>
+  </div>
+
+  <!-- Filtros y barra de búsqueda -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <form method="get" class="d-flex flex-wrap align-items-center gap-2">
+        <!-- Búsqueda -->
+        <div class="flex-grow-1">
+          <input type="search" name="q" class="form-control" placeholder="Buscar por nombre, matrícula, materia"
+            value="{{ request.GET.q }}" aria-label="Buscar">
+        </div>
+
+        <!-- Filtro por período escolar -->
+        <div>
+          <select name="periodo" class="form-select">
+            <option value="">Todos los períodos</option>
+            {% for periodo in periodos %}
+              <option value="{{ periodo.id }}" {% if request.GET.periodo == periodo.id|stringformat:"s" %}selected{% endif %}>{{ periodo.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Filtro por acreditación -->
+        <div>
+          <select name="acreditacion" class="form-select">
+            <option value="">Todas las acreditaciones</option>
+            <option value="Ordinario" {% if request.GET.acreditacion == "Ordinario" %}selected{% endif %}>Ordinario</option>
+            <option value="Convalidación" {% if request.GET.acreditacion == "Convalidación" %}selected{% endif %}>Convalidación</option>
+          </select>
+        </div>
+
+        <!-- Botón Buscar -->
+        <div>
+          <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1">
+            <i class="material-symbols-rounded">search</i> Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de calificaciones -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+              <thead>
+                <tr>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Matrícula</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Alumno</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Materia</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Período</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Calificación</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Créditos</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Acreditación</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for calificacion in calificaciones %}
+                <tr>
+                  <td class="text-center">{{ calificacion.alumno.matricula }}</td>
+                  <td class="text-center text-truncate" style="max-width: 200px;">
+                    {{ calificacion.alumno.nombre }}
+                  </td>
+                  <td class="text-center">{{ calificacion.materia.nombre }}</td>
+                  <td class="text-center">{{ calificacion.periodo_escolar.nombre }}</td>
+                  <td class="text-center">{{ calificacion.calificacion }}</td>
+                  <td class="text-center">{{ calificacion.creditos }}</td>
+                  <td class="text-center">{{ calificacion.acreditacion }}</td>
+                  <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                      <a href="{% url 'datos_academicos:calificacion_detail' calificacion.pk %}" class="btn btn-info btn-sm" title="Ver">
+                        <i class="material-symbols-rounded fs-6">visibility</i>
+                      </a>
+                      <a href="{% url 'datos_academicos:calificacion_edit' calificacion.pk %}" class="btn btn-warning btn-sm" title="Editar">
+                        <i class="material-symbols-rounded fs-6">edit</i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center">No se encontraron calificaciones.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="card-footer d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+          <p class="text-sm mb-0">
+            Página {{ page_obj.number }} de {{ paginator.num_pages }}<br>
+            Total de calificaciones: {{ paginator.count }}
+          </p>
+          <nav aria-label="Paginación">
+            <ul class="pagination pagination-sm mb-0 flex-wrap justify-content-center">
+              {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&periodo={{ request.GET.periodo }}&acreditacion={{ request.GET.acreditacion }}&page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                  <i class="material-symbols-rounded fs-6">chevron_left</i>
+                </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link"><i class="material-symbols-rounded fs-6">chevron_left</i></span>
+              </li>
+              {% endif %}
+
+              {% for num in paginator.page_range %}
+                {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                  <a class="page-link" href="?q={{ request.GET.q }}&periodo={{ request.GET.periodo }}&acreditacion={{ request.GET.acreditacion }}&page={{ num }}">{{ num }}</a>
+                </li>
+                {% elif num == 1 or num == paginator.num_pages %}
+                <li class="page-item">
+                  <a class="page-link" href="?q={{ request.GET.q }}&periodo={{ request.GET.periodo }}&acreditacion={{ request.GET.acreditacion }}&page={{ num }}">{{ num }}</a>
+                </li>
+                {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&periodo={{ request.GET.periodo }}&acreditacion={{ request.GET.acreditacion }}&page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                  <i class="material-symbols-rounded fs-6">chevron_right</i>
+                </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link"><i class="material-symbols-rounded fs-6">chevron_right</i></span>
+              </li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}

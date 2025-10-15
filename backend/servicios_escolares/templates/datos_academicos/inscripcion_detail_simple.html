@@ -1,0 +1,495 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Inscripción - {{ inscripcion.folio }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .detail-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+    }
+    .detail-body {
+        padding: 2rem;
+    }
+    .info-group {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    .info-value {
+        color: #212529;
+        font-size: 1.1rem;
+    }
+    .status-badge {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+    }
+    .timeline-item {
+        border-left: 3px solid #dee2e6;
+        padding-left: 1rem;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -6px;
+        top: 0;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #6c757d;
+    }
+    .timeline-item.active::before {
+        background: #28a745;
+    }
+    .action-buttons {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Navegación -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'datos_academicos:inscripcion_list' %}">
+                    <i class="fas fa-list me-1"></i>Inscripciones
+                </a>
+            </li>
+            <li class="breadcrumb-item active">{{ inscripcion.folio }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Información Principal -->
+            <div class="detail-card card mb-4">
+                <div class="detail-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h3 class="mb-1">
+                                <i class="fas fa-user-graduate me-2"></i>
+                                {{ inscripcion.nombre_completo }}
+                            </h3>
+                            <p class="mb-0 opacity-75">Folio: {{ inscripcion.folio }}</p>
+                        </div>
+                        <div class="col-auto">
+                            <span class="status-badge badge 
+                                {% if inscripcion.estado == 'pendiente' %}bg-warning text-dark
+                                {% elif inscripcion.estado == 'aprobada' %}bg-success
+                                {% elif inscripcion.estado == 'rechazada' %}bg-danger
+                                {% endif %}">
+                                {{ inscripcion.get_estado_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-body">
+                    <!-- Información Personal -->
+                    <div class="info-group">
+                        <h5 class="mb-3">
+                            <i class="fas fa-user me-2 text-primary"></i>
+                            Información Personal
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-label">Nombre</div>
+                                <div class="info-value">{{ inscripcion.nombre }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">Apellido Paterno</div>
+                                <div class="info-value">{{ inscripcion.apellido_paterno }}</div>
+                            </div>
+                            <div class="col-md-6 mt-3">
+                                <div class="info-label">Apellido Materno</div>
+                                <div class="info-value">{{ inscripcion.apellido_materno|default:"No especificado" }}</div>
+                            </div>
+                            <div class="col-md-6 mt-3">
+                                <div class="info-label">CURP</div>
+                                <div class="info-value">
+                                    <code>{{ inscripcion.curp }}</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Contacto -->
+                    <div class="info-group">
+                        <h5 class="mb-3">
+                            <i class="fas fa-address-book me-2 text-primary"></i>
+                            Información de Contacto
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-label">Email</div>
+                                <div class="info-value">
+                                    <a href="mailto:{{ inscripcion.email }}" class="text-decoration-none">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        {{ inscripcion.email }}
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">Teléfono</div>
+                                <div class="info-value">
+                                    <a href="tel:{{ inscripcion.telefono }}" class="text-decoration-none">
+                                        <i class="fas fa-phone me-1"></i>
+                                        {{ inscripcion.telefono }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información Académica -->
+                    <div class="info-group">
+                        <h5 class="mb-3">
+                            <i class="fas fa-graduation-cap me-2 text-primary"></i>
+                            Información Académica
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-label">Carrera Solicitada</div>
+                                <div class="info-value">{{ inscripcion.carrera_solicitada.nombre }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">Modalidad</div>
+                                <div class="info-value">
+                                    <span class="badge bg-secondary">
+                                        {{ inscripcion.get_modalidad_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <div class="info-label">Escuela de Procedencia</div>
+                                <div class="info-value">{{ inscripcion.escuela_procedencia }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    {% if inscripcion.observaciones %}
+                    <div class="info-group">
+                        <h5 class="mb-3">
+                            <i class="fas fa-sticky-note me-2 text-primary"></i>
+                            Observaciones
+                        </h5>
+                        <div class="info-value">
+                            {{ inscripcion.observaciones|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Información del Sistema -->
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Información del Sistema
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="info-label">Fecha de Solicitud</div>
+                        <div class="info-value">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ inscripcion.fecha_solicitud|date:"d/m/Y H:i" }}
+                        </div>
+                    </div>
+                    
+                    {% if inscripcion.fecha_actualizacion %}
+                    <div class="mb-3">
+                        <div class="info-label">Última Actualización</div>
+                        <div class="info-value">
+                            <i class="fas fa-clock me-1"></i>
+                            {{ inscripcion.fecha_actualizacion|date:"d/m/Y H:i" }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if inscripcion.alumno_creado %}
+                    <div class="mb-3">
+                        <div class="info-label">Alumno Creado</div>
+                        <div class="info-value">
+                            <i class="fas fa-user-check me-1 text-success"></i>
+                            <strong>{{ inscripcion.alumno_creado.matricula }}</strong>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Timeline de Estados -->
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Historial de Estados
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline-item {% if inscripcion.estado == 'pendiente' %}active{% endif %}">
+                        <strong>Pendiente</strong>
+                        <div class="text-muted small">Inscripción registrada</div>
+                    </div>
+                    
+                    {% if inscripcion.estado == 'aprobada' or inscripcion.estado == 'rechazada' %}
+                    <div class="timeline-item active">
+                        <strong>{{ inscripcion.get_estado_display }}</strong>
+                        <div class="text-muted small">
+                            {% if inscripcion.fecha_actualizacion %}
+                                {{ inscripcion.fecha_actualizacion|date:"d/m/Y H:i" }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if inscripcion.alumno_creado %}
+                    <div class="timeline-item active">
+                        <strong>Alumno Creado</strong>
+                        <div class="text-muted small">Matrícula: {{ inscripcion.alumno_creado.matricula }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="action-buttons">
+                <h6 class="mb-3">
+                    <i class="fas fa-cogs me-2"></i>
+                    Acciones
+                </h6>
+                
+                <div class="d-grid gap-2">
+                    <!-- Cambiar Estado -->
+                    <div class="mb-3">
+                        <label class="form-label">Cambiar Estado</label>
+                        <select class="form-select" id="cambiarEstado" data-inscripcion-id="{{ inscripcion.id }}">
+                            {% for value, label in inscripcion.ESTADO_CHOICES %}
+                                <option value="{{ value }}" {% if inscripcion.estado == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Crear Alumno -->
+                    {% if inscripcion.puede_crear_alumno %}
+                    <button class="btn btn-success" id="crearAlumnoBtn" data-inscripcion-id="{{ inscripcion.id }}">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Crear Alumno
+                    </button>
+                    {% endif %}
+
+                    <!-- Ver Alumno -->
+                    {% if inscripcion.alumno_creado %}
+                    <a href="#" class="btn btn-info">
+                        <i class="fas fa-user me-2"></i>
+                        Ver Alumno ({{ inscripcion.alumno_creado.matricula }})
+                    </a>
+                    {% endif %}
+
+                    <!-- Volver -->
+                    <a href="{% url 'datos_academicos:inscripcion_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Volver a la Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Crear Alumno -->
+<div class="modal fade" id="crearAlumnoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>Crear Alumno
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de que desea crear un alumno a partir de esta inscripción?</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Información:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Se generará una matrícula automáticamente</li>
+                        <li>El alumno quedará registrado en el sistema</li>
+                        <li>Esta acción no se puede deshacer</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmarCrearAlumno">
+                    <i class="fas fa-check me-2"></i>Crear Alumno
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cambiarEstadoSelect = document.getElementById('cambiarEstado');
+    const crearAlumnoBtn = document.getElementById('crearAlumnoBtn');
+    const confirmarCrearAlumnoBtn = document.getElementById('confirmarCrearAlumno');
+    
+    // Cambiar estado
+    if (cambiarEstadoSelect) {
+        const estadoOriginal = cambiarEstadoSelect.value;
+        
+        cambiarEstadoSelect.addEventListener('change', function() {
+            const inscripcionId = this.dataset.inscripcionId;
+            const nuevoEstado = this.value;
+            
+            if (nuevoEstado === estadoOriginal) return;
+            
+            cambiarEstadoInscripcion(inscripcionId, nuevoEstado, this, estadoOriginal);
+        });
+    }
+    
+    // Crear alumno
+    if (crearAlumnoBtn) {
+        crearAlumnoBtn.addEventListener('click', function() {
+            const modal = new bootstrap.Modal(document.getElementById('crearAlumnoModal'));
+            modal.show();
+        });
+    }
+    
+    // Confirmar crear alumno
+    if (confirmarCrearAlumnoBtn) {
+        confirmarCrearAlumnoBtn.addEventListener('click', function() {
+            const inscripcionId = crearAlumnoBtn.dataset.inscripcionId;
+            crearAlumnoDesdeInscripcion(inscripcionId);
+        });
+    }
+});
+
+function cambiarEstadoInscripcion(inscripcionId, nuevoEstado, selectElement, estadoOriginal) {
+    fetch(`/datos_academicos/inscripciones/${inscripcionId}/cambiar-estado/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            estado: nuevoEstado
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarMensaje('success', data.message);
+            
+            // Recargar página para actualizar la vista
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            // Revertir el select
+            selectElement.value = estadoOriginal;
+            mostrarMensaje('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        selectElement.value = estadoOriginal;
+        mostrarMensaje('error', 'Error de conexión');
+    });
+}
+
+function crearAlumnoDesdeInscripcion(inscripcionId) {
+    const btn = document.getElementById('confirmarCrearAlumno');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando...';
+    btn.disabled = true;
+    
+    fetch(`/datos_academicos/inscripciones/${inscripcionId}/crear-alumno/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarMensaje('success', data.message);
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('crearAlumnoModal'));
+            modal.hide();
+            
+            // Recargar página para actualizar la vista
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            mostrarMensaje('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('error', 'Error de conexión');
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+function mostrarMensaje(tipo, mensaje) {
+    const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+    const icon = tipo === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    
+    const alert = document.createElement('div');
+    alert.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alert.innerHTML = `
+        <i class="${icon} me-2"></i>${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alert);
+    
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

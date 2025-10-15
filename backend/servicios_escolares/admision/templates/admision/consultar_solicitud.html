@@ -1,0 +1,281 @@
+{% extends 'admision/base.html' %}
+
+{% block title %}Consultar Solicitud{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-search me-2"></i>
+                    Consultar Solicitud de Admisión
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if not solicitud %}
+                <!-- Formulario de búsqueda -->
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Ingresa tu folio y CURP para consultar el estado de tu solicitud
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="folio" class="form-label">Folio de Solicitud</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="folio" 
+                                   name="folio" 
+                                   placeholder="Ej: ADM-2025-001234"
+                                   required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="curp" class="form-label">CURP</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="curp" 
+                                   name="curp" 
+                                   maxlength="18"
+                                   style="text-transform: uppercase;"
+                                   placeholder="18 caracteres"
+                                   required>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>
+                            Consultar Solicitud
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <!-- Información de la solicitud encontrada -->
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Solicitud encontrada exitosamente
+                </div>
+
+                <!-- Información básica -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    Folio
+                                </h6>
+                                <h4 class="text-primary">{{ solicitud.folio }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-flag me-1"></i>
+                                    Estado
+                                </h6>
+                                <span class="badge 
+                                    {% if solicitud.estado == 'enviada' %}bg-success
+                                    {% elif solicitud.estado == 'borrador' %}bg-warning
+                                    {% elif solicitud.estado == 'en_revision' %}bg-info
+                                    {% elif solicitud.estado == 'aceptada' %}bg-success
+                                    {% elif solicitud.estado == 'rechazada' %}bg-danger
+                                    {% else %}bg-secondary
+                                    {% endif %} fs-6">
+                                    {{ solicitud.get_estado_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalles de la solicitud -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Detalles de la Solicitud
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Período:</strong> {{ solicitud.periodo.nombre }}</p>
+                                <p><strong>CURP:</strong> {{ solicitud.curp }}</p>
+                                <p><strong>Email:</strong> {{ solicitud.email }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Fecha de Registro:</strong> {{ solicitud.fecha_registro|date:"d/m/Y H:i" }}</p>
+                                <p><strong>Última Actualización:</strong> {{ solicitud.fecha_actualizacion|date:"d/m/Y H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Respuestas del formulario -->
+                {% if solicitud.respuestas_json %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-list me-2"></i>
+                            Respuestas Registradas
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% for campo, valor in solicitud.respuestas_json.items %}
+                        <div class="row mb-2">
+                            <div class="col-md-4">
+                                <strong>{{ campo|title }}:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {% if valor %}
+                                    {{ valor }}
+                                {% else %}
+                                    <em class="text-muted">No especificado</em>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Ficha de admisión -->
+                {% if solicitud.ficha %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-file-alt me-2"></i>
+                            Ficha de Admisión
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <p class="mb-1"><strong>Número de Ficha:</strong> {{ solicitud.ficha.numero_ficha }}</p>
+                                <p class="mb-1"><strong>Fecha de Generación:</strong> {{ solicitud.ficha.fecha_generacion|date:"d/m/Y H:i" }}</p>
+                                <p class="mb-0">
+                                    <strong>Email Enviado:</strong> 
+                                    {% if solicitud.ficha.email_enviado %}
+                                        <span class="text-success">
+                                            <i class="fas fa-check-circle me-1"></i>Sí
+                                        </span>
+                                        ({{ solicitud.ficha.fecha_envio_email|date:"d/m/Y H:i" }})
+                                    {% else %}
+                                        <span class="text-warning">
+                                            <i class="fas fa-clock me-1"></i>Pendiente
+                                        </span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <a href="{% url 'admision:admin_descargar_ficha' solicitud.ficha.id %}" 
+                                   class="btn btn-primary">
+                                    <i class="fas fa-download me-1"></i>
+                                    Descargar PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Acciones disponibles -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>
+                            Acciones Disponibles
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% if solicitud.estado == 'borrador' and solicitud.periodo.esta_abierto %}
+                            <div class="col-md-4 mb-2">
+                                <a href="{% url 'admision:editar_solicitud' solicitud.folio %}" 
+                                   class="btn btn-warning w-100">
+                                    <i class="fas fa-edit me-1"></i>
+                                    Editar Solicitud
+                                </a>
+                            </div>
+                            {% endif %}
+                            
+                            {% if solicitud.ficha %}
+                            <div class="col-md-4 mb-2">
+                                <a href="{% url 'admision:admin_descargar_ficha' solicitud.ficha.id %}" 
+                                   class="btn btn-primary w-100">
+                                    <i class="fas fa-file-pdf me-1"></i>
+                                    Descargar Ficha
+                                </a>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="col-md-4 mb-2">
+                                <button type="button" 
+                                        class="btn btn-info w-100" 
+                                        onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>
+                                    Imprimir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón para nueva consulta -->
+                <div class="text-center mt-4">
+                    <a href="{% url 'admision:consultar_solicitud' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-search me-1"></i>
+                        Nueva Consulta
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>
+                    ¿Necesitas Ayuda?
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Estados de Solicitud:</h6>
+                        <ul class="list-unstyled">
+                            <li><span class="badge bg-warning me-2">Borrador</span> Solicitud en proceso de llenado</li>
+                            <li><span class="badge bg-success me-2">Enviada</span> Solicitud enviada correctamente</li>
+                            <li><span class="badge bg-info me-2">En Revisión</span> Solicitud siendo evaluada</li>
+                            <li><span class="badge bg-success me-2">Aceptada</span> Solicitud aceptada</li>
+                            <li><span class="badge bg-danger me-2">Rechazada</span> Solicitud rechazada</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Contacto:</h6>
+                        <p><strong>Teléfono:</strong> (555) 123-4567</p>
+                        <p><strong>Email:</strong> admisiones@institucion.edu.mx</p>
+                        <p><strong>Horario:</strong> Lunes a Viernes, 8:00 AM - 6:00 PM</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Convertir CURP a mayúsculas automáticamente
+document.getElementById('curp').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+</script>
+{% endblock %}

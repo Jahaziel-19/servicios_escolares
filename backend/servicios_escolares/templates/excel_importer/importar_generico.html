@@ -1,0 +1,126 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}
+Importar datos a {{ modelo_autorizado.nombre_modelo }}
+{% endblock %}
+
+{% block content %}
+
+
+
+
+<h1>Importar datos a {{ modelo_autorizado.nombre_modelo }}</h1>
+
+{% if form %}
+<form method="post" enctype="multipart/form-data" id="uploadForm">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" name="subir_excel" class="btn btn-primary mb-3">Subir y Previsualizar</button>
+</form>
+{% endif %}
+
+{% if mapeo_form %}
+  <h2>Asignar columnas del Excel a campos del modelo</h2>
+  <p>Vista previa de datos (primeras 5 filas):</p>
+
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead class="table-light">
+        <tr>{% for col in encabezados %}<th>{{ col }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for fila in filas_muestra %}
+        <tr>{% for celda in fila %}<td>{{ celda }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <form method="post" id="importForm">
+    {% csrf_token %}
+    {{ mapeo_form.as_p }}
+    <button id="btnUpload" type="submit" name="importar_datos" class="btn btn-success mb-3">Importar Datos</button>
+  </form>
+{% endif %}
+
+{% if filas_invalidas %}
+  <h3>⚠️ Filas omitidas por tener celdas vacías (ejemplos):</h3>
+  <div class="table-responsive">
+    <table class="table table-warning table-bordered">
+      <tbody>
+        {% for fila in filas_invalidas %}
+        <tr>{% for celda in fila %}<td>{{ celda }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+<!-- Modal de errores -->
+<div class="modal fade" id="erroresModal" tabindex="-1" aria-labelledby="erroresModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title" id="erroresModalLabel">Errores al importar datos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" style="max-height: 350px; overflow-y: auto;">
+        {% if messages %}
+          <ul class="list-unstyled">
+            {% for message in messages %}
+              <li class="mb-2">
+                <div class="alert alert-{{ message.tags }}">
+                  {% if message.tags == "error" or message.tags == "warning" %}
+                    <strong>¡Atención!</strong> 
+                  {% endif %}
+                  {{ message }}
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include "includes/progress_modal.html" %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Solo muestra el modal si hay mensajes en el DOM
+    var mensajes = document.querySelectorAll('#erroresModal .alert');
+    if (mensajes.length > 0) {
+      var erroresModal = new bootstrap.Modal(document.getElementById('erroresModal'));
+      erroresModal.show();
+    }
+  });
+
+  // Progress bar ejemplo
+  function showProgressBar() {
+    document.getElementById('progressContainer').style.display = 'block';
+    let bar = document.getElementById('progressBar');
+    bar.style.width = '0%';
+    let progress = 0;
+    let interval = setInterval(function() {
+      progress += 10;
+      bar.style.width = progress + '%';
+      if (progress >= 100) clearInterval(interval);
+    }, 200);
+  }
+
+  const form = document.querySelector("form");
+  if (form) {
+    form.addEventListener("submit", () => {
+      showProgressBar();
+    });
+  }
+</script>
+{% endblock %}

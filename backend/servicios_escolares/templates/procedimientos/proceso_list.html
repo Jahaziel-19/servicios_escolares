@@ -1,0 +1,192 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Gestión de Procesos Académicos{% endblock %}
+
+{% block content %}
+<style>
+  /* Contenedor de las cards */
+  .cards-container {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+
+  /* Diseño base de cada card */
+  .process-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    flex: 1 1 250px;
+    max-width: 280px;
+    padding: 1.5rem 1.5rem 2rem 1.5rem;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Hover con efecto de elevación */
+  .process-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+  }
+
+  /* Icono grande arriba */
+  .process-card img {
+    width: 70px;
+    margin: 0 auto 1rem;
+  }
+
+  /* Nombre del proceso */
+  .process-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  /* Fechas */
+  .process-card .dates {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 1rem;
+  }
+
+  /* Estado */
+  .badge-active {
+    background-color: #198754;
+    color: white;
+    padding: 0.3em 0.8em;
+    border-radius: 12px;
+    font-size: 0.85rem;
+  }
+  .badge-inactive {
+    background-color: #6c757d;
+    color: white;
+    padding: 0.3em 0.8em;
+    border-radius: 12px;
+    font-size: 0.85rem;
+  }
+</style>
+
+<div class="container-fluid py-3">
+  <!-- Encabezado -->
+  <div class="row gy-2 align-items-center mb-3">
+    <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+      <img src="{% static 'img/icons/proceso.png' %}" alt="Procesos" class="img-fluid" style="max-width: 60px;">
+      <div>
+        <h1 class="mb-0 fw-bold">Gestión de Procesos Académicos</h1>
+        <p class="text-muted mb-0">Administra y visualiza la información de los procesos académicos en el sistema.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="row mb-3">
+    <div class="col-md-6 col-lg-4">
+      <form method="get" class="d-flex gap-2" role="search">
+        <input type="text" name="q" class="form-control" placeholder="Buscar proceso"
+               value="{{ q }}" aria-label="Buscar">
+        <button class="btn btn-primary" type="submit">
+          <i class="material-symbols-rounded">search</i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Cards animadas de procesos -->
+  <div class="cards-container">
+    {% comment %} Aquí se filtran los procesos importantes para las cards {% endcomment %}
+    {% for proceso in procesos %}
+      {% if proceso.nombre|lower in "admisión inscripción reinscripción" %}
+        <div class="process-card" onclick="window.location.href='{% url 'process_detail' proceso.id %}'" role="button" tabindex="0" aria-label="Acceder al proceso {{ proceso.nombre }}">
+          <img src="{% static 'img/icons/proceso.png' %}" alt="{{ proceso.nombre }} Icono">  {# Ideal poner iconos diferentes según proceso #}
+          <h3>{{ proceso.nombre }}</h3>
+          <div class="dates">{{ proceso.fecha_inicio }} - {{ proceso.fecha_fin }}</div>
+          {% if proceso.esta_activo %}
+            <span class="badge-active">Activo</span>
+          {% else %}
+            <span class="badge-inactive">Inactivo</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% empty %}
+      <p class="text-center">No hay procesos destacados para mostrar.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Tabla: todos los procesos -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Tipo</th>
+                  <th>Fechas</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for proceso in procesos %}
+                <tr>
+                  <td>{{ proceso.nombre }}</td>
+                  <td>{{ proceso.get_tipo_display }}</td>
+                  <td>{{ proceso.fecha_inicio }} - {{ proceso.fecha_fin }}</td>
+                  <td>
+                    {% if proceso.esta_activo %}
+                      <span class="badge bg-success-subtle text-success">Activo</span>
+                    {% else %}
+                      <span class="badge bg-secondary-subtle text-secondary">Inactivo</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center">No hay procesos registrados.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="card-footer d-flex justify-content-between align-items-center">
+          <p class="text-sm mb-0">Página {{ page_obj.number }} de {{ paginator.num_pages }}</p>
+          <nav aria-label="Paginación">
+            <ul class="pagination pagination-sm mb-0">
+              {% if page_obj.has_previous %}
+              <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.previous_page_number }}">‹</a></li>
+              {% else %}
+              <li class="page-item disabled"><span class="page-link">‹</span></li>
+              {% endif %}
+
+              {% for num in paginator.page_range %}
+              {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+              <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?q={{ q }}&page={{ num }}">{{ num }}</a>
+              </li>
+              {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+              <li class="page-item"><a class="page-link" href="?q={{ q }}&page={{ page_obj.next_page_number }}">›</a></li>
+              {% else %}
+              <li class="page-item disabled"><span class="page-link">›</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

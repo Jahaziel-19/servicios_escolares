@@ -1,0 +1,94 @@
+{% extends 'admision/base.html' %}
+
+{% block title %}Formulario No Configurado{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark text-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>
+                    Formulario en Configuración
+                </h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-tools text-warning" style="font-size: 4rem;"></i>
+                </div>
+                
+                <h5 class="text-warning mb-3">El formulario de admisión está siendo configurado</h5>
+                
+                <!-- Información del período -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ periodo.nombre }}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Fecha de Inicio:</strong> {{ periodo.fecha_inicio|date:"d/m/Y" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Fecha de Fin:</strong> {{ periodo.fecha_fin|date:"d/m/Y" }}</p>
+                            </div>
+                        </div>
+                        {% if periodo.descripcion %}
+                        <p class="mb-0">{{ periodo.descripcion }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Información</h6>
+                    <p class="mb-0">
+                        Aunque el período de admisión está activo, el formulario aún no ha sido configurado 
+                        por el equipo administrativo. Por favor, intenta más tarde o contacta a la oficina 
+                        de admisiones.
+                    </p>
+                </div>
+
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6><i class="fas fa-lightbulb me-2"></i>¿Qué puedes hacer?</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-refresh me-2"></i>Intentar nuevamente en unos minutos</li>
+                            <li><i class="fas fa-phone me-2"></i>Contactar a la oficina de admisiones</li>
+                            <li><i class="fas fa-search me-2"></i>Consultar una solicitud existente</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button onclick="location.reload()" class="btn btn-primary me-2">
+                        <i class="fas fa-sync-alt me-1"></i>Actualizar Página
+                    </button>
+                    <a href="{% url 'admision:consultar_solicitud' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-search me-1"></i>Consultar Solicitud
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de contacto -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-phone me-2"></i>
+                    Información de Contacto
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Teléfono:</strong> (555) 123-4567</p>
+                        <p><strong>Email:</strong> admisiones@institucion.edu.mx</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Horario de Atención:</strong></p>
+                        <p>Lunes a Viernes: 8:00 AM - 6:00 PM</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

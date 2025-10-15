@@ -1,0 +1,406 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Visualizar Formulario - {{ formulario.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-viewer-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .form-header h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 300;
+    }
+    
+    .form-header p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    .form-body {
+        padding: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.95rem;
+    }
+    
+    .required-indicator {
+        color: #e74c3c;
+        margin-left: 0.25rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #4e73df;
+        box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.1);
+        background-color: white;
+    }
+    
+    .form-control[readonly] {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+    
+    .form-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+        padding-right: 2.5rem;
+    }
+    
+    .form-check {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-check-input {
+        margin-right: 0.5rem;
+        width: 1.2rem;
+        height: 1.2rem;
+    }
+    
+    .form-check-label {
+        margin-bottom: 0;
+        font-weight: normal;
+    }
+    
+    .field-help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .form-actions {
+        background: #f8f9fa;
+        padding: 1.5rem 2rem;
+        border-top: 1px solid #e9ecef;
+        text-align: center;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(78, 115, 223, 0.4);
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 20px;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    
+    .form-stats {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #4e73df;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .stat-item {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #4e73df;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .preview-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 193, 7, 0.9);
+        color: #212529;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        z-index: 10;
+    }
+    
+    @media (max-width: 768px) {
+        .form-viewer-container {
+            padding: 1rem;
+        }
+        
+        .form-header {
+            padding: 1.5rem 1rem;
+        }
+        
+        .form-body {
+            padding: 1.5rem 1rem;
+        }
+        
+        .form-actions {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-viewer-container">
+    <div class="preview-badge">
+        <i class="fas fa-eye"></i> Vista Previa
+    </div>
+    
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h1>{{ formulario.nombre }}</h1>
+                {% if formulario.descripcion %}
+                    <p>{{ formulario.descripcion }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="form-body">
+                <!-- Estadísticas del formulario -->
+                <div class="form-stats">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-number">{{ total_campos }}</span>
+                            <div class="stat-label">Total de Campos</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ campos_requeridos }}</span>
+                            <div class="stat-label">Campos Obligatorios</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ respuestas_count }}</span>
+                            <div class="stat-label">Respuestas Recibidas</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">
+                                {% if formulario.activo %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-times-circle text-danger"></i>
+                                {% endif %}
+                            </span>
+                            <div class="stat-label">
+                                {% if formulario.activo %}Activo{% else %}Inactivo{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Formulario renderizado -->
+                <form id="preview-form" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div id="form-fields-container">
+                        <!-- Los campos se renderizarán aquí via JavaScript -->
+                    </div>
+                </form>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" disabled>
+                    <i class="fas fa-paper-plane"></i> Enviar Solicitud
+                </button>
+                <div class="mt-2">
+                    <small class="text-muted">Esta es una vista previa. El formulario no se puede enviar.</small>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'admision:admin_ver_formulario' formulario.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Formulario
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const campos = {{ campos_json|safe }};
+    const container = document.getElementById('form-fields-container');
+    
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text ? text.replace(/[&<>"']/g, function(m) { return map[m]; }) : '';
+    }
+    
+    function renderFields() {
+        if (!campos || campos.length === 0) {
+            container.innerHTML = `
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i>
+                    <h5>Formulario Vacío</h5>
+                    <p>Este formulario no tiene campos configurados aún.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        
+        campos.forEach(campo => {
+            const required = campo.required ? 'required' : '';
+            const requiredIndicator = campo.required ? '<span class="required-indicator">*</span>' : '';
+            const placeholder = campo.placeholder ? `placeholder="${escapeHtml(campo.placeholder)}"` : '';
+            const helpText = campo.placeholder ? `<div class="field-help-text">${escapeHtml(campo.placeholder)}</div>` : '';
+            
+            html += `<div class="form-group">`;
+            html += `<label class="form-label">${escapeHtml(campo.label)}${requiredIndicator}</label>`;
+            
+            switch (campo.type) {
+                case 'text':
+                case 'email':
+                case 'number':
+                    let inputType = campo.type;
+                    let additionalAttrs = '';
+                    
+                    if (campo.validation) {
+                        if (campo.validation.min !== undefined) additionalAttrs += ` min="${campo.validation.min}"`;
+                        if (campo.validation.max !== undefined) additionalAttrs += ` max="${campo.validation.max}"`;
+                        if (campo.validation.minlength !== undefined) additionalAttrs += ` minlength="${campo.validation.minlength}"`;
+                        if (campo.validation.maxlength !== undefined) additionalAttrs += ` maxlength="${campo.validation.maxlength}"`;
+                    }
+                    
+                    html += `<input type="${inputType}" class="form-control" name="${escapeHtml(campo.name)}" ${placeholder} ${required} ${additionalAttrs} readonly>`;
+                    break;
+                    
+                case 'textarea':
+                    let textareaAttrs = '';
+                    if (campo.validation) {
+                        if (campo.validation.minlength !== undefined) textareaAttrs += ` minlength="${campo.validation.minlength}"`;
+                        if (campo.validation.maxlength !== undefined) textareaAttrs += ` maxlength="${campo.validation.maxlength}"`;
+                    }
+                    
+                    html += `<textarea class="form-control" name="${escapeHtml(campo.name)}" rows="4" ${placeholder} ${required} ${textareaAttrs} readonly></textarea>`;
+                    break;
+                    
+                case 'select':
+                    html += `<select class="form-control form-select" name="${escapeHtml(campo.name)}" ${required} disabled>`;
+                    html += `<option value="">Seleccione una opción...</option>`;
+                    if (campo.options && campo.options.length > 0) {
+                        campo.options.forEach(option => {
+                            html += `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`;
+                        });
+                    }
+                    html += `</select>`;
+                    break;
+                    
+                case 'date':
+                    html += `<input type="date" class="form-control" name="${escapeHtml(campo.name)}" ${required} readonly>`;
+                    break;
+                    
+                case 'checkbox':
+                    html += `<div class="form-check">`;
+                    html += `<input type="checkbox" class="form-check-input" name="${escapeHtml(campo.name)}" value="1" ${required} disabled>`;
+                    html += `<label class="form-check-label">${escapeHtml(campo.placeholder || 'Acepto los términos y condiciones')}</label>`;
+                    html += `</div>`;
+                    break;
+                    
+                case 'file':
+                    html += `<input type="file" class="form-control" name="${escapeHtml(campo.name)}" ${required} disabled>`;
+                    html += `<small class="field-help-text">Formatos permitidos: PDF, JPG, PNG (máx. 5MB)</small>`;
+                    break;
+                    
+                default:
+                    html += `<input type="text" class="form-control" name="${escapeHtml(campo.name)}" ${placeholder} ${required} readonly>`;
+            }
+            
+            if (helpText && campo.type !== 'checkbox') {
+                html += helpText;
+            }
+            
+            html += `</div>`;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    renderFields();
+});
+</script>
+{% endblock %}

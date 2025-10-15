@@ -1,0 +1,126 @@
+<!-- Este archivo ya no se usa. Todos los templates deben extender de layouts/base.html -->
+<!-- Redirigir a layouts/base.html para mantener consistencia -->
+
+<body class="g-sidenav-show bg-gray-100">
+
+  <!-- Modales automáticos de error y éxito -->
+  {% if messages %}
+  {% for message in messages %}
+  {% if 'success' in message.tags %}
+  <div id="successData" data-success='["{{ message|escapejs }}"]' style="display:none;"></div>
+  {% elif 'error' in message.tags %}
+  <div id="errorData" data-errores='["{{ message|escapejs }}"]' style="display:none;"></div>
+  {% endif %}
+  {% endfor %}
+  {% endif %}
+
+  <!-- Sidebar -->
+  {% include 'includes/sidebar_material.html' %}
+
+  <!-- Main Content -->
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <!-- Navbar -->
+    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-3 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true">
+      <div class="container-fluid py-1 px-3">
+        {% block topbar %}
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm">
+              <a class="opacity-5 text-dark" href="{% url 'home' %}">Inicio</a>
+            </li>
+            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">
+              {% block breadcrumb %}Panel General{% endblock %}
+            </li>
+          </ol>
+          <h6 class="font-weight-bolder mb-0">{% block page_title %}Dashboard{% endblock %}</h6>
+        </nav>
+        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+          <div class="ms-md-auto pe-md-3 d-flex align-items-center">
+            <div class="input-group input-group-outline">
+              <label class="form-label">Buscar...</label>
+              <input type="text" class="form-control">
+            </div>
+          </div>
+          <ul class="navbar-nav justify-content-end">
+            <li class="nav-item d-flex align-items-center">
+              <div class="dropdown">
+                <a href="#" class="nav-link text-body font-weight-bold px-0 dropdown-toggle" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="material-symbols-rounded">account_circle</i>
+                  <span class="d-sm-inline d-none ms-1">{{ user.get_full_name|default:user.username }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
+                  <li><a class="dropdown-item border-radius-md" href="#"><i class="material-symbols-rounded me-2">person</i>Mi Perfil</a></li>
+                  <li><a class="dropdown-item border-radius-md" href="#"><i class="material-symbols-rounded me-2">settings</i>Configuración</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item border-radius-md" href="{% url 'admin:logout' %}"><i class="material-symbols-rounded me-2">logout</i>Cerrar Sesión</a></li>
+                </ul>
+              </div>
+            </li>
+          </ul>
+        </div>
+        {% endblock %}
+      </div>
+    </nav>
+    <!-- End Navbar -->
+
+    <!-- Content -->
+    <div class="container-fluid py-4">
+      {% block content %}
+      <!-- Contenido va aquí-->
+      {% if not form and not mapeo_form %}
+      <div class="row">
+        <div class="col-12">
+          <div class="card my-4">
+            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+              <div class="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
+                <h6 class="text-white text-capitalize ps-3">Bienvenido al Sistema</h6>
+              </div>
+            </div>
+            <div class="card-body px-0 pb-2">
+              <div class="table-responsive p-0">
+                <p class="text-center py-4">No hay datos para mostrar.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% endblock %}
+    </div>
+  </main>
+
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{% static 'js/progress_modal.js' %}"></script>
+  <script src="{% static 'js/error_modal.js' %}"></script>
+  <script src="{% static 'js/success_modal.js' %}"></script>
+
+  {% include 'includes/progress_modal.html' %}
+  {% include 'includes/error_modal.html' %}
+  {% include 'includes/success_modal.html' %}
+
+  <!-- Auto mostrar errores desde messages -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const errorData = document.getElementById("errorData");
+      if (errorData) {
+        const errores = JSON.parse(errorData.dataset.errores || "[]");
+        if (errores.length) {
+          showErrorModal(errores.join("<br>"));
+        }
+      }
+
+      const successData = document.getElementById("successData");
+      if (successData) {
+        const exitos = JSON.parse(successData.dataset.success || "[]");
+        if (exitos.length) {
+          showSuccessModal(exitos.join("<br>"));
+        }
+      }
+    });
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

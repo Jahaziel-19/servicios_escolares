@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualización de Solicitud - {{ solicitud.folio }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            {% if solicitud.estado == 'aprobado' %}
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            {% elif solicitud.estado == 'rechazado' %}
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            {% else %}
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            {% endif %}
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px 20px;
+            border-radius: 0 0 10px 10px;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            {% if solicitud.estado == 'aprobado' %}
+            border-left: 4px solid #28a745;
+            {% elif solicitud.estado == 'rechazado' %}
+            border-left: 4px solid #dc3545;
+            {% else %}
+            border-left: 4px solid #ffc107;
+            {% endif %}
+        }
+        .status-change {
+            {% if solicitud.estado == 'aprobado' %}
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            {% elif solicitud.estado == 'rechazado' %}
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            {% else %}
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            {% endif %}
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            {% if solicitud.estado == 'aprobado' %}
+            background: #28a745;
+            {% elif solicitud.estado == 'rechazado' %}
+            background: #dc3545;
+            {% else %}
+            background: #ffc107;
+            color: #212529;
+            {% endif %}
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+        }
+        .contact-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .next-steps {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .step-number {
+            {% if solicitud.estado == 'aprobado' %}
+            background: #28a745;
+            {% elif solicitud.estado == 'rechazado' %}
+            background: #dc3545;
+            {% else %}
+            background: #ffc107;
+            color: #212529;
+            {% endif %}
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ institucion }}</h1>
+        <h2>
+            {% if solicitud.estado == 'aceptada' %}
+            🎉 ¡Solicitud Aceptada!
+            {% elif solicitud.estado == 'rechazado' %}
+            📋 Actualización de Solicitud
+            {% else %}
+            📋 Actualización de Solicitud
+            {% endif %}
+        </h2>
+        <p>{{ periodo.nombre }} - {{ periodo.año }}</p>
+    </div>
+
+    <div class="content">
+        <h3>Estimado(a) aspirante,</h3>
+        
+        <p>Le informamos que el estado de su solicitud de admisión ha sido actualizado.</p>
+
+        <div class="info-box">
+            <h4>📋 Información de su Solicitud</h4>
+            <p><strong>Folio:</strong> {{ solicitud.folio }}</p>
+            <p><strong>CURP:</strong> {{ solicitud.curp }}</p>
+            <p><strong>Fecha de Actualización:</strong> {{ fecha_cambio|date:"d/m/Y \a \l\a\s H:i" }}</p>
+        </div>
+
+        <div class="status-change">
+            <h4>📊 Cambio de Estado</h4>
+            <p style="font-size: 1.1em;">
+                <strong>Estado Anterior:</strong> {{ estado_anterior }}<br>
+                <strong>Estado Actual:</strong> 
+                <span style="font-size: 1.3em; font-weight: bold;">{{ estado_actual }}</span>
+            </p>
+        </div>
+
+        {% if solicitud.estado == 'aceptada' %}
+        <div class="next-steps">
+            <h4>🎯 ¡Felicitaciones! Próximos Pasos</h4>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>
+                    <strong>Ficha de Admisión</strong><br>
+                    {% if solicitud.ficha %}
+                    Su ficha de admisión está adjunta en este correo.
+                    {% else %}
+                    Recibirá su ficha de admisión por correo electrónico próximamente.
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>
+                    <strong>Documentación</strong><br>
+                    Prepare la documentación requerida para el proceso de inscripción.
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>
+                    <strong>Proceso de Inscripción</strong><br>
+                    Siga las instrucciones que recibirá para completar su inscripción.
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h4>📝 Información Importante</h4>
+            <ul>
+                <li>Conserve su número de folio: <strong>{{ solicitud.folio }}</strong></li>
+                <li>Mantenga actualizada su información de contacto</li>
+                <li>Revise regularmente su correo electrónico</li>
+                <li>Prepare la documentación requerida</li>
+            </ul>
+        </div>
+
+        {% elif solicitud.estado == 'rechazado' %}
+        <div class="info-box" style="border-left-color: #dc3545;">
+            <h4>📋 Información sobre su Solicitud</h4>
+            <p>Lamentamos informarle que su solicitud ha sido rechazada en esta ocasión.</p>
+            
+            <p><strong>Esto no significa el fin de sus oportunidades educativas:</strong></p>
+            <ul>
+                <li>Puede aplicar en el próximo período de admisiones</li>
+                <li>Considere revisar los requisitos de admisión</li>
+                <li>Contacte a nuestro departamento para orientación</li>
+                <li>Explore otros programas que puedan ser de su interés</li>
+            </ul>
+        </div>
+
+        <div class="contact-info">
+            <h4>💬 Orientación Académica</h4>
+            <p>Nuestro equipo está disponible para brindarle orientación sobre:</p>
+            <ul>
+                <li>Requisitos de admisión</li>
+                <li>Programas alternativos</li>
+                <li>Próximos períodos de admisión</li>
+                <li>Preparación para futuras aplicaciones</li>
+            </ul>
+        </div>
+
+        {% else %}
+        <div class="info-box">
+            <h4>⏳ Su solicitud está en proceso</h4>
+            <p>Continuamos revisando su solicitud. Le mantendremos informado sobre cualquier 
+            actualización adicional.</p>
+        </div>
+        {% endif %}
+
+        <div class="contact-info">
+            <h4>📞 Información de Contacto</h4>
+            <p><strong>Departamento de Admisiones</strong></p>
+            <p>📧 Email: {{ contacto_email }}</p>
+            <p>📱 Teléfono: {{ contacto_telefono }}</p>
+            <p>🕒 Horario de atención: Lunes a Viernes, 8:00 AM - 6:00 PM</p>
+        </div>
+
+        <p>Si tiene alguna pregunta sobre esta actualización o necesita más información, 
+        no dude en contactarnos.</p>
+
+        <p>Atentamente,<br>
+        <strong>Departamento de Admisiones</strong><br>
+        {{ institucion }}</p>
+    </div>
+
+    <div class="footer">
+        <p>Este es un correo automático, por favor no responda a esta dirección.</p>
+        <p>Para consultas, utilice: {{ contacto_email }}</p>
+        <p>© {{ fecha_cambio.year }} {{ institucion }}. Todos los derechos reservados.</p>
+    </div>
+</body>
+</html>

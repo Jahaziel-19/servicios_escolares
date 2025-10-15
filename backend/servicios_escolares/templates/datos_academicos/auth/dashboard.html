@@ -1,0 +1,387 @@
+{% extends 'layouts/base_alumno.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Portal de Alumnos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        color: white;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-card .stats-icon {
+        font-size: 2.5rem;
+        opacity: 0.8;
+        margin-bottom: 10px;
+    }
+    
+    .stats-card .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stats-card .stats-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .progress-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 20px;
+    }
+    
+    .progress-bar-custom {
+        height: 12px;
+        border-radius: 10px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .recent-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 20px;
+    }
+    
+    .recent-item {
+        padding: 15px;
+        border-left: 4px solid #667eea;
+        background: #f8f9ff;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .recent-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .grade-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.85rem;
+    }
+    
+    .grade-excellent {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .grade-good {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    
+    .grade-regular {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .grade-poor {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+    
+    .status-pendiente {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-completado {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-rechazado {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .welcome-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .nav-pills .nav-link {
+        border-radius: 25px;
+        padding: 10px 20px;
+        margin-right: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-pills .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header de bienvenida -->
+    <div class="welcome-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2><i class="fas fa-graduation-cap me-3"></i>¡Bienvenido, {{ alumno.nombre }}!</h2>
+                <p class="mb-0">
+                    <strong>{{ alumno.carrera.nombre }}</strong> • 
+                    Semestre {{ alumno.semestre }} • 
+                    Modalidad {{ alumno.get_modalidad_display }}
+                </p>
+                {% if periodo_activo %}
+                <small>Período activo: {{ periodo_activo }}</small>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="{% url 'datos_academicos:alumno_calificaciones' %}" class="btn btn-light">
+                        <i class="fas fa-chart-line me-2"></i>Calificaciones
+                    </a>
+                    <a href="{% url 'datos_academicos:alumno_tramites' %}" class="btn btn-light">
+                        <i class="fas fa-file-alt me-2"></i>Trámites
+                    </a>
+                    <a href="{% url 'datos_academicos:alumno_logout' %}" class="btn btn-outline-light">
+                        <i class="fas fa-sign-out-alt me-2"></i>Salir
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estadísticas principales -->
+    <div class="row">
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stats-number">{{ promedio_general }}</div>
+                <div class="stats-label">Promedio General</div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">
+                    <i class="fas fa-medal"></i>
+                </div>
+                <div class="stats-number">{{ creditos_aprobados }}</div>
+                <div class="stats-label">Créditos Aprobados</div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stats-number">{{ total_calificaciones }}</div>
+                <div class="stats-label">Materias Cursadas</div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stats-card">
+                <div class="stats-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stats-number">{{ tramites_pendientes }}</div>
+                <div class="stats-label">Trámites Pendientes</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progreso académico -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="progress-card">
+                <h5><i class="fas fa-graduation-cap me-2 text-primary"></i>Progreso Académico</h5>
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <small class="text-muted">Créditos Completados</small>
+                        <h4>{{ creditos_aprobados }} / {{ creditos_totales }}</h4>
+                    </div>
+                    <div class="col-6 text-end">
+                        <small class="text-muted">Porcentaje</small>
+                        <h4>{{ progreso_creditos }}%</h4>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height: 12px;">
+                    <div class="progress-bar progress-bar-custom" 
+                         style="width: {{ progreso_creditos }}%"></div>
+                </div>
+                <small class="text-muted mt-2 d-block">
+                    Te faltan {{ creditos_totales|add:"-"|add:creditos_aprobados }} créditos para completar tu carrera
+                </small>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="progress-card">
+                <h5><i class="fas fa-calendar-alt me-2 text-primary"></i>Información del Semestre</h5>
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <small class="text-muted">Semestre Actual</small>
+                        <h4>{{ semestre_actual }}°</h4>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Estatus</small>
+                        <h4>
+                            <span class="badge bg-success">{{ alumno.estatus }}</span>
+                        </h4>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">Fecha de Ingreso</small>
+                    <p class="mb-0">{{ alumno.fecha_ingreso|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Calificaciones recientes y trámites -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="recent-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5><i class="fas fa-star me-2 text-primary"></i>Calificaciones Recientes</h5>
+                    <a href="{% url 'datos_academicos:alumno_calificaciones' %}" class="btn btn-sm btn-outline-primary">
+                        Ver todas <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                
+                {% if calificaciones_recientes %}
+                    {% for calificacion in calificaciones_recientes %}
+                    <div class="recent-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ calificacion.materia.nombre }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    {{ calificacion.periodo_escolar|default:"Sin período" }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="grade-badge 
+                                    {% if calificacion.calificacion >= 9 %}grade-excellent
+                                    {% elif calificacion.calificacion >= 8 %}grade-good
+                                    {% elif calificacion.calificacion >= 6 %}grade-regular
+                                    {% else %}grade-poor{% endif %}">
+                                    {{ calificacion.calificacion }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay calificaciones registradas</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="recent-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5><i class="fas fa-file-alt me-2 text-primary"></i>Trámites Recientes</h5>
+                    <a href="{% url 'datos_academicos:alumno_tramites' %}" class="btn btn-sm btn-outline-primary">
+                        Ver todos <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                
+                {% if tramites_recientes %}
+                    {% for tramite in tramites_recientes %}
+                    <div class="recent-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ tramite.get_tipo_display }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    {{ tramite.fecha_solicitud|date:"d/m/Y" }}
+                                </small>
+                            </div>
+                            <span class="status-badge status-{{ tramite.estado|lower }}">
+                                {{ tramite.estado }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay trámites registrados</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Gráfico de progreso por semestre (si hay datos)
+    {% if calificaciones_por_semestre %}
+    const ctx = document.getElementById('semestreChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [{% for item in calificaciones_por_semestre %}'Sem {{ item.semestre }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Promedio por Semestre',
+                    data: [{% for item in calificaciones_por_semestre %}{{ item.promedio }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10
+                    }
+                }
+            }
+        });
+    }
+    {% endif %}
+</script>
+{% endblock %}

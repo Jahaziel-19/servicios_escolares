@@ -1,0 +1,72 @@
+{% extends 'admision/base.html' %}
+
+{% block title %}Período de Admisión No Disponible{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark text-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Período de Admisión No Disponible
+                </h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-calendar-times text-warning" style="font-size: 4rem;"></i>
+                </div>
+                
+                <h5 class="text-warning mb-3">Actualmente no hay períodos de admisión activos</h5>
+                
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Información</h6>
+                    <p class="mb-0">
+                        El proceso de admisión no está disponible en este momento. 
+                        Los períodos de admisión generalmente se abren de febrero a junio de cada año.
+                    </p>
+                </div>
+
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6><i class="fas fa-lightbulb me-2"></i>¿Qué puedes hacer?</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-bell me-2"></i>Mantente atento a nuestras redes sociales para conocer las fechas del próximo período</li>
+                            <li><i class="fas fa-phone me-2"></i>Contacta a la oficina de admisiones para más información</li>
+                            <li><i class="fas fa-envelope me-2"></i>Suscríbete a nuestro boletín para recibir notificaciones</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a href="{% url 'admision:consultar_solicitud' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>Consultar Solicitud Existente
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de contacto -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-phone me-2"></i>
+                    Información de Contacto
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Teléfono:</strong> (555) 123-4567</p>
+                        <p><strong>Email:</strong> admisiones@institucion.edu.mx</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Horario de Atención:</strong></p>
+                        <p>Lunes a Viernes: 8:00 AM - 6:00 PM</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

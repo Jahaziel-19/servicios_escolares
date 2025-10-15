@@ -1,0 +1,86 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Mapeo de variables para plantilla: {{ plantilla.nombre }}</h1>
+    <form method="post" class="mt-3">
+        {% csrf_token %}
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Variable</th>
+                    <th>Tipo de dato</th>
+                    <th>Configuración</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for variable in variables %}
+                <tr>
+                    <td>{{ variable.nombre }}</td>
+                    <td>
+                        <select class="form-select tipo-select" name="tipo_{{ variable.id }}" data-varid="{{ variable.id }}">
+                            <option value="simple" {% if variable.tipo == 'simple' %}selected{% endif %}>Simple</option>
+                            <option value="especial" {% if variable.tipo == 'especial' %}selected{% endif %}>Especial</option>
+                            <option value="tabla" {% if variable.tipo == 'tabla' %}selected{% endif %}>Tabla/Lista</option>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="config-simple" id="config-simple-{{ variable.id }}" style="display: none;">
+                            <select class="form-select" name="campo_{{ variable.id }}">
+                                <option value="">Seleccionar campo del alumno</option>
+                                {% for campo in campos_alumno %}
+                                <option value="{{ campo }}" {% if variable.campo == campo %}selected{% endif %}>{{ campo }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="mt-1">
+                                <small>Campo seleccionado: <span id="selected-campo-{{ variable.id }}">{{ variable.campo|default:"-" }}</span></small>
+                            </div>
+                        </div>
+                        <div class="config-especial" id="config-especial-{{ variable.id }}" style="display: none;">
+                            <select class="form-select" name="especial_{{ variable.id }}">
+                                <option value="" {% if not variable.especial_opcion %}selected{% endif %}>Seleccionar opción</option>
+                                <option value="fecha_especifica" {% if variable.especial_opcion == 'fecha_especifica' %}selected{% endif %}>Fecha específica</option>
+                                <option value="fecha_emision" {% if variable.especial_opcion == 'fecha_emision' %}selected{% endif %}>Fecha de emisión del documento</option>
+                                <option value="nombre_completo" {% if variable.especial_opcion == 'nombre_completo' %}selected{% endif %}>Nombre completo del alumno</option>
+                                <option value="periodo_completo" {% if variable.especial_opcion == 'periodo_completo' %}selected{% endif %}>Periodo escolar activo</option>
+                            </select>
+                        </div>
+                        <div class="config-tabla" id="config-tabla-{{ variable.id }}" style="display: none;">
+                            <small>Para listas/tablas, se usará la configuración automática.</small>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-primary">Guardar mapeo</button>
+        <a href="{% url 'docsbuilder:listar_plantillas' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+<style>
+.dropdown-submenu { position: relative; }
+.dropdown-submenu > .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-left: 0.1rem;
+  margin-right: 0.1rem;
+  display: none;
+}
+.dropdown-submenu:hover > .dropdown-menu { display: block; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function toggleConfig(varId, tipo) {
+        document.getElementById(`config-simple-${varId}`).style.display = tipo === 'simple' ? 'block' : 'none';
+        document.getElementById(`config-especial-${varId}`).style.display = tipo === 'especial' ? 'block' : 'none';
+        document.getElementById(`config-tabla-${varId}`).style.display = tipo === 'tabla' ? 'block' : 'none';
+    }
+    document.querySelectorAll('.tipo-select').forEach(select => {
+        toggleConfig(select.dataset.varid, select.value);
+        select.addEventListener('change', e => toggleConfig(e.target.dataset.varid, e.target.value));
+    });
+});
+</script>
+{% endblock %}

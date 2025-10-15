@@ -1,0 +1,146 @@
+{% extends 'admision/base.html' %}
+
+{% block title %}Solicitud Enviada Exitosamente{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i>
+                    ¡Solicitud Enviada Exitosamente!
+                </h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-file-alt text-success" style="font-size: 4rem;"></i>
+                </div>
+                
+                <h5 class="text-success mb-3">Tu solicitud ha sido registrada correctamente</h5>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    Folio de Solicitud
+                                </h6>
+                                <h3 class="text-primary">{{ solicitud.folio }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Fecha de Registro
+                                </h6>
+                                <p class="mb-0">{{ solicitud.fecha_registro|date:"d/m/Y H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Información Importante</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-envelope me-2"></i>Se ha enviado una copia de tu ficha de admisión al correo: <strong>{{ solicitud.email }}</strong></li>
+                        <li><i class="fas fa-save me-2"></i>Guarda tu folio <strong>{{ solicitud.folio }}</strong> para futuras consultas</li>
+                        <li><i class="fas fa-clock me-2"></i>Puedes consultar el estado de tu solicitud en cualquier momento</li>
+                    </ul>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <i class="fas fa-download text-primary mb-2" style="font-size: 2rem;"></i>
+                                <h6>Descargar Ficha</h6>
+                                {% if solicitud.ficha %}
+                                <a href="{% url 'admision:admin_descargar_ficha' solicitud.ficha.id %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-file-pdf me-1"></i>PDF
+                                </a>
+                                {% else %}
+                                <span class="text-muted">Generando...</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="fas fa-search text-info mb-2" style="font-size: 2rem;"></i>
+                                <h6>Consultar Estado</h6>
+                                <a href="{% url 'admision:consultar_solicitud' %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye me-1"></i>Consultar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="fas fa-edit text-warning mb-2" style="font-size: 2rem;"></i>
+                                <h6>Editar Solicitud</h6>
+                                {% if solicitud.estado == 'borrador' %}
+                                <a href="{% url 'admision:editar_solicitud' solicitud.folio %}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-pencil-alt me-1"></i>Editar
+                                </a>
+                                {% else %}
+                                <span class="text-muted">No disponible</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6><i class="fas fa-lightbulb me-2"></i>Próximos Pasos</h6>
+                        <ol class="text-start">
+                            <li>Revisa tu correo electrónico para confirmar la recepción de tu ficha</li>
+                            <li>Mantén tu folio <strong>{{ solicitud.folio }}</strong> en un lugar seguro</li>
+                            <li>Consulta periódicamente el estado de tu solicitud</li>
+                            <li>Espera las instrucciones para el proceso de selección</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a href="{% url 'admision:solicitud_admision' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-plus me-1"></i>Nueva Solicitud
+                    </a>
+                    <a href="{% url 'admision:consultar_solicitud' %}" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i>Consultar Solicitud
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de contacto -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-phone me-2"></i>
+                    ¿Necesitas Ayuda?
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Teléfono:</strong> (555) 123-4567</p>
+                        <p><strong>Email:</strong> admisiones@institucion.edu.mx</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Horario de Atención:</strong></p>
+                        <p>Lunes a Viernes: 8:00 AM - 6:00 PM</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

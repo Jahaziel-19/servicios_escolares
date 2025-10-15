@@ -1,0 +1,58 @@
+{{ institucion }}
+FICHA DE ADMISIÓN
+{{ periodo.nombre }} - {{ periodo.año }}
+
+Estimado(a) aspirante,
+
+Nos complace informarle que su FICHA DE ADMISIÓN ha sido generada exitosamente.
+
+INFORMACIÓN DE SU SOLICITUD
+============================
+Folio: {{ solicitud.folio }}
+CURP: {{ solicitud.curp }}
+Número de Ficha: {{ ficha.numero_ficha }}
+Estado: {{ solicitud.get_estado_display }}
+Fecha de Registro: {{ solicitud.fecha_registro|date:"d/m/Y" }}
+
+ARCHIVO ADJUNTO
+===============
+En este correo encontrará adjunta su Ficha de Admisión en formato PDF. 
+Este documento contiene toda la información de su solicitud y es muy importante 
+para el proceso de admisión.
+
+INSTRUCCIONES IMPORTANTES
+=========================
+- GUARDE este documento en un lugar seguro
+- IMPRIMA una copia para sus registros personales
+- Presente este documento cuando sea requerido durante el proceso
+- Conserve su número de folio: {{ solicitud.folio }}
+
+{% if solicitud.estado == 'aceptada' %}
+¡FELICITACIONES!
+================
+Su solicitud ha sido ACEPTADA. Pronto recibirá más información 
+sobre los siguientes pasos en el proceso de admisión.
+{% elif solicitud.estado == 'en_revision' %}
+EN REVISIÓN
+===========
+Su solicitud está siendo revisada por nuestro equipo de admisiones. 
+Le notificaremos cualquier actualización.
+{% endif %}
+
+INFORMACIÓN DE CONTACTO
+=======================
+Departamento de Admisiones
+Email: {{ contacto_email }}
+Teléfono: {{ contacto_telefono }}
+Horario de atención: Lunes a Viernes, 8:00 AM - 6:00 PM
+
+Si tiene alguna pregunta o necesita asistencia, no dude en contactarnos.
+
+Atentamente,
+Departamento de Admisiones
+{{ institucion }}
+
+---
+Este es un correo automático, por favor no responda a esta dirección.
+Para consultas, utilice: {{ contacto_email }}
+© {{ fecha_envio.year }} {{ institucion }}. Todos los derechos reservados.

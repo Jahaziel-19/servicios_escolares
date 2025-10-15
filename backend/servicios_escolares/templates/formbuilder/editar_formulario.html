@@ -1,0 +1,158 @@
+{% extends "layouts/base.html" %}
+{% block title %}Editar Formulario{% endblock %}
+
+{% block content %}
+
+
+<div class="container my-5 fade-in-up">
+  <div class="row justify-content-center">
+    <div class="col">
+
+      <div class="glass-card p-4">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <img width="94" height="94" src="https://img.icons8.com/3d-fluency/200/edit-property.png" alt="Editar formulario"/>
+          <h2 class="fw-bold m-0">Editar Formulario</h2>
+        </div>
+
+        <form method="post" id="formularioForm">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Título del Formulario</label>
+            <input type="text" name="nombre" class="form-control" value="{{ formulario.nombre }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea name="descripcion" class="form-control" rows="3">{{ formulario.descripcion }}</textarea>
+          </div>
+
+          <h5 class="mt-4 mb-3">Campos del Formulario</h5>
+          <div id="campos-container" class="mb-3"></div>
+
+          <h6 class="mt-4 mb-3">Agregar Nuevo Campo</h6>
+          <div class="row g-2 mb-3 align-items-center">
+            <div class="col">
+              <input type="text" id="nueva_etiqueta" class="form-control" placeholder="Ej. Tu nombre">
+            </div>
+            <div class="col">
+              <select id="nuevo_tipo" class="form-select">
+                <option value="text">Texto</option>
+                <option value="number">Número</option>
+                <option value="email">Email</option>
+                <option value="radio">Radio</option>
+                <option value="checkbox">Checkbox</option>
+              </select>
+            </div>
+            <div class="col-auto d-flex align-items-center">
+              <input type="checkbox" id="nuevo_requerido" class="form-check-input">
+              <label for="nuevo_requerido" class="form-check-label ms-1">Campo Requerido</label>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary w-100 mb-3" onclick="agregarCampo()">Agregar Campo</button>
+
+          <input type="hidden" name="campos_json" id="campos_json">
+
+          <div class="d-flex justify-content-between">
+            <a href="{% url 'formbuilder:lista_formularios' %}" class="btn btn-light">Cancelar</a>
+            <button type="submit" class="btn btn-success">Guardar Formulario</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let campos = {{ campos_json|safe }};
+
+function renderCampos() {
+  const container = document.getElementById('campos-container');
+  container.innerHTML = '';
+  campos.forEach((campo, idx) => {
+    const div = document.createElement('div');
+    div.className = 'bg-light rounded px-3 py-2 mb-2 d-flex align-items-center gap-2 flex-wrap';
+    let label = campo.label ? campo.label.replace(/"/g, '&quot;') : '';
+    let tipo = campo.type || 'text';
+    let requerido = campo.required ? 'checked' : '';
+    let opciones = (campo.options || []).join(', ');
+    div.innerHTML = `
+      <input type="text" class="form-control flex-grow-1 me-2" value="${label}"
+        oninput="actualizarCampo(${idx}, 'label', this.value)" placeholder="Etiqueta del campo">
+      <select class="form-select me-2" onchange="actualizarCampo(${idx}, 'type', this.value)">
+        <option value="text" ${tipo === 'text' ? 'selected' : ''}>Texto</option>
+        <option value="number" ${tipo === 'number' ? 'selected' : ''}>Número</option>
+        <option value="email" ${tipo === 'email' ? 'selected' : ''}>Email</option>
+        <option value="radio" ${tipo === 'radio' ? 'selected' : ''}>Radio</option>
+        <option value="checkbox" ${tipo === 'checkbox' ? 'selected' : ''}>Checkbox</option>
+      </select>
+      <div class="form-check me-3 d-flex align-items-center">
+        <input class="form-check-input" type="checkbox" ${requerido}
+          onchange="actualizarCampo(${idx}, 'required', this.checked)" id="required_${idx}">
+        <label class="form-check-label ms-1" for="required_${idx}">Requerido</label>
+      </div>
+      ${(tipo === 'radio' || tipo === 'checkbox') ? `
+        <input type="text" class="form-control me-2" style="max-width:200px"
+          value="${opciones}" placeholder="Opciones (separadas por coma)" 
+          oninput="actualizarOpciones(${idx}, this.value)">
+      ` : ''}
+      <button type="button" class="btn btn-link text-danger p-0" title="Eliminar campo" onclick="eliminarCampo(${idx})" aria-label="Eliminar campo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-trash" viewBox="0 0 16 16" role="img" aria-hidden="true">
+          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5.5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6zm3 .5a.5.5 0 0 1 .5-.5.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6z"/>
+          <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1-1V1h-11v1a1 1 0 0 1-1 1H1v1h14V3h-.5zm-1-1V1h-11v1h11z"/>
+        </svg>
+      </button>
+    `;
+    container.appendChild(div);
+  });
+  document.getElementById('campos_json').value = JSON.stringify(campos);
+}
+
+function actualizarCampo(idx, key, value) {
+  if (key === 'required') {
+    campos[idx][key] = value;
+  } else if (key === 'type') {
+    campos[idx][key] = value;
+    if (value !== 'radio' && value !== 'checkbox') {
+      campos[idx]['options'] = [];
+    }
+  } else {
+    campos[idx][key] = value;
+  }
+  renderCampos();
+}
+
+function actualizarOpciones(idx, value) {
+  campos[idx]['options'] = value.split(',').map(x => x.trim()).filter(x => x);
+  renderCampos();
+}
+
+function eliminarCampo(idx) {
+  campos.splice(idx, 1);
+  renderCampos();
+}
+
+function agregarCampo() {
+  const nuevaEtiqueta = document.getElementById('nueva_etiqueta').value.trim();
+  const nuevoTipo = document.getElementById('nuevo_tipo').value;
+  const nuevoRequerido = document.getElementById('nuevo_requerido').checked;
+  if (!nuevaEtiqueta) {
+    alert("La etiqueta no puede estar vacía");
+    return;
+  }
+  campos.push({
+    id: 'campo_' + Math.random().toString(36).substr(2, 9),
+    label: nuevaEtiqueta,
+    type: nuevoTipo,
+    required: nuevoRequerido,
+    options: []
+  });
+  document.getElementById('nueva_etiqueta').value = '';
+  document.getElementById('nuevo_tipo').value = 'text';
+  document.getElementById('nuevo_requerido').checked = false;
+  renderCampos();
+}
+
+document.addEventListener('DOMContentLoaded', renderCampos);
+</script>
+{% endblock %}

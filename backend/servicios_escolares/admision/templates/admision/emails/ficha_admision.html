@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha de Admisión - {{ solicitud.folio }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px 20px;
+            border-radius: 0 0 10px 10px;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .highlight {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+        }
+        .important {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .contact-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ institucion }}</h1>
+        <h2>Ficha de Admisión</h2>
+        <p>{{ periodo.nombre }} - {{ periodo.año }}</p>
+    </div>
+
+    <div class="content">
+        <h3>Estimado(a) aspirante,</h3>
+        
+        <p>Nos complace informarle que su <strong>Ficha de Admisión</strong> ha sido generada exitosamente.</p>
+
+        <div class="info-box">
+            <h4>📋 Información de su Solicitud</h4>
+            <p><strong>Folio:</strong> {{ solicitud.folio }}</p>
+            <p><strong>CURP:</strong> {{ solicitud.curp }}</p>
+            <p><strong>Número de Ficha:</strong> {{ ficha.numero_ficha }}</p>
+            <p><strong>Estado:</strong> {{ solicitud.get_estado_display }}</p>
+            <p><strong>Fecha de Registro:</strong> {{ solicitud.fecha_registro|date:"d/m/Y" }}</p>
+        </div>
+
+        <div class="highlight">
+            <h4>📎 Archivo Adjunto</h4>
+            <p>En este correo encontrará adjunta su <strong>Ficha de Admisión en formato PDF</strong>. 
+            Este documento contiene toda la información de su solicitud y es <strong>muy importante</strong> 
+            para el proceso de admisión.</p>
+        </div>
+
+        <div class="important">
+            <h4>⚠️ Instrucciones Importantes</h4>
+            <ul>
+                <li><strong>Guarde este documento</strong> en un lugar seguro</li>
+                <li><strong>Imprima una copia</strong> para sus registros personales</li>
+                <li>Presente este documento cuando sea requerido durante el proceso</li>
+                <li>Conserve su número de folio: <strong>{{ solicitud.folio }}</strong></li>
+            </ul>
+        </div>
+
+        {% if solicitud.estado == 'aceptada' %}
+            <div class="info-box" style="border-left-color: #28a745;">
+                <h4>🎉 ¡Felicitaciones!</h4>
+        <p>Su solicitud ha sido <strong>ACEPTADA</strong>. Pronto recibirá más información
+                sobre los siguientes pasos en el proceso de admisión.</p>
+            </div>
+        {% elif solicitud.estado == 'en_revision' %}
+        <div class="info-box" style="border-left-color: #ffc107;">
+            <h4>⏳ En Revisión</h4>
+            <p>Su solicitud está siendo revisada por nuestro equipo de admisiones. 
+            Le notificaremos cualquier actualización.</p>
+        </div>
+        {% endif %}
+
+        <div class="contact-info">
+            <h4>📞 Información de Contacto</h4>
+            <p><strong>Departamento de Admisiones</strong></p>
+            <p>📧 Email: {{ contacto_email }}</p>
+            <p>📱 Teléfono: {{ contacto_telefono }}</p>
+            <p>🕒 Horario de atención: Lunes a Viernes, 8:00 AM - 6:00 PM</p>
+        </div>
+
+        <p>Si tiene alguna pregunta o necesita asistencia, no dude en contactarnos.</p>
+
+        <p>Atentamente,<br>
+        <strong>Departamento de Admisiones</strong><br>
+        {{ institucion }}</p>
+    </div>
+
+    <div class="footer">
+        <p>Este es un correo automático, por favor no responda a esta dirección.</p>
+        <p>Para consultas, utilice: {{ contacto_email }}</p>
+        <p>© {{ fecha_envio.year }} {{ institucion }}. Todos los derechos reservados.</p>
+    </div>
+</body>
+</html>

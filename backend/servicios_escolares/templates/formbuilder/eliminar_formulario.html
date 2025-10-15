@@ -1,0 +1,21 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+
+<div class="container my-5 fade-in-up">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-xl-5">
+      <div class="glass-card p-4 text-center">
+        <h2 class="fw-bold mb-4">Eliminar Formulario</h2>
+        <p class="mb-4">
+          ¿Estás seguro que deseas eliminar el formulario <strong>{{ formulario.nombre }}</strong>?
+        </p>
+        <form method="post" class="d-flex justify-content-center gap-3">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger px-4">Eliminar</button>
+          <a href="{% url 'formbuilder:listar_formularios' %}" class="btn btn-secondary px-4">Cancelar</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

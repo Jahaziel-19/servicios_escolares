@@ -1,0 +1,970 @@
+{% extends 'admision/base.html' %}
+{% load static %}
+
+{% block title %}Editar Formulario - {{ periodo.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .field-builder {
+        background: #f8f9fc;
+        border: 2px dashed #d1d3e2;
+        border-radius: 0.35rem;
+        min-height: 200px;
+        padding: 2rem;
+        transition: all 0.3s ease;
+    }
+    
+    .field-type-card.dragging {
+        opacity: 0.5;
+        transform: rotate(2deg) scale(0.95);
+    }
+    
+    .field-builder.drag-over {
+        border-color: #4e73df;
+        background: #e3f2fd;
+        transform: scale(1.02);
+    }
+    
+    .field-item {
+        background: white;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        cursor: move;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    
+    .field-item:hover {
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        transform: translateY(-1px);
+    }
+    
+    .field-item.dragging {
+        opacity: 0.5;
+        transform: rotate(5deg);
+    }
+    
+    .field-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .field-drag-handle {
+        cursor: grab;
+        color: #858796;
+        padding: 0.25rem;
+    }
+    
+    .field-drag-handle:hover {
+        color: #4e73df;
+    }
+    
+    .field-drag-handle:active {
+        cursor: grabbing;
+    }
+    
+    .field-item-placeholder {
+        background: #f8f9fc;
+        border: 2px dashed #4e73df;
+        border-radius: 0.35rem;
+        height: 80px;
+        margin-bottom: 1rem;
+    }
+    
+    .field-type-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .field-type-card {
+        background: white;
+        border: 2px solid #e3e6f0;
+        border-radius: 0.35rem;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .field-type-card:hover {
+        border-color: #4e73df;
+        transform: translateY(-2px);
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(78, 115, 223, 0.15);
+    }
+    
+    .field-type-card.selected {
+        border-color: #4e73df;
+        background: #e3f2fd;
+    }
+    
+    .field-type-icon {
+        font-size: 2rem;
+        color: #4e73df;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-preview {
+        background: white;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+        padding: 2rem;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    .btn-remove-field {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #e74a3b;
+        color: white;
+        border: none;
+        font-size: 12px;
+        display: none;
+    }
+    
+    .field-item:hover .btn-remove-field {
+        display: block;
+    }
+    
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+    }
+    
+    .step {
+        flex: 1;
+        text-align: center;
+        padding: 1rem;
+        background: #f8f9fc;
+        border: 1px solid #e3e6f0;
+        position: relative;
+    }
+    
+    .step.active {
+        background: #4e73df;
+        color: white;
+    }
+    
+    .step.completed {
+        background: #1cc88a;
+        color: white;
+    }
+    
+    .step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -1px;
+        width: 0;
+        height: 0;
+        border-top: 20px solid transparent;
+        border-bottom: 20px solid transparent;
+        border-left: 20px solid #f8f9fc;
+        z-index: 1;
+    }
+    
+    .step.active:not(:last-child)::after {
+        border-left-color: #4e73df;
+    }
+    
+    .step.completed:not(:last-child)::after {
+        border-left-color: #1cc88a;
+    }
+    
+    .info-alert {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+        padding: 1rem;
+        border-radius: 0.35rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-edit text-warning"></i>
+            Editar Formulario
+        </h1>
+        <div>
+            <a href="" class="btn btn-info btn-sm shadow-sm mr-2">
+                <i class="fas fa-eye fa-sm text-white-50"></i>
+                Ver Detalles
+            </a>
+            <a href="{% url 'admision:admin_formularios' %}" class="btn btn-secondary btn-sm shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i>
+                Volver a Formularios
+            </a>
+        </div>
+    </div>
+
+    <!-- Información del formulario actual -->
+    <div class="info-alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle mr-2"></i>
+            <div>
+                <strong>Editando:</strong> {{ formulario.nombre }}
+                <span class="ml-3">
+                    <strong>Estado:</strong> 
+                    {% if formulario.activo %}
+                        <span class="badge badge-success">Activo</span>
+                    {% else %}
+                        <span class="badge badge-danger">Inactivo</span>
+                    {% endif %}
+                </span>
+                <span class="ml-3">
+                    <strong>Creado:</strong> {{ formulario.fecha_creacion|date:"d/m/Y H:i" }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" id="formulario-form">
+        {% csrf_token %}
+        
+        <!-- Indicador de Pasos -->
+        <div class="step-indicator">
+            <div class="step active" data-step="1">
+                <i class="fas fa-info-circle"></i>
+                <div>Información Básica</div>
+            </div>
+            <div class="step" data-step="2">
+                <i class="fas fa-list"></i>
+                <div>Campos del Formulario</div>
+            </div>
+            <div class="step" data-step="3">
+                <i class="fas fa-eye"></i>
+                <div>Previsualización</div>
+            </div>
+        </div>
+
+        <!-- Paso 1: Información Básica -->
+        <div class="step-content" id="step-1">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información del Formulario</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label class="font-weight-bold">Período de Admisión</label>
+                                <input type="text" class="form-control" value="{{ periodo.nombre }} ({{ periodo.año }})" readonly>
+                                <small class="form-text text-muted">
+                                    Configurando formulario base para este período
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="descripcion" class="font-weight-bold">Descripción</label>
+                                <textarea class="form-control" id="descripcion" name="descripcion" rows="3"
+                                          placeholder="Descripción del formulario">{{ periodo.descripcion }}</textarea>
+                                <small class="form-text text-muted">
+                                    Información adicional sobre el formulario (opcional)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 2: Constructor de Campos -->
+        <div class="step-content" id="step-2" style="display: none;">
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Tipos de Campo</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="field-type-selector">
+                                <div class="field-type-card" data-type="text">
+                                    <div class="field-type-icon">
+                                        <i class="fas fa-font"></i>
+                                    </div>
+                                    <div class="font-weight-bold">Texto</div>
+                                    <small class="text-muted">Campo de texto simple</small>
+                                </div>
+                                
+                                <div class="field-type-card" data-type="email">
+                                    <div class="field-type-icon">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div class="font-weight-bold">Email</div>
+                                    <small class="text-muted">Dirección de correo</small>
+                                </div>
+                                
+                                <div class="field-type-card" data-type="number">
+                                    <div class="field-type-icon">
+                                        <i class="fas fa-hashtag"></i>
+                                    </div>
+                                    <div class="font-weight-bold">Número</div>
+                                    <small class="text-muted">Campo numérico</small>
+                                </div>
+                                
+                                <div class="field-type-card" data-type="select">
+                                    <div class="field-type-icon">
+                                        <i class="fas fa-list"></i>
+                                    </div>
+                                    <div class="font-weight-bold">Selección</div>
+                                    <small class="text-muted">Lista desplegable</small>
+                                </div>
+                                
+                                <div class="field-type-card" data-type="textarea">
+                                    <div class="field-type-icon">
+                                        <i class="fas fa-align-left"></i>
+                                    </div>
+                                    <div class="font-weight-bold">Texto Largo</div>
+                                    <small class="text-muted">Área de texto</small>
+                                </div>
+                                
+                                <div class="field-type-card" data-type="date">
+                                    <div class="field-type-icon">
+                                        <i class="fas fa-calendar"></i>
+                                    </div>
+                                    <div class="font-weight-bold">Fecha</div>
+                                    <small class="text-muted">Selector de fecha</small>
+                                </div>
+                                
+                                <div class="field-type-card" data-type="checkbox">
+                                    <div class="field-type-icon">
+                                        <i class="fas fa-check-square"></i>
+                                    </div>
+                                    <div class="font-weight-bold">Casilla</div>
+                                    <small class="text-muted">Verdadero/Falso</small>
+                                </div>
+                                
+                                <div class="field-type-card" data-type="file">
+                                    <div class="field-type-icon">
+                                        <i class="fas fa-file-upload"></i>
+                                    </div>
+                                    <div class="font-weight-bold">Archivo</div>
+                                    <small class="text-muted">Subir archivo</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-8">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">Constructor de Formulario</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="clear-fields">
+                                <i class="fas fa-trash"></i> Limpiar Todo
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="field-builder" id="field-builder">
+                                <!-- Los campos se cargarán dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 3: Previsualización -->
+        <div class="step-content" id="step-3" style="display: none;">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Previsualización del Formulario</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-preview" id="form-preview">
+                        <!-- La previsualización se generará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegación entre pasos -->
+        <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary" id="prev-step" style="display: none;">
+                <i class="fas fa-arrow-left"></i> Anterior
+            </button>
+            <div class="ml-auto">
+                <button type="button" class="btn btn-primary" id="next-step">
+                    Siguiente <i class="fas fa-arrow-right"></i>
+                </button>
+                <button type="submit" class="btn btn-success" id="submit-form" style="display: none;">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+
+        <!-- Campo oculto para los campos del formulario -->
+        <input type="hidden" name="campos" id="campos-json">
+    </form>
+</div>
+
+<!-- Modal para configurar campo -->
+<div class="modal fade" id="field-config-modal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Configurar Campo</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="field-config-content">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="save-field-config">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+let formFields = [];
+let fieldCounter = 0;
+
+// Cargar campos existentes del formulario
+const existingFieldsRaw = `{{ campos_json|escapejs }}`;
+
+$(document).ready(function() {
+    loadExistingFields();
+    initializeFormBuilder();
+    setupStepNavigation();
+    setupFieldTypes();
+});
+
+function loadExistingFields() {
+    try {
+        let existingFields = [];
+        
+        if (existingFieldsRaw && typeof existingFieldsRaw === 'string' && existingFieldsRaw.trim() !== '') {
+            existingFields = JSON.parse(existingFieldsRaw);
+        }
+        
+        if (existingFields && Array.isArray(existingFields)) {
+            formFields = existingFields.map((field, index) => ({
+                id: field.id || 'field_' + (index + 1),
+                type: field.type || 'text',
+                label: field.label || 'Campo',
+                name: field.name || 'campo_' + (index + 1),
+                required: field.required || false,
+                placeholder: field.placeholder || '',
+                options: field.options || [],
+                validation: field.validation || {}
+            }));
+            
+            fieldCounter = formFields.length;
+            renderFieldBuilder();
+        }
+    } catch (e) {
+        console.error('Error al cargar campos existentes:', e);
+        formFields = [];
+        renderFieldBuilder();
+    }
+}
+
+function initializeFormBuilder() {
+    // Configurar drag and drop
+    $('#field-builder').on('dragover', function(e) {
+        e.preventDefault();
+        $(this).addClass('drag-over');
+    });
+    
+    $('#field-builder').on('dragleave', function(e) {
+        $(this).removeClass('drag-over');
+    });
+    
+    $('#field-builder').on('drop', function(e) {
+        e.preventDefault();
+        $(this).removeClass('drag-over');
+    });
+}
+
+function setupStepNavigation() {
+    $('#next-step').click(function() {
+        if (validateCurrentStep()) {
+            if (currentStep < 3) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+    });
+    
+    $('#prev-step').click(function() {
+        if (currentStep > 1) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+}
+
+function setupFieldTypes() {
+    $('.field-type-card').click(function() {
+        const fieldType = $(this).data('type');
+        addField(fieldType);
+    });
+    
+    // Configurar drag and drop para las tarjetas de tipo de campo
+    $('.field-type-card').attr('draggable', true);
+    
+    $('.field-type-card').on('dragstart', function(e) {
+        const fieldType = $(this).data('type');
+        e.originalEvent.dataTransfer.setData('text/plain', fieldType);
+        $(this).addClass('dragging');
+    });
+    
+    $('.field-type-card').on('dragend', function(e) {
+        $(this).removeClass('dragging');
+    });
+    
+    // Mejorar el drop handler
+    $('#field-builder').off('drop').on('drop', function(e) {
+        e.preventDefault();
+        $(this).removeClass('drag-over');
+        
+        const fieldType = e.originalEvent.dataTransfer.getData('text/plain');
+        if (fieldType) {
+            addField(fieldType);
+        }
+    });
+}
+
+function showStep(step) {
+    // Ocultar todos los pasos
+    $('.step-content').hide();
+    $('.step').removeClass('active completed');
+    
+    // Mostrar paso actual
+    $('#step-' + step).show();
+    $(`.step[data-step="${step}"]`).addClass('active');
+    
+    // Marcar pasos anteriores como completados
+    for (let i = 1; i < step; i++) {
+        $(`.step[data-step="${i}"]`).addClass('completed');
+    }
+    
+    // Actualizar botones de navegación
+    if (step === 1) {
+        $('#prev-step').hide();
+        $('#next-step').show();
+        $('#submit-form').hide();
+    } else if (step === 3) {
+        $('#prev-step').show();
+        $('#next-step').hide();
+        $('#submit-form').show();
+        generatePreview(); // Generar previsualización cuando se muestra el paso 3
+    } else {
+        $('#prev-step').show();
+        $('#next-step').show();
+        $('#submit-form').hide();
+    }
+}
+
+function validateCurrentStep() {
+    if (currentStep === 1) {
+        const nombre = $('#nombre').val().trim();
+        if (!nombre) {
+            alert('Por favor, ingresa un nombre para el formulario.');
+            $('#nombre').focus();
+            return false;
+        }
+    } else if (currentStep === 2) {
+        if (formFields.length === 0) {
+            alert('Por favor, agrega al menos un campo al formulario.');
+            return false;
+        }
+    }
+    return true;
+}
+
+function addField(type) {
+    fieldCounter++;
+    const fieldId = 'field_' + fieldCounter;
+    
+    const field = {
+        id: fieldId,
+        type: type,
+        label: getDefaultLabel(type),
+        name: 'campo_' + fieldCounter,
+        required: false,
+        placeholder: '',
+        options: type === 'select' ? ['Opción 1', 'Opción 2'] : [],
+        validation: {}
+    };
+    
+    formFields.push(field);
+    renderFieldBuilder();
+    openFieldConfig(fieldId);
+}
+
+function getDefaultLabel(type) {
+    const labels = {
+        'text': 'Campo de Texto',
+        'email': 'Correo Electrónico',
+        'number': 'Número',
+        'select': 'Selección',
+        'textarea': 'Texto Largo',
+        'date': 'Fecha',
+        'checkbox': 'Casilla de Verificación',
+        'file': 'Archivo'
+    };
+    return labels[type] || 'Campo';
+}
+
+function renderFieldBuilder() {
+    const builder = $('#field-builder');
+    
+    if (formFields.length === 0) {
+        builder.html(`
+            <div class="text-center text-muted">
+                <i class="fas fa-mouse-pointer fa-2x mb-3"></i>
+                <h5>Arrastra los tipos de campo aquí</h5>
+                <p>Selecciona un tipo de campo de la izquierda y haz clic para agregarlo</p>
+            </div>
+        `);
+        return;
+    }
+    
+    let html = '';
+    formFields.forEach((field, index) => {
+        html += `
+            <div class="field-item" data-field-id="${field.id}" data-field-index="${index}">
+                <div class="field-item-header">
+                    <div class="field-drag-handle">
+                        <i class="fas fa-grip-vertical"></i>
+                    </div>
+                    <button type="button" class="btn btn-remove-field" onclick="removeField('${field.id}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 field-label-display">${escapeHtml(field.label)}</h6>
+                        <small class="text-muted">Tipo: ${field.type} | Nombre: ${field.name}</small>
+                        ${field.required ? '<small class="badge badge-warning ml-2">Obligatorio</small>' : ''}
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="openFieldConfig('${field.id}')">
+                            <i class="fas fa-cog"></i> Configurar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    builder.html(html);
+    
+    // Configurar sortable para reordenar campos (verificar que jQuery UI esté disponible)
+    if (typeof builder.sortable === 'function') {
+        builder.sortable({
+            handle: '.field-drag-handle',
+            placeholder: 'field-item-placeholder',
+            update: function(event, ui) {
+                // Reordenar el array formFields según el nuevo orden
+                const newOrder = [];
+                builder.find('.field-item').each(function() {
+                    const fieldId = $(this).data('field-id');
+                    const field = formFields.find(f => f.id === fieldId);
+                    if (field) {
+                        newOrder.push(field);
+                    }
+                });
+                formFields = newOrder;
+            }
+        });
+    } else {
+        console.warn('jQuery UI sortable no está disponible. La funcionalidad de arrastrar y soltar no funcionará.');
+    }
+}
+
+function removeField(fieldId) {
+    if (confirm('¿Estás seguro de que quieres eliminar este campo?')) {
+        formFields = formFields.filter(field => field.id !== fieldId);
+        renderFieldBuilder();
+    }
+}
+
+function openFieldConfig(fieldId) {
+    const field = formFields.find(f => f.id === fieldId);
+    if (!field) return;
+    
+    let configHtml = `
+        <div class="form-group">
+            <label>Etiqueta del Campo *</label>
+            <input type="text" class="form-control" id="config-label" value="${escapeHtml(field.label)}" required>
+        </div>
+        <div class="form-group">
+            <label>Nombre del Campo *</label>
+            <input type="text" class="form-control" id="config-name" value="${escapeHtml(field.name)}" required>
+            <small class="form-text text-muted">Nombre único para identificar el campo en la base de datos</small>
+        </div>
+        <div class="form-group">
+            <label>Texto de Ayuda</label>
+            <input type="text" class="form-control" id="config-placeholder" value="${escapeHtml(field.placeholder)}">
+            <small class="form-text text-muted">Texto que aparece como placeholder o ayuda</small>
+        </div>
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" id="config-required" ${field.required ? 'checked' : ''}>
+            <label class="form-check-label" for="config-required">Campo Obligatorio</label>
+        </div>
+    `;
+    
+    if (field.type === 'select') {
+        configHtml += `
+            <div class="form-group mt-3">
+                <label>Opciones (una por línea)</label>
+                <textarea class="form-control" id="config-options" rows="4" placeholder="Opción 1&#10;Opción 2&#10;Opción 3">${field.options ? field.options.join('\n') : ''}</textarea>
+                <small class="form-text text-muted">Cada línea será una opción del select</small>
+            </div>
+        `;
+    }
+    
+    if (field.type === 'number') {
+        configHtml += `
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Valor Mínimo</label>
+                        <input type="number" class="form-control" id="config-min" value="${field.validation?.min || ''}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Valor Máximo</label>
+                        <input type="number" class="form-control" id="config-max" value="${field.validation?.max || ''}">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (field.type === 'text' || field.type === 'textarea') {
+        configHtml += `
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Longitud Mínima</label>
+                        <input type="number" class="form-control" id="config-minlength" value="${field.validation?.minlength || ''}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Longitud Máxima</label>
+                        <input type="number" class="form-control" id="config-maxlength" value="${field.validation?.maxlength || ''}">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    $('#field-config-content').html(configHtml);
+    $('#field-config-modal').data('field-id', fieldId).modal('show');
+}
+
+$('#save-field-config').click(function() {
+    const fieldId = $('#field-config-modal').data('field-id');
+    const field = formFields.find(f => f.id === fieldId);
+    if (!field) return;
+    
+    // Validar campos requeridos con protección adicional
+    const labelVal = $('#config-label').val();
+    const nameVal = $('#config-name').val();
+    const label = (labelVal && typeof labelVal === 'string') ? labelVal.trim() : '';
+    const name = (nameVal && typeof nameVal === 'string') ? nameVal.trim() : '';
+    
+    if (!label || !name) {
+        alert('La etiqueta y el nombre del campo son obligatorios');
+        return;
+    }
+    
+    // Verificar que el nombre del campo sea único
+    const existingField = formFields.find(f => f.id !== fieldId && f.name === name);
+    if (existingField) {
+        alert('Ya existe un campo con ese nombre. Por favor, elige un nombre único.');
+        return;
+    }
+    
+    // Actualizar el campo con protección adicional
+    field.label = label;
+    field.name = name;
+    const placeholderVal = $('#config-placeholder').val();
+    field.placeholder = (placeholderVal && typeof placeholderVal === 'string') ? placeholderVal.trim() : '';
+    field.required = $('#config-required').is(':checked');
+    
+    // Configuraciones específicas por tipo
+    if (field.type === 'select') {
+        const optionsTextVal = $('#config-options').val();
+        const optionsText = (optionsTextVal && typeof optionsTextVal === 'string') ? optionsTextVal.trim() : '';
+        field.options = optionsText ? optionsText.split('\n').map(opt => {
+            return (opt && typeof opt === 'string') ? opt.trim() : '';
+        }).filter(opt => opt) : [];
+    }
+    
+    if (field.type === 'number') {
+        field.validation = field.validation || {};
+        const min = $('#config-min').val();
+        const max = $('#config-max').val();
+        if (min) field.validation.min = parseInt(min);
+        if (max) field.validation.max = parseInt(max);
+    }
+    
+    if (field.type === 'text' || field.type === 'textarea') {
+        field.validation = field.validation || {};
+        const minlength = $('#config-minlength').val();
+        const maxlength = $('#config-maxlength').val();
+        if (minlength) field.validation.minlength = parseInt(minlength);
+        if (maxlength) field.validation.maxlength = parseInt(maxlength);
+    }
+    
+    // Re-renderizar el constructor de formularios
+    renderFieldBuilder();
+    
+    // Cerrar el modal
+    $('#field-config-modal').modal('hide');
+    
+    // Mostrar mensaje de éxito
+    showNotification('Campo actualizado correctamente', 'success');
+});
+
+function generatePreview() {
+    let previewHtml = `
+        <h4 class="mb-4">${$('#nombre').val() || 'Formulario de Admisión'}</h4>
+        ${$('#descripcion').val() ? `<p class="text-muted mb-4">${$('#descripcion').val()}</p>` : ''}
+    `;
+    
+    if (formFields && formFields.length > 0) {
+        formFields.forEach(field => {
+            previewHtml += generateFieldPreview(field);
+        });
+    } else {
+        previewHtml += `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                No hay campos agregados al formulario. Agrega campos en el paso anterior.
+            </div>
+        `;
+    }
+    
+    $('#form-preview').html(previewHtml);
+}
+
+function generateFieldPreview(field) {
+    if (!field) return '';
+    
+    let html = `<div class="form-group mb-3">`;
+    html += `<label class="font-weight-bold">${escapeHtml(field.label || 'Campo')}${field.required ? ' <span class="text-danger">*</span>' : ''}</label>`;
+    
+    switch (field.type) {
+        case 'text':
+        case 'email':
+        case 'number':
+            html += `<input type="${field.type}" class="form-control" placeholder="${escapeHtml(field.placeholder || '')}" disabled>`;
+            break;
+        case 'textarea':
+            html += `<textarea class="form-control" rows="3" placeholder="${escapeHtml(field.placeholder || '')}" disabled></textarea>`;
+            break;
+        case 'select':
+            html += `<select class="form-control" disabled>`;
+            html += `<option value="">Selecciona una opción</option>`;
+            if (field.options && Array.isArray(field.options) && field.options.length > 0) {
+                field.options.forEach(option => {
+                    if (option && option.trim()) {
+                        html += `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`;
+                    }
+                });
+            }
+            html += `</select>`;
+            break;
+        case 'date':
+            html += `<input type="date" class="form-control" disabled>`;
+            break;
+        case 'checkbox':
+            html += `<div class="form-check">`;
+            html += `<input type="checkbox" class="form-check-input" disabled>`;
+            html += `<label class="form-check-label">${escapeHtml(field.placeholder || field.label || 'Acepto los términos')}</label>`;
+            html += `</div>`;
+            break;
+        case 'file':
+            html += `<input type="file" class="form-control-file" disabled>`;
+            if (field.placeholder) {
+                html += `<small class="form-text text-muted">${escapeHtml(field.placeholder)}</small>`;
+            }
+            break;
+        default:
+            html += `<input type="text" class="form-control" placeholder="${escapeHtml(field.placeholder || '')}" disabled>`;
+    }
+    
+    html += `</div>`;
+    return html;
+}
+
+// Función auxiliar para escapar HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+// Función para mostrar notificaciones
+function showNotification(message, type = 'info') {
+    const alertClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : 'alert-info';
+    const notification = $(`
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `);
+    
+    $('body').append(notification);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        notification.alert('close');
+    }, 3000);
+}
+
+$('#clear-fields').click(function() {
+    if (confirm('¿Estás seguro de que quieres eliminar todos los campos?')) {
+        formFields = [];
+        renderFieldBuilder();
+    }
+});
+
+$('#formulario-form').submit(function(e) {
+    e.preventDefault();
+    
+    // Preparar datos para envío
+    $('#campos-json').val(JSON.stringify(formFields));
+    
+    // Enviar formulario
+    this.submit();
+});
+</script>
+{% endblock %}

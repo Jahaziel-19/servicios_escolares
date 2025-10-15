@@ -1,0 +1,78 @@
+{# Include del modal para crear periodo (se usa form_periodo en contexto) #}
+<button type="button" id="btnAbrirModalPeriodo" class="btn btn-primary d-none" data-bs-toggle="modal" data-bs-target="#modalCrearPeriodo">Abrir</button>
+
+<div class="modal fade" id="modalCrearPeriodo" tabindex="-1" aria-labelledby="modalCrearPeriodoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" id="formModalPeriodo" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="form_name" value="periodo_actual">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalCrearPeriodoLabel">Crear / Configurar Periodo Escolar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="text-muted">No existe un periodo vigente que contenga la fecha actual. Completa los datos para crear el periodo vigente automáticamente.</p>
+
+          {% if form_periodo.non_field_errors %}
+            <div class="alert alert-danger">
+              {{ form_periodo.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">{{ form_periodo.ciclo.label }}</label>
+              {{ form_periodo.ciclo }}
+              {{ form_periodo.ciclo.errors }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">{{ form_periodo.año.label }}</label>
+              {{ form_periodo.año }}
+              {{ form_periodo.año.errors }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">{{ form_periodo.fecha_inicio.label }}</label>
+              {{ form_periodo.fecha_inicio }}
+              {{ form_periodo.fecha_inicio.errors }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">{{ form_periodo.fecha_fin.label }}</label>
+              {{ form_periodo.fecha_fin }}
+              {{ form_periodo.fecha_fin.errors }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">{{ form_periodo.inicio_vacaciones.label }}</label>
+              {{ form_periodo.inicio_vacaciones }}
+              {{ form_periodo.inicio_vacaciones.errors }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">{{ form_periodo.fin_vacaciones.label }}</label>
+              {{ form_periodo.fin_vacaciones }}
+              {{ form_periodo.fin_vacaciones.errors }}
+            </div>
+
+            <div class="col-12">
+              <div class="form-check">
+                {{ form_periodo.activo }}
+                <label class="form-check-label" for="id_activo_modal">{{ form_periodo.activo.label }}</label>
+                {{ form_periodo.activo.errors }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitModal">Crear periodo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

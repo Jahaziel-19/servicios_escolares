@@ -1,0 +1,376 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Inscripción Simple{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos que complementan el glassmorphism del template base */
+    .form-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-left: 4px solid var(--color-primary);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 15px;
+    }
+    
+    .form-section h5 {
+        color: var(--color-primary);
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .required-field {
+        color: #dc3545;
+    }
+    
+    .form-control, .form-select {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        backdrop-filter: blur(5px);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 0.2rem rgba(27, 57, 106, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-main">
+    <div class="glass-card">
+        <div class="text-center mb-4">
+            <h1>
+                <i class="fas fa-user-plus me-2"></i>
+                Inscripción de Nuevo Alumno
+            </h1>
+            <p class="text-muted">Complete los datos básicos para su inscripción</p>
+        </div>
+                    <form id="inscripcionSimpleForm" method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Datos Personales Básicos -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-user me-2"></i>Datos Personales</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="nombre" class="form-label">
+                                        Nombre(s) <span class="required-field">*</span>
+                                    </label>
+                                    {{ form.nombre }}
+                                    <div class="invalid-feedback">Por favor ingrese su nombre</div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="apellido_paterno" class="form-label">
+                                        Apellido Paterno <span class="required-field">*</span>
+                                    </label>
+                                    {{ form.apellido_paterno }}
+                                    <div class="invalid-feedback">Por favor ingrese su apellido paterno</div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="apellido_materno" class="form-label">Apellido Materno</label>
+                                    {{ form.apellido_materno }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="curp" class="form-label">
+                                        CURP <span class="required-field">*</span>
+                                    </label>
+                                    {{ form.curp }}
+                                    <div class="invalid-feedback">CURP debe tener 18 caracteres y formato válido</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                                    {{ form.fecha_nacimiento }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="sexo" class="form-label">Sexo</label>
+                                    {{ form.sexo }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="estado_civil" class="form-label">Estado Civil</label>
+                                    {{ form.estado_civil }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="rfc" class="form-label">RFC</label>
+                                    {{ form.rfc }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="nss" class="form-label">NSS</label>
+                                    {{ form.nss }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contacto -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-phone me-2"></i>Información de Contacto</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">
+                                        Correo Electrónico <span class="required-field">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                    <div class="invalid-feedback">Por favor ingrese un correo válido</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="telefono" class="form-label">
+                                        Teléfono <span class="required-field">*</span>
+                                    </label>
+                                    {{ form.telefono }}
+                                    <div class="invalid-feedback">Por favor ingrese un teléfono válido</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Domicilio -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-home me-2"></i>Domicilio</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="calle" class="form-label">Calle</label>
+                                    {{ form.calle }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="numero_exterior" class="form-label">Número Exterior</label>
+                                    {{ form.numero_exterior }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="numero_interior" class="form-label">Número Interior</label>
+                                    {{ form.numero_interior }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="colonia" class="form-label">Colonia</label>
+                                    {{ form.colonia }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="municipio" class="form-label">Municipio</label>
+                                    {{ form.municipio }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="estado" class="form-label">Estado</label>
+                                    {{ form.estado }}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="codigo_postal" class="form-label">Código Postal</label>
+                                    {{ form.codigo_postal }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="zona_procedencia" class="form-label">Zona de Procedencia</label>
+                                    {{ form.zona_procedencia }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información Académica -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-graduation-cap me-2"></i>Información Académica</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="carrera_solicitada" class="form-label">
+                                        Carrera Solicitada <span class="required-field">*</span>
+                                    </label>
+                                    {{ form.carrera_solicitada }}
+                                    <div class="invalid-feedback">Por favor seleccione una carrera</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="modalidad" class="form-label">
+                                        Modalidad <span class="required-field">*</span>
+                                    </label>
+                                    {{ form.modalidad }}
+                                    <div class="invalid-feedback">Por favor seleccione una modalidad</div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="escuela_procedencia" class="form-label">
+                                        Escuela de Procedencia <span class="required-field">*</span>
+                                    </label>
+                                    {{ form.escuela_procedencia }}
+                                    <div class="invalid-feedback">Por favor ingrese la escuela de procedencia</div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="semestre_ingreso" class="form-label">Semestre de Ingreso</label>
+                                    {{ form.semestre_ingreso }}
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="promedio_anterior" class="form-label">Promedio Anterior</label>
+                                    {{ form.promedio_anterior }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-comment me-2"></i>Observaciones</h5>
+                            <div class="mb-3">
+                                <label for="observaciones" class="form-label">Comentarios adicionales</label>
+                                <textarea class="form-control" id="observaciones" name="observaciones" 
+                                         rows="3" placeholder="Información adicional que desee agregar..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="text-center mt-4">
+                            <button type="button" class="btn btn-secondary me-3" onclick="limpiarFormulario()">
+                                <i class="fas fa-eraser me-2"></i>Limpiar
+                            </button>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save me-2"></i>Registrar Inscripción
+                            </button>
+                        </div>
+                    </form>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmacionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle me-2"></i>Inscripción Exitosa
+                </h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user-check text-success" style="font-size: 3rem;"></i>
+                </div>
+                <h5>¡Inscripción registrada correctamente!</h5>
+                <p class="mb-0">Su folio de inscripción es: <strong id="folioGenerado"></strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="nuevaInscripcion()">
+                    Nueva Inscripción
+                </button>
+                <button type="button" class="btn btn-primary" onclick="verListado()">
+                    Ver Listado
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('inscripcionSimpleForm');
+    
+    // Validación en tiempo real para CURP
+    const curpField = document.getElementById('curp');
+    curpField.addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+        validarCURP(this);
+    });
+    
+    // Validación para teléfono
+    const telefonoField = document.getElementById('telefono');
+    telefonoField.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+    });
+    
+    // Envío del formulario
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (form.checkValidity()) {
+            enviarInscripcion();
+        } else {
+            form.classList.add('was-validated');
+        }
+    });
+});
+
+function validarCURP(campo) {
+    const curp = campo.value;
+    const regex = /^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[0-9A-Z][0-9]$/;
+    
+    if (curp.length === 18) {
+        if (regex.test(curp)) {
+            campo.classList.remove('is-invalid');
+            campo.classList.add('is-valid');
+        } else {
+            campo.classList.remove('is-valid');
+            campo.classList.add('is-invalid');
+        }
+    } else {
+        campo.classList.remove('is-valid', 'is-invalid');
+    }
+}
+
+function enviarInscripcion() {
+    const form = document.getElementById('inscripcionSimpleForm');
+    const formData = new FormData(form);
+    
+    // Mostrar loading
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+    submitBtn.disabled = true;
+    
+    fetch('{% url "datos_academicos:inscripcion_simple" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('folioGenerado').textContent = data.folio;
+            const modal = new bootstrap.Modal(document.getElementById('confirmacionModal'));
+            modal.show();
+            form.reset();
+            form.classList.remove('was-validated');
+        } else {
+            alert('Error: ' + (data.message || 'No se pudo procesar la inscripción'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error de conexión. Por favor intente nuevamente.');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+function limpiarFormulario() {
+    const form = document.getElementById('inscripcionSimpleForm');
+    form.reset();
+    form.classList.remove('was-validated');
+    
+    // Limpiar clases de validación
+    form.querySelectorAll('.is-valid, .is-invalid').forEach(field => {
+        field.classList.remove('is-valid', 'is-invalid');
+    });
+}
+
+function nuevaInscripcion() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmacionModal'));
+    modal.hide();
+    limpiarFormulario();
+}
+
+function verListado() {
+    window.location.href = '{% url "datos_academicos:inscripcion_list" %}';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'admision/base.html' %}
+
+{% block title %}Período de Admisión Cerrado{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white text-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-lock me-2"></i>
+                    Período de Admisión Cerrado
+                </h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-calendar-times text-danger" style="font-size: 4rem;"></i>
+                </div>
+                
+                <h5 class="text-danger mb-3">El período de admisión ha finalizado</h5>
+                
+                <!-- Información del período -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ periodo.nombre }}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Fecha de Inicio:</strong> {{ periodo.fecha_inicio|date:"d/m/Y" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Fecha de Fin:</strong> {{ periodo.fecha_fin|date:"d/m/Y" }}</p>
+                            </div>
+                        </div>
+                        {% if periodo.descripcion %}
+                        <p class="mb-0">{{ periodo.descripcion }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Importante</h6>
+                    <p class="mb-0">
+                        El período de registro para nuevas solicitudes ha finalizado el 
+                        <strong>{{ periodo.fecha_fin|date:"d de F de Y" }}</strong>.
+                        Ya no es posible enviar nuevas solicitudes para este período.
+                    </p>
+                </div>
+
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6><i class="fas fa-lightbulb me-2"></i>¿Qué puedes hacer?</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li><i class="fas fa-search me-2"></i>Consultar el estado de una solicitud existente</li>
+                            <li><i class="fas fa-bell me-2"></i>Estar atento al próximo período de admisión</li>
+                            <li><i class="fas fa-phone me-2"></i>Contactar a la oficina de admisiones para casos especiales</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <a href="{% url 'admision:consultar_solicitud' %}" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>Consultar Solicitud
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Próximo período (si existe) -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-calendar-plus me-2"></i>
+                    Próximo Período de Admisión
+                </h6>
+            </div>
+            <div class="card-body">
+                <p>
+                    Los períodos de admisión generalmente se abren de <strong>febrero a junio</strong> de cada año.
+                    Te recomendamos estar atento a nuestros canales oficiales para conocer las fechas exactas del próximo período.
+                </p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Mantente Informado:</h6>
+                        <ul>
+                            <li>Sitio web oficial</li>
+                            <li>Redes sociales</li>
+                            <li>Boletín informativo</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Prepárate:</h6>
+                        <ul>
+                            <li>Documentos académicos</li>
+                            <li>Identificación oficial</li>
+                            <li>CURP actualizada</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de contacto -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-phone me-2"></i>
+                    Información de Contacto
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Teléfono:</strong> (555) 123-4567</p>
+                        <p><strong>Email:</strong> admisiones@institucion.edu.mx</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Horario de Atención:</strong></p>
+                        <p>Lunes a Viernes: 8:00 AM - 6:00 PM</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

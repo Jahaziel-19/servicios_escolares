@@ -1,0 +1,537 @@
+{% extends 'admision/base.html' %}
+{% load static %}
+
+{% block title %}{{ formulario.nombre }} - Detalles{% endblock %}
+
+{% csrf_token %}
+
+{% block extra_css %}
+<style>
+    .form-info-card {
+        background: linear-gradient(45deg, #4e73df, #224abe);
+        color: white;
+        border-radius: 0.35rem;
+    }
+    
+    .field-preview {
+        background: #f8f9fc;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .field-preview:hover {
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        transform: translateY(-1px);
+    }
+    
+    .field-type-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        background: #4e73df;
+        color: white;
+    }
+    
+    .field-required-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        background: #e74a3b;
+        color: white;
+    }
+    
+    .field-optional-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        background: #1cc88a;
+        color: white;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+    
+    .stat-card:hover {
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #4e73df;
+    }
+    
+    .form-preview-container {
+        background: white;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+        padding: 2rem;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    .action-buttons .btn {
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0.5rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e3e6f0;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1rem;
+        background: white;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+        padding: 1rem;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -1.75rem;
+        top: 1rem;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #4e73df;
+        border: 2px solid white;
+    }
+    
+    .usage-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+        padding: 1rem;
+        border-radius: 0.35rem;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-clipboard-list text-primary"></i>
+            {{ formulario.nombre }}
+        </h1>
+        <div class="action-buttons">
+            <a href="{% url 'admision:admin_preview_formulario' formulario.id %}" 
+               class="btn btn-info btn-sm shadow-sm" target="_blank">
+                <i class="fas fa-external-link-alt fa-sm text-white-50"></i>
+                Previsualizar
+            </a>
+            <a href="{% url 'admision:admin_editar_formulario' formulario.id %}" 
+               class="btn btn-warning btn-sm shadow-sm">
+                <i class="fas fa-edit fa-sm text-white-50"></i>
+                Editar
+            </a>
+            <a href="{% url 'admision:admin_duplicar_formulario' formulario.id %}" 
+               class="btn btn-success btn-sm shadow-sm">
+                <i class="fas fa-copy fa-sm text-white-50"></i>
+                Duplicar
+            </a>
+            <a href="{% url 'admision:admin_formularios' %}" 
+               class="btn btn-secondary btn-sm shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i>
+                Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Información del Formulario -->
+    <div class="card form-info-card shadow mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4 class="text-white mb-2">{{ formulario.nombre }}</h4>
+                    <p class="text-white-50 mb-0">
+                        {{ formulario.descripcion|default:"Sin descripción disponible" }}
+                    </p>
+                </div>
+                <div class="col-md-4 text-right">
+                    <div class="mb-2">
+                        {% if formulario.activo %}
+                            <span class="badge badge-success badge-lg">
+                                <i class="fas fa-check-circle"></i> Activo
+                            </span>
+                        {% else %}
+                            <span class="badge badge-danger badge-lg">
+                                <i class="fas fa-times-circle"></i> Inactivo
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="text-white-50 small">
+                        <div><i class="fas fa-user"></i> Sistema</div>
+                        <div><i class="fas fa-calendar"></i> {{ formulario.fecha_creacion|date:"d/m/Y H:i"|default:"No disponible" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas del formulario -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-list text-primary"></i>
+            </div>
+            <div class="stat-number">{{ total_campos }}</div>
+            <div class="text-muted">Total de Campos</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-circle text-danger"></i>
+            </div>
+            <div class="stat-number">{{ campos_requeridos }}</div>
+            <div class="text-muted">Campos Requeridos</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-chart-bar text-success"></i>
+            </div>
+            <div class="stat-number">{{ respuestas_count }}</div>
+            <div class="text-muted">Respuestas Recibidas</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-calendar text-info"></i>
+            </div>
+            <div class="stat-number">{{ formulario.id }}</div>
+            <div class="text-muted">ID del Formulario</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Campos del Formulario -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list-ul"></i> Campos del Formulario
+                        {% if formulario.fields %}
+                            <span class="badge badge-secondary ml-2">{{ total_campos }}</span>
+                        {% endif %}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if formulario.fields %}
+                        <div id="fields-container">
+                            <!-- Los campos se cargarán dinámicamente -->
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-gray-300 mb-3"></i>
+                            <h5 class="text-gray-600">No hay campos configurados</h5>
+                            <p class="text-muted">Este formulario no tiene campos definidos.</p>
+                            <a href="{% url 'admision:admin_editar_formulario' formulario.id %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Agregar Campos
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="col-lg-4">
+            <!-- Información Adicional -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información</h6>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>ID del Formulario</strong>
+                                    <div class="text-muted small">#{{ formulario.id }}</div>
+                                </div>
+                                <i class="fas fa-hashtag text-info"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Nombre</strong>
+                                    <div class="text-muted small">{{ formulario.nombre }}</div>
+                                </div>
+                                <i class="fas fa-tag text-primary"></i>
+                            </div>
+                        </div>
+                        
+                        {% if formulario.descripcion %}
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Descripción</strong>
+                                    <div class="text-muted small">{{ formulario.descripcion|truncatechars:50 }}</div>
+                                </div>
+                                <i class="fas fa-align-left text-secondary"></i>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if tipos_campos %}
+                        <div class="timeline-item">
+                            <div>
+                                <strong>Tipos de Campos</strong>
+                                <div class="mt-2">
+                                    {% for tipo, cantidad in tipos_campos.items %}
+                                        <span class="badge badge-info mr-1 mb-1">{{ tipo }}: {{ cantidad }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones Rápidas -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admision:admin_editar_formulario' formulario.id %}" 
+                           class="btn btn-warning btn-block">
+                            <i class="fas fa-edit"></i> Editar Formulario
+                        </a>
+                        
+                        <a href="{% url 'admision:admin_duplicar_formulario' formulario.id %}" 
+                           class="btn btn-success btn-block">
+                            <i class="fas fa-copy"></i> Duplicar Formulario
+                        </a>
+                        
+                        <a href="{% url 'admision:admin_preview_formulario' formulario.id %}" 
+                           class="btn btn-info btn-block" target="_blank">
+                            <i class="fas fa-external-link-alt"></i> Previsualizar
+                        </a>
+                        
+                        <a href="{% url 'admision:admin_visualizar_formulario' formulario.id %}" 
+                           class="btn btn-primary btn-block">
+                            <i class="fas fa-eye"></i> Visualizar Formulario
+                        </a>
+                        
+                        <a href="{% url 'formbuilder:ver_respuestas' formulario.id %}" 
+                           class="btn btn-success btn-block">
+                            <i class="fas fa-chart-bar"></i> Ver Respuestas ({{ respuestas_count }})
+                        </a>
+                        
+                        {% if not formulario.activo %}
+                            <button class="btn btn-primary btn-block" onclick="toggleFormStatus(true)">
+                                <i class="fas fa-play"></i> Activar Formulario
+                            </button>
+                        {% else %}
+                            <button class="btn btn-secondary btn-block" onclick="toggleFormStatus(false)">
+                                <i class="fas fa-pause"></i> Desactivar Formulario
+                            </button>
+                        {% endif %}
+                        
+                        <hr>
+                        
+                        <a href="{% url 'admision:admin_eliminar_formulario' formulario.id %}" 
+                           class="btn btn-danger btn-block"
+                           onclick="return confirm('¿Estás seguro de que quieres eliminar este formulario?')">
+                            <i class="fas fa-trash"></i> Eliminar Formulario
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advertencia de Uso -->
+            {% if formulario.activo %}
+            <div class="usage-warning">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <div>
+                        <strong>Formulario Activo</strong>
+                        <div class="small">Este formulario está siendo utilizado. Los cambios pueden afectar las solicitudes en proceso.</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Previsualización del Formulario -->
+    {% if formulario.fields %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Previsualización del Formulario</h6>
+        </div>
+        <div class="card-body">
+            <div class="form-preview-container" id="form-preview">
+                <!-- La previsualización se generará dinámicamente -->
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar los campos del formulario
+    const formFields = {{ campos_json|safe }};
+    
+    if (formFields && formFields.length > 0) {
+        renderFields(formFields);
+    }
+});
+
+function renderFields(fields) {
+    const container = $('#fields-container');
+    let html = '';
+    
+    fields.forEach((field, index) => {
+        const fieldTypeIcon = getFieldTypeIcon(field.type);
+        const fieldTypeColor = getFieldTypeColor(field.type);
+        
+        html += `
+            <div class="field-preview">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas ${fieldTypeIcon} text-${fieldTypeColor} mr-2"></i>
+                            <strong>${field.label || field.name}</strong>
+                            ${field.required ? 
+                                '<span class="field-required-badge ml-2">Requerido</span>' : 
+                                '<span class="field-optional-badge ml-2">Opcional</span>'
+                            }
+                        </div>
+                        
+                        <div class="small text-muted mb-2">
+                            <span class="field-type-badge">${field.type}</span>
+                        </div>
+                        
+                        ${field.placeholder ? 
+                            `<div class="small text-muted mb-2">
+                                <strong>Placeholder:</strong> ${field.placeholder}
+                            </div>` : 
+                            ''
+                        }
+                        
+                        ${field.options && field.options.length > 0 ? 
+                            `<div class="mt-2">
+                                <strong class="small text-muted">Opciones:</strong>
+                                <div class="small text-muted">${field.options.join(', ')}</div>
+                            </div>` : 
+                            ''
+                        }
+                    </div>
+                    
+                    <div class="text-right">
+                        <span class="badge badge-light">#${index + 1}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.html(html);
+}
+
+function getFieldTypeIcon(type) {
+    const icons = {
+        'text': 'fa-font',
+        'email': 'fa-envelope',
+        'number': 'fa-hashtag',
+        'select': 'fa-list',
+        'textarea': 'fa-align-left',
+        'date': 'fa-calendar',
+        'checkbox': 'fa-check-square',
+        'file': 'fa-file-upload'
+    };
+    return icons[type] || 'fa-question';
+}
+
+function getFieldTypeColor(type) {
+    const colors = {
+        'text': 'primary',
+        'email': 'info',
+        'number': 'success',
+        'select': 'warning',
+        'textarea': 'secondary',
+        'date': 'danger',
+        'checkbox': 'dark',
+        'file': 'purple'
+    };
+    return colors[type] || 'muted';
+}
+
+function toggleFormStatus(activate) {
+    const action = activate ? 'activar' : 'desactivar';
+    if (confirm(`¿Estás seguro de que quieres ${action} este formulario?`)) {
+        fetch(`{% url 'admision:admin_toggle_formulario_status' formulario.id %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                'activo': activate
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload(); // Recargar la página para mostrar el nuevo estado
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cambiar el estado del formulario');
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,420 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Lista de Inscripciones{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .stats-number {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+    .search-card {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .badge-estado {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.8rem;
+    }
+    .btn-estado {
+        border: none;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        border-radius: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <div class="stats-number">{{ stats.total }}</div>
+                <div>Total Inscripciones</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stats-number">{{ stats.pendientes }}</div>
+                <div>Pendientes</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stats-number">{{ stats.aprobadas }}</div>
+                <div>Aprobadas</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="stats-number">{{ stats.rechazadas }}</div>
+                <div>Rechazadas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros de Búsqueda -->
+    <div class="search-card">
+        <h5 class="mb-3"><i class="fas fa-search me-2"></i>Filtros de Búsqueda</h5>
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label for="{{ form_busqueda.folio.id_for_label }}" class="form-label">Folio</label>
+                {{ form_busqueda.folio }}
+            </div>
+            <div class="col-md-3">
+                <label for="{{ form_busqueda.nombre.id_for_label }}" class="form-label">Nombre</label>
+                {{ form_busqueda.nombre }}
+            </div>
+            <div class="col-md-2">
+                <label for="{{ form_busqueda.curp.id_for_label }}" class="form-label">CURP</label>
+                {{ form_busqueda.curp }}
+            </div>
+            <div class="col-md-2">
+                <label for="{{ form_busqueda.carrera.id_for_label }}" class="form-label">Carrera</label>
+                {{ form_busqueda.carrera }}
+            </div>
+            <div class="col-md-2">
+                <label for="{{ form_busqueda.estado.id_for_label }}" class="form-label">Estado</label>
+                {{ form_busqueda.estado }}
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Acciones -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">
+            <i class="fas fa-list me-2"></i>Inscripciones
+            {% if page_obj.paginator.count %}
+                <small class="text-muted">({{ page_obj.paginator.count }} registros)</small>
+            {% endif %}
+        </h4>
+        <div>
+            <a href="{% url 'datos_academicos:inscripcion_simple' %}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Nueva Inscripción
+            </a>
+            <a href="{% url 'datos_academicos:dashboard_inscripciones' %}" class="btn btn-info">
+                <i class="fas fa-chart-bar me-2"></i>Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabla de Inscripciones -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            {% if inscripciones %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Folio</th>
+                                <th>Nombre Completo</th>
+                                <th>CURP</th>
+                                <th>Carrera</th>
+                                <th>Modalidad</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inscripcion in inscripciones %}
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary">{{ inscripcion.folio }}</strong>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ inscripcion.nombre_completo }}</strong>
+                                        </div>
+                                        <small class="text-muted">{{ inscripcion.email }}</small>
+                                    </td>
+                                    <td>
+                                        <code>{{ inscripcion.curp }}</code>
+                                    </td>
+                                    <td>
+                                        <small>{{ inscripcion.carrera_solicitada.nombre }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ inscripcion.get_modalidad_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm btn-estado estado-select" 
+                                                data-inscripcion-id="{{ inscripcion.id }}"
+                                                data-estado-actual="{{ inscripcion.estado }}">
+                                            {% for value, label in inscripcion.ESTADO_CHOICES %}
+                                                <option value="{{ value }}" 
+                                                        {% if inscripcion.estado == value %}selected{% endif %}>
+                                                    {{ label }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <small>{{ inscripcion.fecha_solicitud|date:"d/m/Y H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'datos_academicos:inscripcion_detail' inscripcion.pk %}" 
+                                               class="btn btn-outline-primary" title="Ver detalle">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if inscripcion.puede_crear_alumno %}
+                                                <button class="btn btn-outline-success crear-alumno-btn" 
+                                                        data-inscripcion-id="{{ inscripcion.id }}"
+                                                        title="Crear alumno">
+                                                    <i class="fas fa-user-plus"></i>
+                                                </button>
+                                            {% endif %}
+                                            {% if inscripcion.alumno_creado %}
+                                                <a href="#" class="btn btn-outline-info" 
+                                                   title="Alumno: {{ inscripcion.alumno_creado.matricula }}">
+                                                    <i class="fas fa-user-check"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                {% if page_obj.has_other_pages %}
+                    <div class="card-footer">
+                        <nav aria-label="Paginación">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3 text-muted">No se encontraron inscripciones</h5>
+                    <p class="text-muted">No hay inscripciones que coincidan con los criterios de búsqueda.</p>
+                    <a href="{% url 'datos_academicos:inscripcion_simple' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Crear Primera Inscripción
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Crear Alumno -->
+<div class="modal fade" id="crearAlumnoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>Crear Alumno
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de que desea crear un alumno a partir de esta inscripción aprobada?</p>
+                <p class="text-muted">Esta acción generará una matrícula automáticamente y no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmarCrearAlumno">
+                    <i class="fas fa-check me-2"></i>Crear Alumno
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let inscripcionIdParaCrearAlumno = null;
+    
+    // Cambio de estado
+    document.querySelectorAll('.estado-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const inscripcionId = this.dataset.inscripcionId;
+            const estadoAnterior = this.dataset.estadoActual;
+            const nuevoEstado = this.value;
+            
+            if (nuevoEstado === estadoAnterior) return;
+            
+            cambiarEstadoInscripcion(inscripcionId, nuevoEstado, this);
+        });
+    });
+    
+    // Crear alumno
+    document.querySelectorAll('.crear-alumno-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            inscripcionIdParaCrearAlumno = this.dataset.inscripcionId;
+            const modal = new bootstrap.Modal(document.getElementById('crearAlumnoModal'));
+            modal.show();
+        });
+    });
+    
+    // Confirmar crear alumno
+    document.getElementById('confirmarCrearAlumno').addEventListener('click', function() {
+        if (inscripcionIdParaCrearAlumno) {
+            crearAlumnoDesdeInscripcion(inscripcionIdParaCrearAlumno);
+        }
+    });
+});
+
+function cambiarEstadoInscripcion(inscripcionId, nuevoEstado, selectElement) {
+    const estadoAnterior = selectElement.dataset.estadoActual;
+    
+    fetch(`/datos_academicos/inscripciones/${inscripcionId}/cambiar-estado/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            estado: nuevoEstado
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            selectElement.dataset.estadoActual = nuevoEstado;
+            
+            // Mostrar mensaje de éxito
+            mostrarMensaje('success', data.message);
+            
+            // Si puede crear alumno, mostrar botón
+            if (data.puede_crear_alumno) {
+                location.reload(); // Recargar para mostrar el botón de crear alumno
+            }
+        } else {
+            // Revertir el select
+            selectElement.value = estadoAnterior;
+            mostrarMensaje('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        selectElement.value = estadoAnterior;
+        mostrarMensaje('error', 'Error de conexión');
+    });
+}
+
+function crearAlumnoDesdeInscripcion(inscripcionId) {
+    const btn = document.getElementById('confirmarCrearAlumno');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando...';
+    btn.disabled = true;
+    
+    fetch(`/datos_academicos/inscripciones/${inscripcionId}/crear-alumno/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarMensaje('success', data.message);
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('crearAlumnoModal'));
+            modal.hide();
+            
+            // Recargar página para actualizar la vista
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            mostrarMensaje('error', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarMensaje('error', 'Error de conexión');
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+function mostrarMensaje(tipo, mensaje) {
+    // Crear toast o alert
+    const alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+    const icon = tipo === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    
+    const alert = document.createElement('div');
+    alert.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alert.innerHTML = `
+        <i class="${icon} me-2"></i>${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alert);
+    
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

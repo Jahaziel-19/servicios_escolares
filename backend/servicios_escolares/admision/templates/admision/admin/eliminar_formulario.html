@@ -1,0 +1,201 @@
+{% extends 'admision/base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Formulario - {{ formulario.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .danger-zone {
+        background: linear-gradient(45deg, #e74a3b, #c0392b);
+        color: white;
+        border-radius: 0.35rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .warning-card {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+        border-radius: 0.35rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-info {
+        background: #f8f9fc;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-danger-custom {
+        background: linear-gradient(45deg, #e74a3b, #c0392b);
+        border: none;
+        color: white;
+        font-weight: bold;
+        padding: 0.75rem 2rem;
+        border-radius: 0.35rem;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-danger-custom:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0.25rem 1rem rgba(231, 74, 59, 0.3);
+        color: white;
+    }
+    
+    .btn-danger-custom:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-trash text-danger"></i>
+            Eliminar Formulario
+        </h1>
+        <a href="{% url 'admision:admin_formularios' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a la Lista
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Zona de Peligro -->
+            <div class="danger-zone text-center">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                <h3 class="mb-3">¡Zona de Peligro!</h3>
+                <p class="mb-0">Esta acción eliminará permanentemente el formulario y no se puede deshacer.</p>
+            </div>
+
+            <!-- Información del Formulario -->
+            <div class="form-info">
+                <h5 class="mb-3">
+                    <i class="fas fa-info-circle text-primary"></i>
+                    Información del Formulario
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Nombre:</strong>
+                        <p class="text-muted">{{ formulario.nombre }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>ID:</strong>
+                        <p class="text-muted">#{{ formulario.id }}</p>
+                    </div>
+                </div>
+                {% if formulario.descripcion %}
+                <div class="row">
+                    <div class="col-12">
+                        <strong>Descripción:</strong>
+                        <p class="text-muted">{{ formulario.descripcion }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Total de Campos:</strong>
+                        <p class="text-muted">{{ formulario.fields|length|default:0 }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Respuestas Asociadas:</strong>
+                        <p class="text-muted">{{ respuestas_count }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advertencias -->
+            {% if not puede_eliminar %}
+            <div class="warning-card">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mr-3"></i>
+                    <div>
+                        <h5 class="mb-2">No se puede eliminar este formulario</h5>
+                        <p class="mb-0">
+                            Este formulario tiene <strong>{{ respuestas_count }} respuestas asociadas</strong>. 
+                            Para eliminarlo, primero debes eliminar todas las respuestas relacionadas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="warning-card">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle fa-2x mr-3"></i>
+                    <div>
+                        <h5 class="mb-2">Confirmación requerida</h5>
+                        <p class="mb-0">
+                            Esta acción es <strong>irreversible</strong>. Una vez eliminado, 
+                            no podrás recuperar este formulario ni su configuración.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Formulario de Confirmación -->
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="text-center">
+                            <h5 class="mb-4">¿Estás seguro de que deseas eliminar este formulario?</h5>
+                            
+                            <div class="d-flex justify-content-center gap-3">
+                                <a href="{% url 'admision:admin_ver_formulario' formulario.id %}" 
+                                   class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                                
+                                <button type="submit" 
+                                        class="btn btn-danger-custom btn-lg"
+                                        {% if not puede_eliminar %}disabled{% endif %}>
+                                    <i class="fas fa-trash"></i> 
+                                    {% if puede_eliminar %}
+                                        Sí, Eliminar Formulario
+                                    {% else %}
+                                        No se puede eliminar
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar confirmación adicional para la eliminación
+    const deleteForm = document.querySelector('form');
+    const deleteButton = document.querySelector('.btn-danger-custom');
+    
+    if (deleteForm && deleteButton && !deleteButton.disabled) {
+        deleteForm.addEventListener('submit', function(e) {
+            const confirmed = confirm(
+                '¿Estás absolutamente seguro de que deseas eliminar este formulario?\n\n' +
+                'Esta acción NO se puede deshacer.'
+            );
+            
+            if (!confirmed) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

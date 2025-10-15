@@ -1,0 +1,429 @@
+{% extends 'admision/base.html' %}
+
+{% block title %}Solicitud de Admisión - {{ periodo.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .periodo-info {
+        background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        border-left: 4px solid #667eea;
+    }
+    .form-step {
+        display: none;
+    }
+    .form-step.active {
+        display: block;
+    }
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+    .step {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 10px;
+        font-weight: bold;
+        color: #6c757d;
+        position: relative;
+    }
+    .step.active {
+        background: #667eea;
+        color: white;
+    }
+    .step.completed {
+        background: #28a745;
+        color: white;
+    }
+    .step::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 100%;
+        width: 20px;
+        height: 2px;
+        background: #e9ecef;
+        transform: translateY(-50%);
+    }
+    .step:last-child::after {
+        display: none;
+    }
+    .step.completed::after {
+        background: #28a745;
+    }
+    .field-help {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    .curp-validation {
+        margin-top: 5px;
+        font-size: 0.875rem;
+    }
+    .curp-valid {
+        color: #28a745;
+    }
+    .curp-invalid {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Información del período -->
+        <div class="card mb-4">
+            <div class="card-body periodo-info">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-2">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            {{ periodo.nombre }}
+                        </h4>
+                        <p class="mb-0">
+                            <strong>Período:</strong> {{ periodo.fecha_inicio|date:"d/m/Y" }} - {{ periodo.fecha_fin|date:"d/m/Y" }}
+                        </p>
+                        {% if periodo.descripcion %}
+                        <p class="mb-0 mt-2">{{ periodo.descripcion }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="badge bg-success fs-6">
+                            <i class="fas fa-check-circle me-1"></i>
+                            Período Activo
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de solicitud -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Solicitud de Admisión
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Indicador de pasos -->
+                <div class="step-indicator">
+                    <div class="step active" data-step="1">1</div>
+                    <div class="step" data-step="2">2</div>
+                    <div class="step" data-step="3">3</div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="solicitudForm">
+                    {% csrf_token %}
+                    
+                    <!-- Paso 1: Datos básicos -->
+                    <div class="form-step active" data-step="1">
+                        <div class="form-section">
+                            <h5><i class="fas fa-user me-2"></i>Datos Básicos</h5>
+                            
+                            <!-- CURP -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_curp" class="form-label required-field">CURP</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="id_curp" 
+                                           name="curp" 
+                                           maxlength="18" 
+                                           pattern="[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[0-9]{2}"
+                                           style="text-transform: uppercase;"
+                                           required>
+                                    <div class="field-help">
+                                        Clave Única de Registro de Población (18 caracteres)
+                                    </div>
+                                    <div id="curp-validation" class="curp-validation"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_email" class="form-label required-field">Correo Electrónico</label>
+                                    <input type="email" class="form-control" id="id_email" name="email" required>
+                                    <div class="field-help">
+                                        Se enviará tu ficha de admisión a este correo
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Renderizar campos dinámicos del paso 1 -->
+                            {% for field in form %}
+                                {% if field.name not in 'curp,email' and field.field.widget.attrs.step == '1' %}
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ field.id_for_label }}" class="form-label{% if field.field.required %} required-field{% endif %}">
+                                            {{ field.label }}
+                                        </label>
+                                        {{ field }}
+                                        {% if field.help_text %}
+                                        <div class="field-help">{{ field.help_text }}</div>
+                                        {% endif %}
+                                        {% if field.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in field.errors %}
+                                            <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-primary" onclick="nextStep(2)">
+                                Siguiente <i class="fas fa-arrow-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2: Información académica -->
+                    <div class="form-step" data-step="2">
+                        <div class="form-section">
+                            <h5><i class="fas fa-graduation-cap me-2"></i>Información Académica</h5>
+                            
+                            <!-- Renderizar campos dinámicos del paso 2 -->
+                            {% for field in form %}
+                                {% if field.field.widget.attrs.step == '2' %}
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ field.id_for_label }}" class="form-label{% if field.field.required %} required-field{% endif %}">
+                                            {{ field.label }}
+                                        </label>
+                                        {{ field }}
+                                        {% if field.help_text %}
+                                        <div class="field-help">{{ field.help_text }}</div>
+                                        {% endif %}
+                                        {% if field.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in field.errors %}
+                                            <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
+                                <i class="fas fa-arrow-left me-1"></i> Anterior
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="nextStep(3)">
+                                Siguiente <i class="fas fa-arrow-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Paso 3: Documentos y confirmación -->
+                    <div class="form-step" data-step="3">
+                        <div class="form-section">
+                            <h5><i class="fas fa-file-upload me-2"></i>Documentos</h5>
+                            
+                            <!-- Renderizar campos dinámicos del paso 3 -->
+                            {% for field in form %}
+                                {% if field.field.widget.attrs.step == '3' %}
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <label for="{{ field.id_for_label }}" class="form-label{% if field.field.required %} required-field{% endif %}">
+                                            {{ field.label }}
+                                        </label>
+                                        {{ field }}
+                                        {% if field.help_text %}
+                                        <div class="field-help">{{ field.help_text }}</div>
+                                        {% endif %}
+                                        {% if field.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in field.errors %}
+                                            <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Confirmación -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-check-circle me-2"></i>Confirmación</h5>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="acepto_terminos" required>
+                                <label class="form-check-label" for="acepto_terminos">
+                                    Acepto los términos y condiciones del proceso de admisión
+                                </label>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="datos_correctos" required>
+                                <label class="form-check-label" for="datos_correctos">
+                                    Confirmo que todos los datos proporcionados son correctos
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+                                <i class="fas fa-arrow-left me-1"></i> Anterior
+                            </button>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Enviar Solicitud
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+
+function nextStep(step) {
+    if (validateCurrentStep()) {
+        // Ocultar paso actual
+        document.querySelector(`.form-step[data-step="${currentStep}"]`).classList.remove('active');
+        document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('completed');
+        document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+        
+        // Mostrar siguiente paso
+        currentStep = step;
+        document.querySelector(`.form-step[data-step="${currentStep}"]`).classList.add('active');
+        document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+        
+        // Scroll to top
+        window.scrollTo(0, 0);
+    }
+}
+
+function prevStep(step) {
+    // Ocultar paso actual
+    document.querySelector(`.form-step[data-step="${currentStep}"]`).classList.remove('active');
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+    
+    // Mostrar paso anterior
+    currentStep = step;
+    document.querySelector(`.form-step[data-step="${currentStep}"]`).classList.add('active');
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('completed');
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+}
+
+function validateCurrentStep() {
+    const currentStepElement = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+    const requiredFields = currentStepElement.querySelectorAll('[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        alert('Por favor, completa todos los campos requeridos antes de continuar.');
+    }
+    
+    return isValid;
+}
+
+// Validación de CURP en tiempo real
+document.getElementById('id_curp').addEventListener('input', function() {
+    const curp = this.value.toUpperCase();
+    const validationDiv = document.getElementById('curp-validation');
+    
+    if (curp.length === 18) {
+        // Validar formato básico
+        const curpPattern = /^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[0-9]{2}$/;
+        
+        if (curpPattern.test(curp)) {
+            // Validar disponibilidad
+            fetch('{% url "admision:api_validar_curp" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    curp: curp,
+                    periodo_id: {{ periodo.id }}
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valido) {
+                    validationDiv.innerHTML = '<i class="fas fa-check-circle"></i> CURP disponible';
+                    validationDiv.className = 'curp-validation curp-valid';
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } else {
+                    validationDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + data.mensaje;
+                    validationDiv.className = 'curp-validation curp-invalid';
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                }
+            })
+            .catch(error => {
+                console.error('Error validando CURP:', error);
+            });
+        } else {
+            validationDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Formato de CURP inválido';
+            validationDiv.className = 'curp-validation curp-invalid';
+            this.classList.remove('is-valid');
+            this.classList.add('is-invalid');
+        }
+    } else {
+        validationDiv.innerHTML = '';
+        this.classList.remove('is-valid', 'is-invalid');
+    }
+});
+
+// Convertir CURP a mayúsculas automáticamente
+document.getElementById('id_curp').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+});
+
+// Validación del formulario antes del envío
+document.getElementById('solicitudForm').addEventListener('submit', function(e) {
+    const curpField = document.getElementById('id_curp');
+    const terminosCheck = document.getElementById('acepto_terminos');
+    const datosCheck = document.getElementById('datos_correctos');
+    
+    if (!terminosCheck.checked || !datosCheck.checked) {
+        e.preventDefault();
+        alert('Debes aceptar los términos y confirmar que los datos son correctos.');
+        return;
+    }
+    
+    if (curpField.classList.contains('is-invalid')) {
+        e.preventDefault();
+        alert('Por favor, corrige el CURP antes de enviar la solicitud.');
+        return;
+    }
+    
+    // Mostrar loading
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+    submitBtn.disabled = true;
+});
+</script>
+{% endblock %}

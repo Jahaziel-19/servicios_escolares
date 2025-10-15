@@ -1,0 +1,280 @@
+{% extends 'admision/base.html' %}
+{% load static %}
+
+{% block title %}Duplicar Formulario - {{ formulario_original.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .duplicate-header {
+        background: linear-gradient(45deg, #1cc88a, #13855c);
+        color: white;
+        border-radius: 0.35rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .original-form-info {
+        background: #f8f9fc;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-preview {
+        background: #e2e6ea;
+        border: 1px solid #adb5bd;
+        border-radius: 0.35rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+    
+    .btn-duplicate {
+        background: linear-gradient(45deg, #1cc88a, #13855c);
+        border: none;
+        color: white;
+        font-weight: bold;
+        padding: 0.75rem 2rem;
+        border-radius: 0.35rem;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-duplicate:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0.25rem 1rem rgba(28, 200, 138, 0.3);
+        color: white;
+    }
+    
+    .field-count-badge {
+        background: #4e73df;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-copy text-success"></i>
+            Duplicar Formulario
+        </h1>
+        <a href="{% url 'admision:admin_ver_formulario' formulario_original.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Formulario
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Header de Duplicación -->
+            <div class="duplicate-header text-center">
+                <i class="fas fa-clone fa-3x mb-3"></i>
+                <h3 class="mb-3">Crear Copia del Formulario</h3>
+                <p class="mb-0">Se creará una copia exacta con todos los campos y configuraciones del formulario original.</p>
+            </div>
+
+            <!-- Formulario de Duplicación -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-edit"></i> Configuración de la Copia
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="nombre" class="font-weight-bold">
+                                <i class="fas fa-tag text-primary"></i> Nombre del Nuevo Formulario *
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="nombre" 
+                                   name="nombre" 
+                                   value="{{ nombre_sugerido }}" 
+                                   required
+                                   maxlength="200">
+                            <small class="form-text text-muted">
+                                Ingresa un nombre único para identificar la copia del formulario.
+                            </small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="descripcion" class="font-weight-bold">
+                                <i class="fas fa-align-left text-secondary"></i> Descripción
+                            </label>
+                            <textarea class="form-control" 
+                                      id="descripcion" 
+                                      name="descripcion" 
+                                      rows="3"
+                                      placeholder="Descripción opcional para la copia del formulario">{{ formulario_original.descripcion }}</textarea>
+                            <small class="form-text text-muted">
+                                Puedes modificar la descripción o mantener la original.
+                            </small>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-duplicate btn-lg">
+                                <i class="fas fa-copy"></i> Crear Copia del Formulario
+                            </button>
+                            <a href="{% url 'admision:admin_ver_formulario' formulario_original.id %}" 
+                               class="btn btn-secondary btn-lg ml-3">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="col-lg-4">
+            <!-- Información del Formulario Original -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle"></i> Formulario Original
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="original-form-info">
+                        <h6 class="font-weight-bold text-dark">{{ formulario_original.nombre }}</h6>
+                        {% if formulario_original.descripcion %}
+                            <p class="text-muted small mb-2">{{ formulario_original.descripcion|truncatechars:100 }}</p>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">ID: #{{ formulario_original.id }}</span>
+                            <span class="field-count-badge">
+                                {{ formulario_original.fields|length|default:0 }} campos
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información sobre la Duplicación -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-clipboard-check"></i> ¿Qué se copiará?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success mr-2"></i>
+                            <strong>Estructura completa</strong> del formulario
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success mr-2"></i>
+                            <strong>Todos los campos</strong> y sus configuraciones
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success mr-2"></i>
+                            <strong>Tipos de campo</strong> y validaciones
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success mr-2"></i>
+                            <strong>Opciones</strong> de campos select/radio
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-times text-danger mr-2"></i>
+                            <strong>Respuestas</strong> (no se copian)
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Vista Previa de Campos -->
+            {% if campos_parseados %}
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-eye"></i> Vista Previa de Campos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-preview">
+                        {% for field in campos_parseados %}
+                            <div class="mb-1">
+                                <small class="text-muted">{{ forloop.counter }}.</small>
+                                <strong>{{ field.label|default:field.name }}</strong>
+                                <span class="badge badge-secondary badge-sm ml-1">{{ field.type }}</span>
+                                {% if field.required %}
+                                    <span class="text-danger">*</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-focus en el campo nombre
+    document.getElementById('nombre').focus();
+    
+    // Validación del formulario
+    const form = document.querySelector('form');
+    const nombreInput = document.getElementById('nombre');
+    
+    form.addEventListener('submit', function(e) {
+        const nombre = nombreInput.value.trim();
+        
+        if (nombre.length < 3) {
+            e.preventDefault();
+            alert('El nombre del formulario debe tener al menos 3 caracteres.');
+            nombreInput.focus();
+            return;
+        }
+        
+        if (nombre === '{{ formulario_original.nombre }}') {
+            const confirmed = confirm(
+                'El nombre es idéntico al formulario original. ¿Deseas continuar?'
+            );
+            if (!confirmed) {
+                e.preventDefault();
+                nombreInput.focus();
+            }
+        }
+    });
+    
+    // Contador de caracteres para el nombre
+    nombreInput.addEventListener('input', function() {
+        const maxLength = 200;
+        const currentLength = this.value.length;
+        const remaining = maxLength - currentLength;
+        
+        // Crear o actualizar contador si no existe
+        let counter = document.getElementById('nombre-counter');
+        if (!counter) {
+            counter = document.createElement('small');
+            counter.id = 'nombre-counter';
+            counter.className = 'form-text text-muted';
+            this.parentNode.appendChild(counter);
+        }
+        
+        counter.textContent = `${currentLength}/${maxLength} caracteres`;
+        
+        if (remaining < 20) {
+            counter.className = 'form-text text-warning';
+        } else {
+            counter.className = 'form-text text-muted';
+        }
+    });
+});
+</script>
+{% endblock %}

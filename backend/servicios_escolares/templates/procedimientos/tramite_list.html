@@ -1,0 +1,162 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Lista de Trámites{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <!-- Encabezado -->
+  <div class="row gy-2 align-items-center mb-3">
+    <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+      <img src="{% static 'img/icons/tramite.png' %}" alt="Trámites" class="img-fluid" style="max-width: 60px;">
+      <div>
+        <h1 class="mb-0 fw-bold">Trámites</h1>
+        <p class="text-muted mb-0">Visualiza y gestiona los trámites realizados por los alumnos.</p>
+      </div>
+    </div>
+  </div>
+
+  
+<!-- Filtros y barra de búsqueda -->
+<div class="row mb-4">
+  <div class="col-12">
+    <form method="get" class="d-flex flex-wrap align-items-center gap-2">
+      <!-- Input de búsqueda -->
+      <div class="flex-grow-1">
+        <input type="search" name="q" class="form-control" placeholder="Buscar por nombre o matrícula"
+          value="{{ request.GET.q }}" aria-label="Buscar">
+      </div>
+
+      <!-- Filtro por estado -->
+      <div class="">
+        <select name="estado" class="form-select">
+          <option value="">Todos los estados</option>
+          <option value="Pendiente" {% if request.GET.estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
+          <option value="Procesado" {% if request.GET.estado == "Procesado" %}selected{% endif %}>Procesado</option>
+          <option value="Rechazado" {% if request.GET.estado == "Rechazado" %}selected{% endif %}>Rechazado</option>
+        </select>
+      </div>
+
+      <!-- Filtro por tipo -->
+      <div class="">
+        <select name="tipo" class="form-select">
+          <option value="">Todos los tipos</option>
+          {% for val, label in tipo_choices %}
+            <option value="{{ val }}" {% if request.GET.tipo == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Botón buscar -->
+      <div>
+        <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1">
+          <i class="material-symbols-rounded">search</i> Buscar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  <!-- Tabla -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+              <thead>
+                <tr>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Alumno</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Tipo</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Estado</th>
+                  <th class="text-center text-uppercase text-secondary small fw-bold">Fecha Solicitud</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for tramite in tramites %}
+                <tr>
+                  <td class="text-center">{{ tramite.alumno }}</td>
+                  <td class="text-center">{{ tramite.get_tipo_display }}</td>
+                  <td class="text-center">
+                    {% if tramite.estado == 'Pendiente' %}
+                    <span class="badge bg-warning-subtle text-warning fw-semibold d-inline-flex align-items-center gap-1">
+                      <i class="material-symbols-rounded">pause</i> Pendiente
+                    </span>
+                    {% elif tramite.estado == 'Procesado' %}
+                    <span class="badge bg-success-subtle text-success fw-semibold d-inline-flex align-items-center gap-1">
+                      <i class="material-symbols-rounded">check_circle</i> Procesado
+                    </span>
+                    {% elif tramite.estado == 'Rechazado' %}
+                    <span class="badge bg-secondary-subtle text-secondary fw-semibold d-inline-flex align-items-center gap-1">
+                      <i class="material-symbols-rounded">cancel</i> Rechazado
+                    </span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">{{ tramite.fecha_solicitud|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center">No hay trámites registrados.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="card-footer d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+          <p class="text-sm mb-0">
+            Página {{ page_obj.number }} de {{ paginator.num_pages }}<br>
+            Total de trámites: {{ paginator.count }}
+          </p>
+          <nav aria-label="Paginación">
+            <ul class="pagination pagination-sm mb-0 flex-wrap justify-content-center">
+              {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&estado={{ request.GET.estado }}&tipo={{ request.GET.tipo }}&page={{ page_obj.previous_page_number }}">
+                  <i class="material-symbols-rounded fs-6">chevron_left</i>
+                </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link"><i class="material-symbols-rounded fs-6">chevron_left</i></span>
+              </li>
+              {% endif %}
+
+              {% for num in paginator.page_range %}
+              {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+              <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?q={{ request.GET.q }}&estado={{ request.GET.estado }}&tipo={{ request.GET.tipo }}&page={{ num }}">{{ num }}</a>
+              </li>
+              {% elif num == 1 or num == paginator.num_pages %}
+              <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&estado={{ request.GET.estado }}&tipo={{ request.GET.tipo }}&page={{ num }}">{{ num }}</a>
+              </li>
+              {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+              {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?q={{ request.GET.q }}&estado={{ request.GET.estado }}&tipo={{ request.GET.tipo }}&page={{ page_obj.next_page_number }}">
+                  <i class="material-symbols-rounded fs-6">chevron_right</i>
+                </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                <span class="page-link"><i class="material-symbols-rounded fs-6">chevron_right</i></span>
+              </li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
