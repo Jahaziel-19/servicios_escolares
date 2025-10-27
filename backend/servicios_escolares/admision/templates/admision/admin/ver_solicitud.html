@@ -81,9 +81,9 @@
                 <small>Registrada el {{ solicitud.fecha_registro|date:"d/m/Y \a \l\a\s H:i" }}</small>
             </div>
             <div class="col-md-4 text-end">
-                <span class="badge estado-badge bg-{% if solicitud.estado == 'aceptada' %}success{% elif solicitud.estado == 'rechazado' %}danger{% elif solicitud.estado == 'en_revision' %}warning{% else %}secondary{% endif %}">
-                    {{ solicitud.get_estado_display }}
-                </span>
+                <span class="badge estado-badge bg-{% if solicitud.estado == 'aceptada' %}success{% elif solicitud.estado == 'rechazada' %}danger{% elif solicitud.estado == 'en_revision' %}warning{% else %}secondary{% endif %}">
+                     {{ solicitud.get_estado_display }}
+                 </span>
             </div>
         </div>
     </div>
@@ -234,11 +234,11 @@
                         {% endif %}
                     </div>
 
-                    <!-- Enviar por Email -->
-                    {% if solicitud.ficha and not solicitud.ficha.email_enviado %}
+                    <!-- Enviar/Reenviar por Email -->
+                    {% if solicitud.ficha %}
                     <div class="mb-3">
                         <a href="{% url 'admision:admin_enviar_ficha_email' solicitud.id %}" class="btn btn-info w-100">
-                            <i class="fas fa-envelope me-1"></i>Enviar por Email
+                            <i class="fas fa-envelope me-1"></i>{% if solicitud.ficha.email_enviado %}Reenviar por Email{% else %}Enviar por Email{% endif %}
                         </a>
                     </div>
                     {% endif %}
@@ -333,7 +333,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     form.addEventListener('submit', function(e) {
         const nuevoEstado = estadoSelect.value;
-        if (nuevoEstado === 'rechazado') {
+-        if (nuevoEstado === 'rechazado') {
++        if (nuevoEstado === 'rechazada') {
             if (!confirm('¿Está seguro de rechazar esta solicitud? Esta acción es importante.')) {
                 e.preventDefault();
             }

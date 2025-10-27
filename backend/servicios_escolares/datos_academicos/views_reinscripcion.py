@@ -1,190 +1,89 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
-from django.db import transaction
-from django.utils import timezone
-from datetime import datetime
 
-from .models import Alumno, PeriodoEscolar
 from .models_inscripcion import Reinscripcion
-from .forms_inscripcion import ReinscripcionForm
+from .models import PeriodoEscolar
+
+
+def _is_admin_user(user):
+    """Permite acceso a staff, superusuarios o grupo ServiciosEscolares."""
+    try:
+        return (
+            user.is_staff
+            or user.is_superuser
+            or user.groups.filter(name__in=["ServiciosEscolares", "Servicios Escolares"]).exists()
+        )
+    except Exception:
+        return False
 
 
 @login_required
-def aprobar_reinscripcion(request, reinscripcion_id):
-    """Vista para aprobar una reinscripción"""
-    reinscripcion = get_object_or_404(Reinscripcion, id=reinscripcion_id)
-    
-    if request.method == 'POST':
-        if reinscripcion.estado != 'Pendiente':
-            return JsonResponse({
-                'success': False,
-                'message': 'Solo se pueden aprobar reinscripciones pendientes'
-            })
-        
-        try:
-            with transaction.atomic():
-                # Cambiar estado a aprobada
-                reinscripcion.estado = 'Aprobada'
-                reinscripcion.fecha_aprobacion = timezone.now()
-                reinscripcion.usuario_aprobacion = request.user.username
-                reinscripcion.save()
-                
-                messages.success(request, f'Reinscripción {reinscripcion.folio} aprobada exitosamente')
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Reinscripción aprobada exitosamente'
-                })
-                
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f'Error al aprobar reinscripción: {str(e)}'
-            })
-    
-    return JsonResponse({
-        'success': False,
-        'message': 'Método no permitido'
-    })
+def reinscripciones_listar(request):
+    """Lista de reinscripciones con filtros y estadísticas básicas."""
+    if not _is_admin_user(request.user):
+        messages.error(request, "Acceso restringido: solo personal administrativo.")
+        return redirect("datos_academicos:servicios_login")
 
+    estado = (request.GET.get("estado") or "").strip()
+    periodo_id = (request.GET.get("periodo") or "").strip()
 
-@login_required
-def aplicar_reinscripcion(request, reinscripcion_id):
-    """Vista para aplicar los cambios de una reinscripción aprobada"""
-    reinscripcion = get_object_or_404(Reinscripcion, id=reinscripcion_id)
-    
-    if request.method == 'POST':
-        if reinscripcion.estado != 'Aprobada':
-            return JsonResponse({
-                'success': False,
-                'message': 'Solo se pueden aplicar reinscripciones aprobadas'
-            })
-        
-        try:
-            with transaction.atomic():
-                # Aplicar cambios usando el método del modelo
-                if reinscripcion.aplicar_cambios():
-                    messages.success(request, f'Cambios de reinscripción {reinscripcion.folio} aplicados exitosamente')
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'Cambios aplicados exitosamente',
-                        'alumno_actualizado': {
-                            'matricula': reinscripcion.alumno.matricula,
-                            'carrera': reinscripcion.alumno.carrera.nombre if reinscripcion.alumno.carrera else '',
-                            'semestre': reinscripcion.alumno.semestre,
-                            'estatus': reinscripcion.alumno.estatus,
-                            'modalidad': reinscripcion.alumno.modalidad
-                        }
-                    })
-                else:
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'No se pudieron aplicar los cambios'
-                    })
-                    
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f'Error al aplicar cambios: {str(e)}'
-            })
-    
-    return JsonResponse({
-        'success': False,
-        'message': 'Método no permitido'
-    })
-
-
-@login_required
-def rechazar_reinscripcion(request, reinscripcion_id):
-    """Vista para rechazar una reinscripción"""
-    reinscripcion = get_object_or_404(Reinscripcion, id=reinscripcion_id)
-    
-    if request.method == 'POST':
-        motivo_rechazo = request.POST.get('motivo_rechazo', '')
-        
-        if reinscripcion.estado not in ['Pendiente', 'En Revisión']:
-            return JsonResponse({
-                'success': False,
-                'message': 'Solo se pueden rechazar reinscripciones pendientes o en revisión'
-            })
-        
-        try:
-            with transaction.atomic():
-                reinscripcion.estado = 'Rechazada'
-                reinscripcion.observaciones = f"{reinscripcion.observaciones or ''}\n\nMotivo de rechazo: {motivo_rechazo}".strip()
-                reinscripcion.save()
-                
-                messages.success(request, f'Reinscripción {reinscripcion.folio} rechazada')
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Reinscripción rechazada exitosamente'
-                })
-                
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f'Error al rechazar reinscripción: {str(e)}'
-            })
-    
-    return JsonResponse({
-        'success': False,
-        'message': 'Método no permitido'
-    })
-
-
-@login_required
-def listar_reinscripciones(request):
-    """Vista para listar todas las reinscripciones"""
-    estado_filtro = request.GET.get('estado', '')
-    periodo_filtro = request.GET.get('periodo', '')
-    
-    reinscripciones = Reinscripcion.objects.select_related(
-        'alumno', 'periodo_escolar', 'nueva_carrera'
-    ).order_by('-fecha_solicitud')
-    
-    if estado_filtro:
-        reinscripciones = reinscripciones.filter(estado=estado_filtro)
-    
-    if periodo_filtro:
-        reinscripciones = reinscripciones.filter(periodo_escolar_id=periodo_filtro)
-    
-    # Estadísticas
-    stats = {
-        'total': reinscripciones.count(),
-        'pendientes': reinscripciones.filter(estado='Pendiente').count(),
-        'aprobadas': reinscripciones.filter(estado='Aprobada').count(),
-        'completadas': reinscripciones.filter(estado='Completada').count(),
-        'rechazadas': reinscripciones.filter(estado='Rechazada').count(),
-    }
-    
-    context = {
-        'reinscripciones': reinscripciones[:50],  # Limitar a 50 para rendimiento
-        'stats': stats,
-        'periodos': PeriodoEscolar.objects.filter(activo=True),
-        'estado_filtro': estado_filtro,
-        'periodo_filtro': periodo_filtro,
-        'estados_choices': Reinscripcion.ESTADO_CHOICES,
-    }
-    
-    return render(request, 'datos_academicos/reinscripciones/reinscripcion_list.html', context)
-
-
-@login_required
-def detalle_reinscripcion(request, reinscripcion_id):
-    """Vista para mostrar el detalle de una reinscripción"""
-    reinscripcion = get_object_or_404(
-        Reinscripcion.objects.select_related(
-            'alumno', 'periodo_escolar', 'nueva_carrera'
-        ), 
-        id=reinscripcion_id
+    queryset = (
+        Reinscripcion.objects.select_related("alumno", "periodo_escolar").order_by("-fecha_solicitud")
     )
-    
-    context = {
-        'reinscripcion': reinscripcion,
-        'puede_aprobar': reinscripcion.estado == 'Pendiente',
-        'puede_aplicar': reinscripcion.estado == 'Aprobada',
-        'puede_rechazar': reinscripcion.estado in ['Pendiente', 'En Revisión'],
+
+    if estado:
+        queryset = queryset.filter(estado=estado)
+    if periodo_id:
+        try:
+            queryset = queryset.filter(periodo_escolar_id=int(periodo_id))
+        except ValueError:
+            pass
+
+    reinscripciones = list(queryset[:50])
+
+    estados_choices = getattr(
+        Reinscripcion, "ESTADO_CHOICES", Reinscripcion._meta.get_field("estado").choices
+    )
+
+    try:
+        periodos = PeriodoEscolar.objects.all().order_by("-año", "ciclo")
+    except Exception:
+        periodos = PeriodoEscolar.objects.all()
+
+    stats = {
+        "total": Reinscripcion.objects.count(),
+        "pendientes": Reinscripcion.objects.filter(estado="Pendiente").count(),
+        "aprobadas": Reinscripcion.objects.filter(estado="Aprobada").count(),
+        "completadas": Reinscripcion.objects.filter(estado="Completada").count(),
+        "rechazadas": Reinscripcion.objects.filter(estado="Rechazada").count(),
     }
-    
-    return render(request, 'datos_academicos/reinscripciones/reinscripcion_detail.html', context)
+
+    context = {
+        "title": "Gestión de Reinscripciones",
+        "reinscripciones": reinscripciones,
+        "stats": stats,
+        "estados_choices": estados_choices,
+        "estado_filtro": estado,
+        "periodos": periodos,
+        "periodo_filtro": periodo_id,
+    }
+    return render(request, "datos_academicos/reinscripciones/reinscripcion_list.html", context)
+
+
+@login_required
+def reinscripcion_detalle(request, pk: int):
+    """Detalle de una reinscripción."""
+    if not _is_admin_user(request.user):
+        messages.error(request, "Acceso restringido: solo personal administrativo.")
+        return redirect("datos_academicos:servicios_login")
+
+    reinscripcion = get_object_or_404(
+        Reinscripcion.objects.select_related("alumno", "periodo_escolar"), id=pk
+    )
+
+    context = {
+        "title": f"Reinscripción {getattr(reinscripcion, 'folio', reinscripcion.id)}",
+        "reinscripcion": reinscripcion,
+    }
+    return render(request, "datos_academicos/reinscripciones/reinscripcion_detail.html", context)

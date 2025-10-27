@@ -14,10 +14,14 @@
             padding: 20px;
         }
         .header {
-            {% if solicitud.estado == 'aprobado' %}
+            {% if solicitud.estado == 'aceptada' %}
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            {% elif solicitud.estado == 'rechazado' %}
+            {% elif solicitud.estado == 'rechazada' %}
             background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            {% elif solicitud.estado == 'seleccionado' %}
+            background: linear-gradient(135deg, #0d6efd 0%, #6ea8fe 100%);
+            {% elif solicitud.estado == 'no_seleccionado' %}
+            background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
             {% else %}
             background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
             {% endif %}
@@ -36,21 +40,31 @@
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
-            {% if solicitud.estado == 'aprobado' %}
+            {% if solicitud.estado == 'aceptada' %}
             border-left: 4px solid #28a745;
-            {% elif solicitud.estado == 'rechazado' %}
+            {% elif solicitud.estado == 'rechazada' %}
             border-left: 4px solid #dc3545;
+            {% elif solicitud.estado == 'seleccionado' %}
+            border-left: 4px solid #0d6efd;
+            {% elif solicitud.estado == 'no_seleccionado' %}
+            border-left: 4px solid #6c757d;
             {% else %}
             border-left: 4px solid #ffc107;
             {% endif %}
         }
         .status-change {
-            {% if solicitud.estado == 'aprobado' %}
+            {% if solicitud.estado == 'aceptada' %}
             background: #d4edda;
             border: 1px solid #c3e6cb;
-            {% elif solicitud.estado == 'rechazado' %}
+            {% elif solicitud.estado == 'rechazada' %}
             background: #f8d7da;
             border: 1px solid #f5c6cb;
+            {% elif solicitud.estado == 'seleccionado' %}
+            background: #e7f1ff;
+            border: 1px solid #b6d4fe;
+            {% elif solicitud.estado == 'no_seleccionado' %}
+            background: #e9ecef;
+            border: 1px solid #ced4da;
             {% else %}
             background: #fff3cd;
             border: 1px solid #ffeaa7;
@@ -71,10 +85,14 @@
         .btn {
             display: inline-block;
             padding: 12px 24px;
-            {% if solicitud.estado == 'aprobado' %}
+            {% if solicitud.estado == 'aceptada' %}
             background: #28a745;
-            {% elif solicitud.estado == 'rechazado' %}
+            {% elif solicitud.estado == 'rechazada' %}
             background: #dc3545;
+            {% elif solicitud.estado == 'seleccionado' %}
+            background: #0d6efd;
+            {% elif solicitud.estado == 'no_seleccionado' %}
+            background: #6c757d;
             {% else %}
             background: #ffc107;
             color: #212529;
@@ -105,10 +123,14 @@
             border-radius: 5px;
         }
         .step-number {
-            {% if solicitud.estado == 'aprobado' %}
+            {% if solicitud.estado == 'aceptada' %}
             background: #28a745;
-            {% elif solicitud.estado == 'rechazado' %}
+            {% elif solicitud.estado == 'rechazada' %}
             background: #dc3545;
+            {% elif solicitud.estado == 'seleccionado' %}
+            background: #0d6efd;
+            {% elif solicitud.estado == 'no_seleccionado' %}
+            background: #6c757d;
             {% else %}
             background: #ffc107;
             color: #212529;
@@ -131,7 +153,11 @@
         <h2>
             {% if solicitud.estado == 'aceptada' %}
             🎉 ¡Solicitud Aceptada!
-            {% elif solicitud.estado == 'rechazado' %}
+            {% elif solicitud.estado == 'rechazada' %}
+            📋 Actualización de Solicitud
+            {% elif solicitud.estado == 'seleccionado' %}
+            🎉 ¡Has sido Seleccionado!
+            {% elif solicitud.estado == 'no_seleccionado' %}
             📋 Actualización de Solicitud
             {% else %}
             📋 Actualización de Solicitud
@@ -204,7 +230,7 @@
             </ul>
         </div>
 
-        {% elif solicitud.estado == 'rechazado' %}
+        {% elif solicitud.estado == 'rechazada' %}
         <div class="info-box" style="border-left-color: #dc3545;">
             <h4>📋 Información sobre su Solicitud</h4>
             <p>Lamentamos informarle que su solicitud ha sido rechazada en esta ocasión.</p>
@@ -229,6 +255,52 @@
             </ul>
         </div>
 
+        {% elif solicitud.estado == 'seleccionado' %}
+        <div class="next-steps">
+            <h4>🎯 ¡Has sido Seleccionado como candidato a inscripción!</h4>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div>
+                    <strong>Revisa tu correo</strong><br>
+                    Te enviaremos las instrucciones para el proceso de inscripción.
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div>
+                    <strong>Documentación</strong><br>
+                    Prepara los documentos requeridos para tu inscripción.
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div>
+                    <strong>Fechas y pasos</strong><br>
+                    Sigue las fechas y pasos indicados en el correo de inscripción.
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h4>📝 Información Importante</h4>
+            <ul>
+                <li>Conserva tu folio: <strong>{{ solicitud.folio }}</strong></li>
+                <li>Verifica tu correo con frecuencia</li>
+                <li>Prepara tus documentos</li>
+            </ul>
+        </div>
+
+        {% elif solicitud.estado == 'no_seleccionado' %}
+        <div class="info-box" style="border-left-color: #6c757d;">
+            <h4>📋 Información sobre tu participación</h4>
+            <p>Tu folio no participará en el proceso de inscripción de este periodo.</p>
+            <p>Puedes considerar participar en el próximo periodo de admisiones.</p>
+        </div>
+        <div class="contact-info" style="background: #f1f3f5;">
+            <h4>💬 ¿Tienes dudas?</h4>
+            <p>Contáctanos para orientación sobre próximos pasos y periodos.</p>
+        </div>
+
         {% else %}
         <div class="info-box">
             <h4>⏳ Su solicitud está en proceso</h4>
@@ -247,7 +319,6 @@
 
         <p>Si tiene alguna pregunta sobre esta actualización o necesita más información, 
         no dude en contactarnos.</p>
-
         <p>Atentamente,<br>
         <strong>Departamento de Admisiones</strong><br>
         {{ institucion }}</p>

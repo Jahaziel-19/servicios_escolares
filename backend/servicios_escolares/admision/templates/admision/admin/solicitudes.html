@@ -20,12 +20,20 @@
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     
-    .solicitud-card.aprobado {
+    .solicitud-card.aceptada {
         border-left-color: #28a745;
     }
     
-    .solicitud-card.rechazado {
+    .solicitud-card.rechazada {
         border-left-color: #dc3545;
+    }
+
+    .solicitud-card.seleccionado {
+        border-left-color: #0d6efd;
+    }
+
+    .solicitud-card.no_seleccionado {
+        border-left-color: #6c757d;
     }
     
     .solicitud-card.en_revision {
@@ -108,23 +116,91 @@
         </div>
     </div>
 
-    <!-- Resultados -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5>Resultados ({{ page_obj.paginator.count }} solicitudes)</h5>
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleView('cards')">
-                        <i class="fas fa-th-large"></i> Tarjetas
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleView('table')">
-                        <i class="fas fa-table"></i> Tabla
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Acciones masivas por correo -->
+    {% if puede_accion_masiva %}
+     <div class="row mb-4">
+         <div class="col-12">
+             <div class="card">
+                 <div class="card-header d-flex justify-content-between align-items-center">
+                     <h5 class="mb-0"><i class="fas fa-users-cog me-2"></i>Acciones masivas por correo</h5>
+                     <small class="text-muted">Correos separados por comas o saltos de línea</small>
+                 </div>
+                 <div class="card-body">
+                     <div class="row g-3">
+                         <div class="col-md-8">
+                             <textarea id="emailsMasivos" class="form-control" rows="3" placeholder="correo1@dominio.com, correo2@dominio.com"></textarea>
+                         </div>
+                         <div class="col-md-4 d-flex align-items-start gap-2">
+                             <button class="btn btn-primary" onclick="accionMasivaEstado('seleccionado')">
+                                 <i class="fas fa-user-check me-1"></i>Marcar como Seleccionado
+                             </button>
+                             <button class="btn btn-outline-secondary" onclick="accionMasivaEstado('no_seleccionado')">
+                                 <i class="fas fa-user-times me-1"></i>Marcar como No seleccionado
+                             </button>
+                         </div>
+                     </div>
+                     <div class="mt-3"></div>
+                 </div>
+             </div>
+         </div>
+     </div>
+    {% endif %}
 
+     <!-- Resultados -->
+     <div class="row mb-2">
+         <div class="col-12 d-flex justify-content-between align-items-center">
+             <div>
+                 <h5 class="mb-0">Resultados ({{ page_obj.paginator.count }} solicitudes)</h5>
+                 <small class="text-muted">Usa filtros y selecciona filas para acciones masivas</small>
+             </div>
+             <div class="d-flex gap-2 align-items-center">
+                {% if puede_accion_masiva %}
+                 <button type="button" class="btn btn-primary btn-sm" onclick="accionMasivaPorSeleccion('seleccionado')">
+                     <i class="fas fa-user-check me-1"></i>Seleccionado (seleccionados)
+                 </button>
+                 <button type="button" class="btn btn-outline-secondary btn-sm" onclick="accionMasivaPorSeleccion('no_seleccionado')">
+                     <i class="fas fa-user-times me-1"></i>No seleccionado (seleccionados)
+                 </button>
+                 <button type="button" class="btn btn-outline-primary btn-sm" onclick="accionMasivaPorFiltro('seleccionado')">
+                     <i class="fas fa-user-check me-1"></i>Seleccionado (todos filtrados)
+                 </button>
+                 <button type="button" class="btn btn-outline-secondary btn-sm" onclick="accionMasivaPorFiltro('no_seleccionado')">
+                     <i class="fas fa-user-times me-1"></i>No seleccionado (todos filtrados)
+                 </button>
+                {% endif %}
+                 <div class="btn-group" role="group">
+                     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleView('cards')">
+                         <i class="fas fa-th-large"></i> Tarjetas
+                     </button>
+                     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleView('table')">
+                         <i class="fas fa-table"></i> Tabla
+                     </button>
+                 </div>
+             </div>
+         </div>
+     </div>
+
+    <!-- Resto del contenido sin cambios -->
+    {% comment %} El resto del template permanece igual {% endcomment %}
+
+{% if puede_accion_masiva %}<div id="masivoMessage" class="mb-3" style="display:none"></div>{% endif %}
+
+<!-- Modal para resultados de acciones masivas -->
+<div class="modal fade" id="masivoModal" tabindex="-1" aria-labelledby="masivoModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="masivoModalLabel">Resultado de acción masiva</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="masivoModalBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" id="masivoModalReload">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
     <!-- Vista de Tarjetas -->
     <div id="cards-view">
         {% if page_obj %}
@@ -138,7 +214,7 @@
                                 <h6 class="card-title mb-1">{{ solicitud.folio }}</h6>
                                 <small class="text-muted">{{ solicitud.fecha_registro|date:"d/m/Y H:i" }}</small>
                             </div>
-                            <span class="badge badge-estado bg-{% if solicitud.estado == 'aceptada' %}success{% elif solicitud.estado == 'rechazado' %}danger{% elif solicitud.estado == 'en_revision' %}warning{% else %}secondary{% endif %}">
+                            <span class="badge badge-estado bg-{% if solicitud.estado == 'aceptada' %}success{% elif solicitud.estado == 'rechazada' %}danger{% elif solicitud.estado == 'en_revision' %}warning{% else %}secondary{% endif %}">
                                 {{ solicitud.get_estado_display }}
                             </span>
                         </div>
@@ -194,6 +270,7 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" id="selectAllPage" onclick="toggleSelectAllPage(this)"></th>
                                 <th>Folio</th>
                                 <th>CURP</th>
                                 <th>Email</th>
@@ -207,12 +284,13 @@
                         <tbody>
                             {% for solicitud in page_obj %}
                             <tr>
+                                <td><input type="checkbox" class="row-select" value="{{ solicitud.folio }}"></td>
                                 <td><strong>{{ solicitud.folio }}</strong></td>
                                 <td>{{ solicitud.curp }}</td>
                                 <td>{{ solicitud.email|truncatechars:25 }}</td>
                                 <td>{{ solicitud.periodo.nombre }}</td>
                                 <td>
-                                    <span class="badge bg-{% if solicitud.estado == 'aceptada' %}success{% elif solicitud.estado == 'rechazado' %}danger{% elif solicitud.estado == 'en_revision' %}warning{% else %}secondary{% endif %}">
+                                    <span class="badge bg-{% if solicitud.estado == 'aceptada' %}success{% elif solicitud.estado == 'rechazada' %}danger{% elif solicitud.estado == 'en_revision' %}warning{% else %}secondary{% endif %}">
                                         {{ solicitud.get_estado_display }}
                                     </span>
                                 </td>
@@ -298,10 +376,7 @@ function toggleView(viewType) {
     const cardsView = document.getElementById('cards-view');
     const tableView = document.getElementById('table-view');
     const buttons = document.querySelectorAll('.btn-group .btn');
-    
-    // Reset button states
     buttons.forEach(btn => btn.classList.remove('active'));
-    
     if (viewType === 'cards') {
         cardsView.style.display = 'block';
         tableView.style.display = 'none';
@@ -311,15 +386,231 @@ function toggleView(viewType) {
         tableView.style.display = 'block';
         buttons[1].classList.add('active');
     }
-    
-    // Save preference
     localStorage.setItem('admision_view_preference', viewType);
 }
 
-// Load saved preference
 document.addEventListener('DOMContentLoaded', function() {
     const savedView = localStorage.getItem('admision_view_preference') || 'cards';
     toggleView(savedView);
 });
+
+async function parseResponse(resp) {
+    const ct = resp.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+        try { return { isJson: true, json: await resp.json() }; } catch(e) { return { isJson: false, text: 'Error parseando JSON' }; }
+    }
+    return { isJson: false, text: await resp.text() };
+}
+
+function getCsrfToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie ? document.cookie.split(';') : [];
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith(name + '=')) {
+            return decodeURIComponent(cookie.substring(name.length + 1));
+        }
+    }
+    return '';
+}
+
+ function showFetchError(messageEl, respData, resp) {
+     const statusInfo = resp ? ` (HTTP ${resp.status})` : '';
+     if (respData.isJson) {
+         messageEl.innerHTML = `<div class="alert alert-danger">${(respData.json.error || 'Error en acción masiva')}${statusInfo}</div>`;
+     } else {
+         const isLogin = respData.text && respData.text.includes('<form') && respData.text.toLowerCase().includes('login');
+         const hint = isLogin ? ' ¿Sesión expirada? Inicia sesión nuevamente.' : '';
+         messageEl.innerHTML = `<div class="alert alert-danger">Respuesta no JSON${statusInfo}.${hint}</div>`;
+     }
+ }
+
+async function accionMasivaEstado(nuevoEstado) {
+    const emailsRaw = document.getElementById('emailsMasivos').value || '';
+    const messageEl = document.getElementById('masivoMessage');
+    if (messageEl) messageEl.innerHTML = '';
+    const emails = emailsRaw
+        .split(/[\n,;]/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+    if (emails.length === 0) {
+        openMasivoModal('<div class="alert alert-warning mb-0">Ingresa al menos un correo.</div>');
+        return;
+    }
+    try {
+        const resp = await fetch('{% url "admision:admin_accion_masiva" %}', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+            body: JSON.stringify({ accion: 'cambiar_estado', emails: emails, nuevo_estado: nuevoEstado })
+        });
+        const parsed = await parseResponse(resp);
+        if (!resp.ok) {
+            const statusInfo = ` (HTTP ${resp.status})`;
+            if (parsed.isJson) {
+                openMasivoModal(`<div class="alert alert-danger mb-0">${(parsed.json.error || 'Error en acción masiva')}${statusInfo}</div>`);
+            } else {
+                const isLogin = parsed.text && parsed.text.includes('<form') && parsed.text.toLowerCase().includes('login');
+                const hint = isLogin ? ' ¿Sesión expirada? Inicia sesión nuevamente.' : '';
+                openMasivoModal(`<div class=\"alert alert-danger mb-0\">Respuesta no JSON${statusInfo}.${hint}</div>`);
+            }
+            return;
+        }
+        if (parsed.isJson && parsed.json.success) {
+            const msg = `${parsed.json.message}${parsed.json.warning ? ' (' + parsed.json.warning + ')' : ''}`;
+            const alertClass = parsed.json.warning ? 'alert-warning' : 'alert-success';
+            const badgesHtml = (typeof parsed.json.updated_count !== 'undefined')
+                ? `<div class=\"mt-2 d-flex gap-2\">
+                     <span class=\"badge bg-primary\">Actualizadas: ${parsed.json.updated_count}</span>
+                     <span class=\"badge bg-success\">Emails OK: ${parsed.json.email_success_count || 0}</span>
+                     ${parsed.json.email_errors_count ? `<span class=\"badge bg-warning text-dark\">Fallos email: ${parsed.json.email_errors_count}</span>` : ''}
+                   </div>`
+                : '';
+            openMasivoModal(`<div class=\"${alertClass} mb-0\">${msg}</div>${badgesHtml}`);
+        } else {
+            const statusInfo = ` (HTTP ${resp.status})`;
+            if (parsed.isJson) {
+                openMasivoModal(`<div class=\"alert alert-danger mb-0\">${(parsed.json.error || 'Error en acción masiva')}${statusInfo}</div>`);
+            } else {
+                openMasivoModal(`<div class=\"alert alert-danger mb-0\">Respuesta inesperada.</div>`);
+            }
+        }
+    } catch (e) {
+        openMasivoModal(`<div class="alert alert-danger mb-0">${e}</div>`);
+    }
+}
+
+function toggleSelectAllPage(checkbox) {
+    document.querySelectorAll('.row-select').forEach(cb => cb.checked = checkbox.checked);
+}
+
+function getSelectedFolios() {
+    return Array.from(document.querySelectorAll('.row-select:checked')).map(cb => cb.value);
+}
+
+async function accionMasivaPorSeleccion(nuevoEstado) {
+    const folios = getSelectedFolios();
+    const messageEl = document.getElementById('masivoMessage');
+    if (messageEl) messageEl.innerHTML = '';
+    if (folios.length === 0) {
+        openMasivoModal('<div class="alert alert-warning mb-0">Selecciona al menos una fila.</div>');
+        return;
+    }
+    try {
+        const resp = await fetch('{% url "admision:admin_accion_masiva" %}', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+            body: JSON.stringify({ accion: 'cambiar_estado', apply_to: 'selected', folios: folios, nuevo_estado: nuevoEstado })
+        });
+        const parsed = await parseResponse(resp);
+        if (!resp.ok) {
+            const statusInfo = ` (HTTP ${resp.status})`;
+            if (parsed.isJson) {
+                openMasivoModal(`<div class="alert alert-danger mb-0">${(parsed.json.error || 'Error en acción masiva')}${statusInfo}</div>`);
+            } else {
+                const isLogin = parsed.text && parsed.text.includes('<form') && parsed.text.toLowerCase().includes('login');
+                const hint = isLogin ? ' ¿Sesión expirada? Inicia sesión nuevamente.' : '';
+                openMasivoModal(`<div class=\"alert alert-danger mb-0\">Respuesta no JSON${statusInfo}.${hint}</div>`);
+            }
+            return;
+        }
+        if (parsed.isJson && parsed.json.success) {
+            const msg = `${parsed.json.message}${parsed.json.warning ? ' (' + parsed.json.warning + ')' : ''}`;
+            const alertClass = parsed.json.warning ? 'alert-warning' : 'alert-success';
+            const badgesHtml = (typeof parsed.json.updated_count !== 'undefined')
+                ? `<div class=\"mt-2 d-flex gap-2\">
+                     <span class=\"badge bg-primary\">Actualizadas: ${parsed.json.updated_count}</span>
+                     <span class=\"badge bg-success\">Emails OK: ${parsed.json.email_success_count || 0}</span>
+                     ${parsed.json.email_errors_count ? `<span class=\"badge bg-warning text-dark\">Fallos email: ${parsed.json.email_errors_count}</span>` : ''}
+                   </div>`
+                : '';
+            openMasivoModal(`<div class=\"${alertClass} mb-0\">${msg}</div>${badgesHtml}`);
+        } else {
+            const statusInfo = ` (HTTP ${resp.status})`;
+            if (parsed.isJson) {
+                openMasivoModal(`<div class="alert alert-danger mb-0">${(parsed.json.error || 'Error en acción masiva')}${statusInfo}</div>`);
+            } else {
+                openMasivoModal(`<div class="alert alert-danger mb-0">Respuesta inesperada.</div>`);
+            }
+        }
+    } catch (e) {
+        openMasivoModal(`<div class="alert alert-danger mb-0">${e}</div>`);
+    }
+}
+
+function getFiltrosActuales() {
+    const periodo = document.getElementById('periodo')?.value || '';
+    const estado = document.getElementById('estado')?.value || '';
+    const busqueda = document.getElementById('busqueda')?.value || '';
+    return { periodo_id: periodo, estado: estado, busqueda: busqueda };
+}
+
+async function accionMasivaPorFiltro(nuevoEstado) {
+    const filtros = getFiltrosActuales();
+    const messageEl = document.getElementById('masivoMessage');
+    if (messageEl) messageEl.innerHTML = '';
+    try {
+        const resp = await fetch('{% url "admision:admin_accion_masiva" %}', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+            body: JSON.stringify({ accion: 'cambiar_estado', apply_to: 'filtered', filtros: filtros, nuevo_estado: nuevoEstado })
+        });
+        const parsed = await parseResponse(resp);
+        if (!resp.ok) {
+            const statusInfo = ` (HTTP ${resp.status})`;
+            if (parsed.isJson) {
+                openMasivoModal(`<div class="alert alert-danger mb-0">${(parsed.json.error || 'Error en acción masiva')}${statusInfo}</div>`);
+            } else {
+                const isLogin = parsed.text && parsed.text.includes('<form') && parsed.text.toLowerCase().includes('login');
+                const hint = isLogin ? ' ¿Sesión expirada? Inicia sesión nuevamente.' : '';
+                openMasivoModal(`<div class=\"alert alert-danger mb-0\">Respuesta no JSON${statusInfo}.${hint}</div>`);
+            }
+            return;
+        }
+        if (parsed.isJson && parsed.json.success) {
+            const msg = `${parsed.json.message}${parsed.json.warning ? ' (' + parsed.json.warning + ')' : ''}`;
+            const alertClass = parsed.json.warning ? 'alert-warning' : 'alert-success';
+            const badgesHtml = (typeof parsed.json.updated_count !== 'undefined')
+                ? `<div class=\"mt-2 d-flex gap-2\">
+                     <span class=\"badge bg-primary\">Actualizadas: ${parsed.json.updated_count}</span>
+                     <span class=\"badge bg-success\">Emails OK: ${parsed.json.email_success_count || 0}</span>
+                     ${parsed.json.email_errors_count ? `<span class=\"badge bg-warning text-dark\">Fallos email: ${parsed.json.email_errors_count}</span>` : ''}
+                   </div>`
+                : '';
+            openMasivoModal(`<div class=\"${alertClass} mb-0\">${msg}</div>${badgesHtml}`);
+        } else {
+            const statusInfo = ` (HTTP ${resp.status})`;
+            if (parsed.isJson) {
+                openMasivoModal(`<div class="alert alert-danger mb-0">${(parsed.json.error || 'Error en acción masiva')}${statusInfo}</div>`);
+            } else {
+                openMasivoModal(`<div class="alert alert-danger mb-0">Respuesta inesperada.</div>`);
+            }
+        }
+    } catch (e) {
+        openMasivoModal(`<div class="alert alert-danger mb-0">${e}</div>`);
+    }
+}
+
+// Muestra el modal de resultados y recarga al confirmar
+function openMasivoModal(contentHtml) {
+    const bodyEl = document.getElementById('masivoModalBody');
+    const modalEl = document.getElementById('masivoModal');
+    const reloadBtn = document.getElementById('masivoModalReload');
+    if (!bodyEl || !modalEl) {
+        console.error('Modal de resultados no disponible en el DOM');
+        return;
+    }
+    bodyEl.innerHTML = contentHtml;
+    const modal = new bootstrap.Modal(modalEl);
+    if (reloadBtn) {
+        reloadBtn.onclick = () => {
+            try { modal.hide(); } catch(e) {}
+            window.location.reload();
+        };
+    }
+    modal.show();
+}
 </script>
 {% endblock %}

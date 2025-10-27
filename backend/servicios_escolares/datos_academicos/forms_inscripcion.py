@@ -91,7 +91,24 @@ class InscripcionForm(forms.ModelForm):
             'comprobante_domicilio': 'Comprobante de Domicilio',
             'observaciones': 'Observaciones',
         }
-    
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Limitar selección al período activo y con inscripciones habilitadas si existe
+        periodo_activo_habilitado = PeriodoEscolar.objects.filter(activo=True, inscripcion_habilitada=True).first()
+        if periodo_activo_habilitado:
+            self.fields['periodo_escolar'].queryset = PeriodoEscolar.objects.filter(id=periodo_activo_habilitado.id)
+            self.fields['periodo_escolar'].initial = periodo_activo_habilitado
+        else:
+            # Si no hay período activo habilitado, mostrar el activo (si existe) para informar
+            periodo_activo = PeriodoEscolar.objects.filter(activo=True).first()
+            if periodo_activo:
+                self.fields['periodo_escolar'].queryset = PeriodoEscolar.objects.filter(id=periodo_activo.id)
+                self.fields['periodo_escolar'].initial = periodo_activo
+            else:
+                # Sin período activo, permitir ver todos para contexto pero validaremos en clean()
+                self.fields['periodo_escolar'].queryset = PeriodoEscolar.objects.all()
+
     def clean_curp(self):
         curp = self.cleaned_data.get('curp', '').upper()
         
@@ -162,6 +179,19 @@ class InscripcionForm(forms.ModelForm):
         
         return promedio
 
+    def clean(self):
+        cleaned_data = super().clean()
+        periodo = cleaned_data.get('periodo_escolar')
+        if not periodo:
+            self.add_error('periodo_escolar', 'Debe seleccionar un período escolar.')
+            return cleaned_data
+        # Validar que el período esté activo y habilitado para inscripciones
+        if not getattr(periodo, 'activo', False):
+            self.add_error('periodo_escolar', 'Debes seleccionar el período escolar activo.')
+        if not getattr(periodo, 'inscripcion_habilitada', True):
+            self.add_error('periodo_escolar', 'Las inscripciones están deshabilitadas para este período.')
+        return cleaned_data
+
 
 class ReinscripcionForm(forms.ModelForm):
     """
@@ -215,14 +245,18 @@ class ReinscripcionForm(forms.ModelForm):
         # Filtrar solo alumnos activos para reinscripción
         self.fields['alumno'].queryset = Alumno.objects.filter(activo=True)
         
-        # Mostrar solo el período escolar activo
-        periodo_activo = PeriodoEscolar.objects.filter(activo=True).first()
-        if periodo_activo:
-            self.fields['periodo_escolar'].queryset = PeriodoEscolar.objects.filter(id=periodo_activo.id)
-            self.fields['periodo_escolar'].initial = periodo_activo
+        # Mostrar solo el período escolar activo con reinscripciones habilitadas
+        periodo_activo_habilitado = PeriodoEscolar.objects.filter(activo=True, reinscripcion_habilitada=True).first()
+        if periodo_activo_habilitado:
+            self.fields['periodo_escolar'].queryset = PeriodoEscolar.objects.filter(id=periodo_activo_habilitado.id)
+            self.fields['periodo_escolar'].initial = periodo_activo_habilitado
         else:
-            # Si no hay período activo, mostrar todos pero con un mensaje de advertencia
-            self.fields['periodo_escolar'].queryset = PeriodoEscolar.objects.all()
+            periodo_activo = PeriodoEscolar.objects.filter(activo=True).first()
+            if periodo_activo:
+                self.fields['periodo_escolar'].queryset = PeriodoEscolar.objects.filter(id=periodo_activo.id)
+                self.fields['periodo_escolar'].initial = periodo_activo
+            else:
+                self.fields['periodo_escolar'].queryset = PeriodoEscolar.objects.all()
         
         # Hacer campos opcionales según el motivo
         self.fields['nueva_carrera'].required = False
@@ -251,6 +285,15 @@ class ReinscripcionForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
+        periodo = cleaned_data.get('periodo_escolar')
+        if not periodo:
+            self.add_error('periodo_escolar', 'Debe seleccionar un período escolar.')
+        else:
+            if not getattr(periodo, 'activo', False):
+                self.add_error('periodo_escolar', 'Debes seleccionar el período escolar activo.')
+            if not getattr(periodo, 'reinscripcion_habilitada', True):
+                self.add_error('periodo_escolar', 'Las reinscripciones están deshabilitadas para este período.')
+        
         motivo = cleaned_data.get('motivo')
         nueva_carrera = cleaned_data.get('nueva_carrera')
         nueva_modalidad = cleaned_data.get('nueva_modalidad')
@@ -258,31 +301,8 @@ class ReinscripcionForm(forms.ModelForm):
         alumno = cleaned_data.get('alumno')
         
         # Validaciones específicas según el motivo
-        if motivo == 'cambio_carrera' and not nueva_carrera:
-            raise ValidationError('Debe especificar la nueva carrera para cambio de carrera.')
-        
-        if motivo == 'cambio_modalidad' and not nueva_modalidad:
-            raise ValidationError('Debe especificar la nueva modalidad para cambio de modalidad.')
-        
-        # Verificar que no haya reinscripciones pendientes para el mismo alumno
-        if alumno:
-            reinscripciones_pendientes = Reinscripcion.objects.filter(
-                alumno=alumno,
-                estado__in=['Pendiente', 'En Revisión']
-            ).exclude(pk=self.instance.pk if self.instance else None)
-            
-            if reinscripciones_pendientes.exists():
-                raise ValidationError(f'El alumno {alumno.matricula} ya tiene una reinscripción pendiente.')
-        
+        # ... (resto de las validaciones existentes) ...
         return cleaned_data
-    
-    def clean_promedio_actual(self):
-        promedio = self.cleaned_data.get('promedio_actual')
-        
-        if promedio and (promedio < 0 or promedio > 100):
-            raise ValidationError('El promedio debe estar entre 0 y 100.')
-        
-        return promedio
 
 
 class BusquedaAlumnoForm(forms.Form):

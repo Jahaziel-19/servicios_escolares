@@ -30,8 +30,8 @@ class DocenteAdmin(admin.ModelAdmin):
 
 @admin.register(PeriodoEscolar)
 class PeriodoEscolarAdmin(admin.ModelAdmin):
-    list_display = ('ciclo', 'año')
-    list_filter = ('ciclo', 'año')
+    list_display = ('ciclo', 'año', 'activo', 'inscripcion_habilitada', 'reinscripcion_habilitada')
+    list_filter = ('ciclo', 'año', 'activo', 'inscripcion_habilitada', 'reinscripcion_habilitada')
     search_fields = ('ciclo', 'año')
 
 @admin.register(Carrera)

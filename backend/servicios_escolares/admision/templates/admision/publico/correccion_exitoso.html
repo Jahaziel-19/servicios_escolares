@@ -1,0 +1,68 @@
+{% extends 'admision/publico/base_publico.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4 p-md-5">
+            <div class="text-center mb-4">
+              <div class="display-6 fw-bold" style="background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; color: transparent;">
+                ¡Corrección Exitosa!
+              </div>
+              <p class="text-muted">Hemos actualizado tus datos de aspirante.</p>
+            </div>
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <div class="card h-100 border-0 bg-light">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                      <i class="bi bi-hash text-primary fs-3"></i>
+                      <div>
+                        <div class="small text-muted">Folio</div>
+                        <div class="fw-semibold">{{ solicitud.folio }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card h-100 border-0 bg-light">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                      <i class="bi bi-envelope text-primary fs-3"></i>
+                      <div>
+                        <div class="small text-muted">Correo</div>
+                        <div class="fw-semibold">{{ solicitud.email }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert alert-success d-flex align-items-center" role="alert">
+              <i class="bi bi-check-circle me-2"></i>
+              Tus correcciones se guardaron y quedan asociadas a tu folio.
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+              <a class="btn btn-outline-primary" href="{% url 'admision:admision_publico:consultar_solicitud' %}">
+                Ver estado de mi solicitud
+              </a>
+              <a class="btn btn-primary" href="{% url 'admision:admision_publico:correccion_seleccionado_inicio' %}">
+                Hacer otra corrección
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

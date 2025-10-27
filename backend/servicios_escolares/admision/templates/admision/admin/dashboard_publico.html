@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends "admision/base.html" %}
 {% load static %}
 
 {% block title %}Dashboard - Formulario Público de Admisión{% endblock %}
@@ -275,7 +275,7 @@
                     <div class="text-center py-4">
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                         <p class="text-muted">No hay solicitudes registradas aún</p>
-                        <a href="{% url 'admision:registro_aspirante' %}" 
+                        <a href="{% url 'admision:admision_publico:registro_aspirante' %}" 
                            class="btn btn-primary" target="_blank">
                             <i class="fas fa-plus me-1"></i>
                             Ver Formulario Público
@@ -311,13 +311,13 @@
                     Estadísticas Avanzadas
                 </a>
                 
-                <a href="{% url 'admision:registro_aspirante' %}" 
+                <a href="{% url 'admision:admision_publico:registro_aspirante' %}" 
                    class="action-btn btn btn-outline-primary" target="_blank">
                     <i class="fas fa-external-link-alt me-2"></i>
                     Ver Formulario Público
                 </a>
                 
-                <a href="{% url 'admision:informacion_proceso' %}" 
+                <a href="{% url 'admision:admision_publico:informacion_proceso' %}" 
                    class="action-btn btn btn-outline-info" target="_blank">
                     <i class="fas fa-info-circle me-2"></i>
                     Información del Proceso

@@ -1,0 +1,151 @@
+{% extends "admision/base.html" %}
+{% load static %}
+
+{% block title %}Detalle inscripción {{ inscripcion.folio }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="row mb-3">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+      <h2 class="mb-0"><i class="fas fa-id-card me-2"></i>Inscripción pública {{ inscripcion.folio }}</h2>
+      <div>
+        <a href="{% url 'datos_academicos:inscripciones_publicas_listar' %}" class="btn btn-outline-secondary me-2">
+          <i class="fas fa-arrow-left me-1"></i>Volver al listado
+        </a>
+        <a href="{% url 'datos_academicos:inscripciones_panel_admin' %}" class="btn btn-outline-secondary">
+          <i class="fas fa-th-large me-1"></i>Panel
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Datos del aspirante y estado -->
+    <div class="card mb-3">
+      <div class="card-header bg-light">
+        <strong><i class="fas fa-user me-2"></i>Aspirante</strong>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-2"><strong>Nombre:</strong> {{ inscripcion.nombre }} {{ inscripcion.apellido_paterno }} {{ inscripcion.apellido_materno }}</div>
+            <div class="mb-2"><strong>CURP:</strong> {{ inscripcion.curp }}</div>
+            <div class="mb-2"><strong>Email:</strong> {{ inscripcion.email }}</div>
+            <div class="mb-2"><strong>Teléfono:</strong> {{ inscripcion.telefono|default:"—" }}</div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-2"><strong>Carrera solicitada:</strong> {{ inscripcion.carrera_solicitada.nombre|default:"—" }}</div>
+            <div class="mb-2"><strong>Modalidad:</strong> {{ inscripcion.modalidad|default:"—" }}</div>
+            <div class="mb-2"><strong>Turno:</strong> {{ inscripcion.turno|default:"—" }}</div>
+            <div class="mb-2"><strong>Periodo:</strong> {{ inscripcion.periodo_escolar.nombre|default:"—" }}</div>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-md-4">
+            <label class="form-label">Estado</label>
+            <select class="form-select" name="estado">
+              {% for value,label in estados %}
+              <option value="{{ value }}" {% if inscripcion.estado == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label">Observaciones</label>
+            <textarea class="form-control" name="observaciones" rows="2">{{ inscripcion.observaciones }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documentos -->
+    <div class="card mb-3">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <strong><i class="fas fa-paperclip me-2"></i>Documentos cargados</strong>
+        <span class="badge bg-secondary">{{ documentos|length }}</span>
+      </div>
+      <div class="card-body">
+        {% if documentos %}
+        <div class="row g-3">
+          {% for doc in documentos %}
+          <div class="col-md-4">
+            <div class="border rounded p-3 h-100">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{{ doc.get_tipo_display }}</strong>
+                  <div class="small text-muted">{{ doc.cargado_en|date:"Y-m-d H:i" }}</div>
+                </div>
+                <a class="btn btn-sm btn-outline-primary" href="{{ doc.archivo.url }}" target="_blank">Ver</a>
+              </div>
+              {% if doc.notas %}
+              <div class="mt-2 small">{{ doc.notas }}</div>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-muted">No hay documentos adjuntos.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Pagos por concepto -->
+    <div class="card mb-3">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <strong><i class="fas fa-receipt me-2"></i>Pagos por concepto</strong>
+        <span class="badge bg-secondary">{{ pagos|length }}</span>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Estado</th>
+                <th>Monto</th>
+                <th>Comprobante</th>
+                <th>Notas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pagos %}
+              <tr>
+                <td>{{ p.get_concepto_display }}</td>
+                <td>
+                  <select class="form-select" name="pago-{{ p.id }}-estado">
+                    {% for value,label in estados_pagos %}
+                    <option value="{{ value }}" {% if p.estado == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td>
+                  <input type="number" step="0.01" min="0" class="form-control" name="pago-{{ p.id }}-monto" value="{{ p.monto|default:'' }}">
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    {% if p.comprobante %}
+                    <a class="btn btn-sm btn-outline-primary" href="{{ p.comprobante.url }}" target="_blank">Ver</a>
+                    {% endif %}
+                    <input type="file" class="form-control" name="pago-{{ p.id }}-comprobante" accept=".pdf,.jpg,.jpeg,.png">
+                  </div>
+                </td>
+                <td>
+                  <input type="text" class="form-control" name="pago-{{ p.id }}-notas" value="{{ p.notas }}">
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mb-5">
+      <a href="{% url 'datos_academicos:inscripciones_publicas_listar' %}" class="btn btn-outline-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-success"><i class="fas fa-save me-2"></i>Guardar cambios</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

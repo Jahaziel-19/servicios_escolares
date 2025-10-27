@@ -2,7 +2,7 @@
 Vistas administrativas para gestionar registros de aspirantes del formulario público
 """
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
@@ -24,10 +24,20 @@ from .email_utils import (
     enviar_notificacion_estado_solicitud
 )
 
+# Verificación centralizada para usuarios administrativos (incluye Servicios Escolares)
+def _is_admin_user(user):
+    return (
+        user.is_staff or user.is_superuser or 
+        user.groups.filter(name__in=['ServiciosEscolares','Servicios Escolares']).exists()
+    )
 
-@staff_member_required
+
+@login_required
 def admin_dashboard_publico(request):
     """Dashboard administrativo para registros públicos"""
+    if not _is_admin_user(request.user):
+        messages.error(request, 'Acceso restringido: solo personal de Servicios Escolares.')
+        return redirect('datos_academicos:servicios_login')
     # Estadísticas generales
     periodo_actual = PeriodoAdmision.objects.filter(activo=True).first()
     
@@ -83,12 +93,15 @@ def admin_dashboard_publico(request):
             'mensaje': 'No hay período de admisión activo'
         }
     
-    return render(request, 'admision/admin/dashboard_publico.html', context)
+    return render(request, 'admision/admin/dashboard.html', context)
 
 
-@staff_member_required
+@login_required
 def admin_solicitudes_publico(request):
     """Lista de solicitudes del formulario público con filtros"""
+    if not _is_admin_user(request.user):
+        messages.error(request, 'Acceso restringido: solo personal de Servicios Escolares.')
+        return redirect('datos_academicos:servicios_login')
     # Filtros
     periodo_id = request.GET.get('periodo')
     estado = request.GET.get('estado')
@@ -143,8 +156,8 @@ def admin_solicitudes_publico(request):
     page_obj = paginator.get_page(page_number)
     
     # Datos para filtros
-    periodos = PeriodoAdmision.objects.all().order_by('-fecha_inicio')
-    estados_choices = SolicitudAdmision.ESTADOS_CHOICES
+    periodos = PeriodoAdmision.objects.filter(activo=True).order_by('-fecha_inicio')
+    estados_choices = SolicitudAdmision.ESTADOS
     
     # Carreras disponibles (extraer de JSON)
     carreras_disponibles = SolicitudAdmision.objects.exclude(
@@ -171,9 +184,12 @@ def admin_solicitudes_publico(request):
     return render(request, 'admision/admin/solicitudes_publico.html', context)
 
 
-@staff_member_required
+@login_required
 def admin_ver_solicitud_publico(request, folio):
     """Ver detalles de una solicitud específica"""
+    if not _is_admin_user(request.user):
+        messages.error(request, 'Acceso restringido: solo personal de Servicios Escolares.')
+        return redirect('datos_academicos:servicios_login')
     solicitud = get_object_or_404(SolicitudAdmision, folio=folio)
     
     # Obtener ficha si existe
@@ -192,10 +208,12 @@ def admin_ver_solicitud_publico(request, folio):
     return render(request, 'admision/admin/ver_solicitud_publico.html', context)
 
 
-@staff_member_required
+@login_required
 @require_http_methods(["POST"])
 def admin_cambiar_estado_solicitud(request, folio):
     """Cambiar estado de una solicitud"""
+    if not _is_admin_user(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
     solicitud = get_object_or_404(SolicitudAdmision, folio=folio)
     
     nuevo_estado = request.POST.get('estado')
@@ -227,8 +245,11 @@ def admin_cambiar_estado_solicitud(request, folio):
     return redirect('admision:admin_ver_solicitud_publico', folio=folio)
 
 
-@staff_member_required
+@login_required
 def admin_generar_ficha_publico(request, folio):
+    if not _is_admin_user(request.user):
+        messages.error(request, 'Acceso restringido: solo personal de Servicios Escolares.')
+        return redirect('datos_academicos:servicios_login')
     """Generar ficha de admisión para una solicitud"""
     solicitud = get_object_or_404(SolicitudAdmision, folio=folio)
     
@@ -264,8 +285,11 @@ def admin_generar_ficha_publico(request, folio):
     return redirect('admision:admin_ver_solicitud_publico', folio=folio)
 
 
-@staff_member_required
+@login_required
 def admin_exportar_solicitudes(request):
+    if not _is_admin_user(request.user):
+        messages.error(request, 'Acceso restringido: solo personal de Servicios Escolares.')
+        return redirect('datos_academicos:servicios_login')
     """Exportar solicitudes a Excel"""
     formato = request.GET.get('formato', 'excel')
     
@@ -407,8 +431,11 @@ def _exportar_excel(solicitudes):
     return response
 
 
-@staff_member_required
+@login_required
 def admin_estadisticas_avanzadas(request):
+    if not _is_admin_user(request.user):
+        messages.error(request, 'Acceso restringido: solo personal de Servicios Escolares.')
+        return redirect('datos_academicos:servicios_login')
     """Estadísticas avanzadas y gráficos"""
     periodo_actual = PeriodoAdmision.objects.filter(activo=True).first()
     
@@ -478,32 +505,125 @@ def admin_estadisticas_avanzadas(request):
     return render(request, 'admision/admin/estadisticas_avanzadas.html', context)
 
 
-@staff_member_required
 @csrf_exempt
 def admin_accion_masiva(request):
-    """Realizar acciones masivas sobre solicitudes"""
+    if not request.user.is_authenticated or not _is_admin_user(request.user):
+        return JsonResponse({'success': False, 'message': 'No autorizado'}, status=403)
+    """Realizar acciones masivas sobre solicitudes
+    - Soporta selección por folios/emails o por filtros actuales
+    - Restringe cambios de estado a 'aceptada' -> ('aceptada'|'rechazado')
+    - Envía notificaciones por email al cambiar estado
+    """
+    # Autenticación y autorización explícitas para respuestas JSON
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'No autenticado'}, status=401)
+    is_servicios = (
+        request.user.is_staff
+        or request.user.is_superuser
+        or request.user.groups.filter(name__in=['ServiciosEscolares', 'Servicios Escolares']).exists()
+    )
+    if not is_servicios:
+        return JsonResponse({'success': False, 'error': 'Acceso restringido: solo Servicios Escolares o staff'}, status=403)
+
     if request.method != 'POST':
-        return JsonResponse({'success': False, 'error': 'Método no permitido'})
-    
+        return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
     try:
         data = json.loads(request.body)
         accion = data.get('accion')
+        apply_to = data.get('apply_to', 'selected')  # 'selected' | 'filtered'
         folios = data.get('folios', [])
-        
-        if not folios:
-            return JsonResponse({'success': False, 'error': 'No se seleccionaron solicitudes'})
-        
-        solicitudes = SolicitudAdmision.objects.filter(folio__in=folios)
-        
+        emails = data.get('emails', [])
+        filtros_payload = data.get('filtros', {})
+
+        queryset = SolicitudAdmision.objects.all()
+        solicitudes = queryset
+
+        if apply_to == 'selected':
+            if not folios and not emails:
+                return JsonResponse({'success': False, 'error': 'No se proporcionaron folios ni correos'})
+            filtros_q = Q()
+            if folios:
+                filtros_q |= Q(folio__in=folios)
+            if emails:
+                filtros_q |= Q(email__in=emails)
+            solicitudes = queryset.filter(filtros_q)
+        else:  # apply_to == 'filtered'
+            # Filtros similares a admin_solicitudes_publico
+            periodo = filtros_payload.get('periodo') or filtros_payload.get('periodo_id')
+            estado = filtros_payload.get('estado')
+            busqueda = filtros_payload.get('busqueda') or filtros_payload.get('q')
+            fecha_desde = filtros_payload.get('fecha_desde')
+            fecha_hasta = filtros_payload.get('fecha_hasta')
+            carrera = filtros_payload.get('carrera')
+
+            if periodo:
+                solicitudes = solicitudes.filter(periodo_id=periodo)
+            if estado:
+                solicitudes = solicitudes.filter(estado=estado)
+            if busqueda:
+                solicitudes = solicitudes.filter(
+                    Q(folio__icontains=busqueda) |
+                    Q(curp__icontains=busqueda) |
+                    Q(email__icontains=busqueda) |
+                    Q(respuestas_json__nombre__icontains=busqueda) |
+                    Q(respuestas_json__apellido_paterno__icontains=busqueda) |
+                    Q(respuestas_json__apellido_materno__icontains=busqueda)
+                )
+            if fecha_desde:
+                try:
+                    fecha_desde_dt = datetime.strptime(fecha_desde, '%Y-%m-%d').date()
+                    solicitudes = solicitudes.filter(fecha_registro__date__gte=fecha_desde_dt)
+                except ValueError:
+                    pass
+            if fecha_hasta:
+                try:
+                    fecha_hasta_dt = datetime.strptime(fecha_hasta, '%Y-%m-%d').date()
+                    solicitudes = solicitudes.filter(fecha_registro__date__lte=fecha_hasta_dt)
+                except ValueError:
+                    pass
+            if carrera:
+                solicitudes = solicitudes.extra(
+                    where=["JSON_EXTRACT(respuestas_json, '$.carrera_interes') = %s"],
+                    params=[carrera]
+                )
+
         if accion == 'cambiar_estado':
             nuevo_estado = data.get('nuevo_estado')
-            if nuevo_estado in dict(SolicitudAdmision.ESTADOS_CHOICES):
-                count = solicitudes.update(estado=nuevo_estado)
-                return JsonResponse({
-                    'success': True, 
-                    'message': f'{count} solicitudes actualizadas'
-                })
-        
+            if nuevo_estado not in dict(SolicitudAdmision.ESTADOS):
+                return JsonResponse({'success': False, 'error': 'Estado no válido'})
+
+            # Restricción: solo cambiar si el estado anterior fue 'aceptada'
+            candidatos = solicitudes.filter(estado='aceptada')
+            if not candidatos.exists():
+                return JsonResponse({'success': False, 'error': 'No hay solicitudes en estado aceptada para actualizar'})
+
+            actualizados = 0
+            errores_envio = []
+            from .email_utils import enviar_notificacion_cambio_estado
+            for s in candidatos:
+                anterior = s.estado
+                s.estado = nuevo_estado
+                s.save()
+                actualizados += 1
+                try:
+                    ok = enviar_notificacion_cambio_estado(s, anterior)
+                    if not ok:
+                        errores_envio.append(f"Folio {s.folio}: envío fallido")
+                except Exception as e:
+                    errores_envio.append(str(e))
+
+            nombre_estado = dict(SolicitudAdmision.ESTADOS).get(nuevo_estado, nuevo_estado)
+            resp = {
+                'success': True,
+                'message': f'{actualizados} solicitudes actualizadas a "{nombre_estado}"',
+                'updated_count': actualizados,
+                'email_errors_count': len(errores_envio),
+                'email_success_count': max(actualizados - len(errores_envio), 0)
+            }
+            if errores_envio:
+                resp['warning'] = f'Errores de envío: {len(errores_envio)}'
+            return JsonResponse(resp)
+
         elif accion == 'generar_fichas':
             fichas_generadas = 0
             for solicitud in solicitudes.filter(estado='aceptada'):
@@ -518,13 +638,8 @@ def admin_accion_masiva(request):
                 )
                 if created:
                     fichas_generadas += 1
-            
-            return JsonResponse({
-                'success': True,
-                'message': f'{fichas_generadas} fichas generadas'
-            })
-        
+            return JsonResponse({'success': True, 'message': f'{fichas_generadas} fichas generadas'})
+
         return JsonResponse({'success': False, 'error': 'Acción no válida'})
-        
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})

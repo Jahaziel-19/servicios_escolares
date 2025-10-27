@@ -1,0 +1,80 @@
+{% extends 'admision/publico/base_publico.html' %}
+{% load static %}
+
+{% block title %}Inscripción enviada{% endblock %}
+
+{% block extra_css %}
+<style>
+  .success-container { text-align:center; padding:3rem 2rem; }
+  .success-icon { font-size:4rem; color: var(--success-color); margin-bottom:1.5rem; animation:bounce 1s ease-in-out; }
+  @keyframes bounce { 0%,20%,50%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-14px)} 60%{transform:translateY(-8px)} }
+  .folio-card { background: linear-gradient(135deg, var(--success-color), #28a745); color:#fff; padding:1.75rem; border-radius: var(--border-radius); margin:1.5rem 0; box-shadow: var(--box-shadow); }
+  .folio-number { font-size:2rem; font-weight:700; letter-spacing:1px; }
+  .info-cards { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1rem; margin:1.5rem 0; }
+  .info-card { background: rgba(255,255,255,0.95); border-radius: var(--border-radius); padding:1rem 1.25rem; box-shadow: var(--box-shadow); border-left:4px solid var(--primary-color); }
+  .action-buttons { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:.75rem; margin-top:1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="content-card fade-in-up">
+      <div class="success-container">
+        <div class="success-icon">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h1 class="mb-2">¡Inscripción enviada!</h1>
+        <p class="lead">Tu registro se envió correctamente para revisión</p>
+
+        <div class="folio-card">
+          <h3 class="h6 mb-1">Tu folio de inscripción</h3>
+          <div class="folio-number">{{ inscripcion.folio }}</div>
+          <p class="mb-0">Guárdalo para consultar el estado del proceso</p>
+        </div>
+
+        <div class="info-cards">
+          <div class="info-card">
+            <h4 class="h6"><i class="bi bi-person-check me-1"></i>Datos del aspirante</h4>
+            <p class="mb-1"><strong>Nombre:</strong> {{ inscripcion.nombre }} {{ inscripcion.apellido_paterno }} {{ inscripcion.apellido_materno }}</p>
+            <p class="mb-1"><strong>CURP:</strong> {{ inscripcion.curp }}</p>
+            <p class="mb-0"><strong>Email:</strong> {{ inscripcion.email }}</p>
+          </div>
+          <div class="info-card">
+            <h4 class="h6"><i class="bi bi-book me-1"></i>Programa</h4>
+            <p class="mb-1"><strong>Carrera:</strong> {{ inscripcion.carrera_solicitada|default:"No seleccionada" }}</p>
+            <p class="mb-1"><strong>Modalidad:</strong> {{ inscripcion.modalidad|default:"" }}</p>
+            <p class="mb-0"><strong>Periodo:</strong> {{ inscripcion.periodo_escolar|default:"Por definir" }}</p>
+          </div>
+          <div class="info-card">
+            <h4 class="h6"><i class="bi bi-cash-stack me-1"></i>Pagos</h4>
+            {% if inscripcion.pagos.all %}
+              <ul class="mb-0 small">
+                {% for p in inscripcion.pagos.all %}
+                  <li><strong>{{ p.get_concepto_display }}:</strong> {{ p.estado|capfirst }}{% if p.monto %} · ${{ p.monto }}{% endif %}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="mb-0">Aún sin registros de pago.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <a href="{% url 'datos_academicos:inscripcion_publico_paso' inscripcion.folio 4 %}" class="btn btn-primary">
+            <i class="bi bi-credit-card me-2"></i>Ver/editar pagos
+          </a>
+          <a href="{% url 'datos_academicos:inscripcion_publico_inicio' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-house-door me-2"></i>Volver al inicio
+          </a>
+          <button onclick="window.print()" class="btn btn-outline-info">
+            <i class="bi bi-printer me-2"></i>Imprimir comprobante
+          </button>
+        </div>
+
+        <p class="text-muted mt-3 mb-0">Te enviaremos actualizaciones al correo: <strong>{{ inscripcion.email }}</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

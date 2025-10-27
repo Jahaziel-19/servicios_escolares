@@ -52,6 +52,8 @@ class PeriodoEscolar(models.Model):
     inicio_vacaciones = models.DateField(null=True, blank=True)
     fin_vacaciones = models.DateField(null=True, blank=True)
     activo = models.BooleanField(default=False, help_text="Solo puede haber un periodo activo que contenga la fecha actual.")
+    inscripcion_habilitada = models.BooleanField(default=True, help_text="Permite registrar nuevas inscripciones en este periodo")
+    reinscripcion_habilitada = models.BooleanField(default=True, help_text="Permite registrar reinscripciones en este periodo")
 
     class Meta:
         verbose_name = "Periodo Escolar"

@@ -48,6 +48,17 @@
         </a>
       </li>
 
+      <!-- Admisión -->
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.namespace == 'admision' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
+           href="{% url 'admision:admin_dashboard_publico' %}">
+          <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+            <i class="material-symbols-rounded opacity-10">how_to_reg</i>
+          </div>
+          <span class="nav-link-text ms-1">Admisión</span>
+        </a>
+      </li>
+
       <!-- Calificaciones -->
       <li class="nav-item">
         <a class="nav-link text-light {% if 'gestion_calificaciones' == segment %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
@@ -70,10 +81,21 @@
 
       <!-- Inscripciones -->
       <li class="nav-item">
-              <a class="nav-link text-light" href="{% url 'datos_academicos:dashboard_inscripciones' %}">
+              <a class="nav-link text-light" href="{% url 'datos_academicos:inscripcion_nueva_inicio' %}">
                 <span class="sidenav-mini-icon"> </span>
                 <span class="sidenav-normal ms-2 ps-1">Inscripciones</span>
               </a>
+      </li>
+
+      <!-- Panel de Inscripciones -->
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'inscripciones_panel_admin' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
+           href="{% url 'datos_academicos:inscripciones_panel_admin' %}">
+          <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+            <i class="material-symbols-rounded opacity-10">group_add</i>
+          </div>
+          <span class="nav-link-text ms-1">Panel de Inscripciones</span>
+        </a>
       </li>
       
       <!-- Reinscripciones -->

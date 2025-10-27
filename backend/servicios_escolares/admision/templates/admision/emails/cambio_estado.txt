@@ -37,10 +37,51 @@ INFORMACIÓN IMPORTANTE
 - Revise regularmente su correo electrónico
 - Prepare la documentación requerida
 
-{% elif solicitud.estado == 'rechazado' %}
+{% elif solicitud.estado == 'rechazada' %}
 INFORMACIÓN SOBRE SU SOLICITUD
 ===============================
 Lamentamos informarle que su solicitud ha sido rechazada en esta ocasión.
+
+Esto no significa el fin de sus oportunidades educativas:
+- Puede aplicar en el próximo período de admisiones
+- Considere revisar los requisitos de admisión
+- Contacte a nuestro departamento para orientación
+- Explore otros programas que puedan ser de su interés
+
+ORIENTACIÓN ACADÉMICA
+=====================
+Nuestro equipo está disponible para brindarle orientación sobre:
+- Requisitos de admisión
+- Programas alternativos
+- Próximos períodos de admisión
+- Preparación para futuras aplicaciones
+
+{% else %}
+SU SOLICITUD ESTÁ EN PROCESO
+=============================
+Continuamos revisando su solicitud. Le mantendremos informado sobre cualquier 
+actualización adicional.
+{% elif solicitud.estado == 'seleccionado' %}
+RESULTADO DEL PROCESO
+=====================
+¡Felicitaciones! Has sido seleccionado en el proceso de admisión.
+
+PRÓXIMOS PASOS
+==============
+- Revisa tu correo para instrucciones detalladas de inscripción.
+- Prepara tu documentación oficial para el trámite.
+- Mantente atento a fechas importantes del proceso.
+
+{% elif solicitud.estado == 'no_seleccionado' %}
+RESULTADO DEL PROCESO
+=====================
+Lamentamos informarte que en esta ocasión no has sido seleccionado.
+
+ORIENTACIÓN Y SIGUIENTES PASOS
+==============================
+- Puedes participar nuevamente en el siguiente período de admisiones.
+- Te recomendamos revisar requisitos y áreas de mejora.
+- Nuestro equipo puede orientarte sobre opciones y programas alternativos.
 
 Esto no significa el fin de sus oportunidades educativas:
 - Puede aplicar en el próximo período de admisiones

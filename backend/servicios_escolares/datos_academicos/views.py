@@ -89,7 +89,7 @@ def api_materia_list(request):
     return JsonResponse(data, safe=False)
 
 # Views servicios escolares
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
 def dashboard(request):
     # KPIs
     alumnos_inscritos = Alumno.objects.filter(estatus='Inscrito').count()
@@ -146,7 +146,7 @@ def dashboard(request):
     return render(request, 'datos_academicos/dashboard.html', context)
 
 # Gestión de alumnos por servicios escolares
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
 def gestion_alumnos(request):
     from datetime import datetime, timedelta
     from django.db.models import Q, Case, When, IntegerField, FloatField, F, Count, Avg
@@ -975,7 +975,14 @@ def reinscripcion_nueva(request):
                 'errors': {'general': [f'Error procesando formulario: {str(e)}']}
             })
     else:
-        # GET request - mostrar formulario
+        # GET request - mostrar formulario, protegido por bandera del período
+        periodo_activo = PeriodoEscolar.objects.filter(activo=True).first()
+        if not periodo_activo:
+            messages.error(request, 'No hay un período escolar activo.')
+            return redirect('datos_academicos:gestion_alumnos')
+        if not getattr(periodo_activo, 'reinscripcion_habilitada', True):
+            messages.warning(request, 'Las reinscripciones están deshabilitadas para el período actual.')
+            return redirect('datos_academicos:gestion_alumnos')
         try:
             form_reinscripcion = ReinscripcionForm()
             form_busqueda = BusquedaAlumnoForm()
@@ -993,14 +1000,19 @@ def reinscripcion_nueva(request):
 def reinscripcion_crear(request):
     """Vista para procesar la creación de una reinscripción"""
     if request.method == 'POST':
+        # Verificar período activo y bandera antes de procesar
+        periodo_activo = PeriodoEscolar.objects.filter(activo=True).first()
+        if not periodo_activo or not getattr(periodo_activo, 'reinscripcion_habilitada', True):
+            return JsonResponse({
+                'success': False,
+                'errors': {'periodo_escolar': ['Las reinscripciones están deshabilitadas o no hay período activo']}
+            })
         form = ReinscripcionForm(request.POST, request.FILES)
         if form.is_valid():
             try:
                 reinscripcion = form.save()
-                
                 # Crear plantillas por defecto si no existen
                 crear_plantillas_por_defecto()
-                
                 return JsonResponse({
                     'success': True,
                     'folio': reinscripcion.folio,
@@ -1017,7 +1029,6 @@ def reinscripcion_crear(request):
                 'success': False,
                 'errors': form.errors
             })
-    
     return JsonResponse({
         'success': False,
         'errors': {'general': ['Método no permitido']}
@@ -1027,6 +1038,12 @@ def reinscripcion_crear(request):
 def generar_documento_inscripcion(request, inscripcion_id):
     """Vista para generar el documento de inscripción en formato DOCX"""
     try:
+        # Validar bandera del período antes de generar
+        inscripcion = get_object_or_404(Inscripcion, id=inscripcion_id)
+        periodo = inscripcion.periodo_escolar
+        if not periodo or not getattr(periodo, 'activo', False) or not getattr(periodo, 'inscripcion_habilitada', True):
+            messages.error(request, 'Documento no disponible: período inactivo o inscripciones deshabilitadas.')
+            return redirect('datos_academicos:gestion_alumnos')
         response = generar_formato_inscripcion(inscripcion_id)
         return response
     except ValueError as e:
@@ -1040,6 +1057,12 @@ def generar_documento_inscripcion(request, inscripcion_id):
 def generar_documento_reinscripcion(request, reinscripcion_id):
     """Vista para generar el documento de reinscripción en formato DOCX"""
     try:
+        # Validar bandera del período antes de generar
+        reinscripcion = get_object_or_404(Reinscripcion, id=reinscripcion_id)
+        periodo = reinscripcion.periodo_escolar
+        if not periodo or not getattr(periodo, 'activo', False) or not getattr(periodo, 'reinscripcion_habilitada', True):
+            messages.error(request, 'Documento no disponible: período inactivo o reinscripciones deshabilitadas.')
+            return redirect('datos_academicos:gestion_alumnos')
         response = generar_formato_reinscripcion(reinscripcion_id)
         return response
     except ValueError as e:

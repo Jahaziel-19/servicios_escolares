@@ -241,13 +241,25 @@ def admin_dashboard(request):
             periodo=periodo_activo
         ).count()
     
+    # Conteo por estado para gráfica y resumen
+    estados = SolicitudAdmision.ESTADOS
+    conteos_estados = []
+    resumen_por_estado = {}
+    for code, _name in estados:
+        count = SolicitudAdmision.objects.filter(estado=code).count()
+        conteos_estados.append(count)
+        resumen_por_estado[code] = count
+    
     # Solicitudes recientes
     solicitudes_recientes = SolicitudAdmision.objects.select_related('periodo').order_by('-fecha_registro')[:10]
     
     return render(request, 'admision/admin/dashboard.html', {
         'stats': stats,
         'periodo_activo': periodo_activo,
-        'solicitudes_recientes': solicitudes_recientes
+        'solicitudes_recientes': solicitudes_recientes,
+        'estados': estados,
+        'conteos_estados': conteos_estados,
+        'resumen_por_estado': resumen_por_estado,
     })
 
 
@@ -281,7 +293,7 @@ def admin_solicitudes(request):
     page_obj = paginator.get_page(page_number)
     
     # Datos para filtros
-    periodos = PeriodoAdmision.objects.all().order_by('-año')
+    periodos = PeriodoAdmision.objects.filter(activo=True).order_by('-año')
     estados = SolicitudAdmision.ESTADOS
     
     return render(request, 'admision/admin/solicitudes.html', {
@@ -292,7 +304,10 @@ def admin_solicitudes(request):
             'periodo_id': periodo_id,
             'estado': estado,
             'busqueda': busqueda
-        }
+        },
+        'puede_accion_masiva': (
+            request.user.is_staff or request.user.is_superuser or request.user.groups.filter(name__in=['ServiciosEscolares','Servicios Escolares']).exists()
+        )
     })
 
 
@@ -346,7 +361,6 @@ def admin_generar_ficha(request, solicitud_id):
     """Generar ficha de admisión para una solicitud"""
     from .utils import generar_ficha_admision_pdf
     from django.core.files.base import ContentFile
-    from .email_utils import enviar_ficha_por_email
     
     solicitud = get_object_or_404(SolicitudAdmision, id=solicitud_id)
     
@@ -372,15 +386,7 @@ def admin_generar_ficha(request, solicitud_id):
                 save=True
             )
             
-            # Enviar por email
-            try:
-                ok, msg = enviar_ficha_por_email(solicitud)
-                if ok:
-                    messages.success(request, f'Ficha generada y enviada por email: {ficha.numero_ficha}')
-                else:
-                    messages.warning(request, f'Ficha generada pero no enviada por email: {msg}')
-            except Exception as e:
-                messages.warning(request, f'Ficha generada pero falló el envío de email: {str(e)}')
+            messages.success(request, f'Ficha generada: {ficha.numero_ficha}. Puede descargarla o enviarla por email.')
     
     except Exception as e:
         messages.error(request, f'Error al generar la ficha: {str(e)}')
@@ -408,20 +414,27 @@ def admin_descargar_ficha(request, ficha_id):
 
 @login_required
 def admin_enviar_ficha_email(request, solicitud_id):
-    """Enviar ficha de admisión por email desde el panel admin"""
+    """Enviar ficha de admisión por email desde el panel admin (con adjuntos opcionales)"""
     solicitud = get_object_or_404(SolicitudAdmision, id=solicitud_id)
     from .email_utils import enviar_ficha_por_email
     
-    try:
-        ok, msg = enviar_ficha_por_email(solicitud, usuario_que_envia=request.user)
-        if ok:
-            messages.success(request, msg)
-        else:
-            messages.warning(request, msg)
-    except Exception as e:
-        messages.error(request, f'Error al enviar la ficha por email: {str(e)}')
+    if request.method == 'POST':
+        adjuntos = request.FILES.getlist('adjuntos')
+        try:
+            ok, msg = enviar_ficha_por_email(solicitud, usuario_que_envia=request.user, adjuntos=adjuntos)
+            if ok:
+                messages.success(request, msg)
+            else:
+                messages.warning(request, msg)
+            return redirect('admision:admin_ver_solicitud', solicitud_id=solicitud.id)
+        except Exception as e:
+            messages.error(request, f'Error al enviar la ficha por email: {str(e)}')
+            return redirect('admision:admin_ver_solicitud', solicitud_id=solicitud.id)
     
-    return redirect('admision:admin_ver_solicitud', solicitud_id=solicitud.id)
+    # GET: Renderizar formulario para adjuntar PDFs adicionales
+    return render(request, 'admision/admin/enviar_ficha_email.html', {
+        'solicitud': solicitud,
+    })
 
 
 def _get_client_ip(request):

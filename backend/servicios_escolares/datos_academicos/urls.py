@@ -2,9 +2,12 @@ from django.urls import path, include
 from rest_framework import routers
 from rest_framework.routers import DefaultRouter
 from . import views
-from . import views_inscripcion_simple
+# from . import views_inscripcion_simple
+from . import views_inscripciones_panel
 from . import views_reinscripcion
 from . import views_auth
+from . import views_inscripcion_nueva
+from . import views_inscripcion_publico
 
 router = DefaultRouter()
 router.register(r'ciclo_escolar', views.PeriodoEscolarViewSet)
@@ -30,34 +33,38 @@ urlpatterns = [
     # Rutas de servicios escolares
     
     path('dashboard/', views.dashboard, name="dashboard"),
+
+    # Panel administrativo de Inscripciones (estilo Admisión)
+    path('inscripciones/panel/', views_inscripciones_panel.inscripciones_panel_admin, name='inscripciones_panel_admin'),
+    # Listado y detalle de Inscripción Nueva (públicas)
+    path('inscripciones/publicas/', views_inscripciones_panel.inscripciones_publicas_listar, name='inscripciones_publicas_listar'),
+    path('inscripciones/publicas/<int:pk>/', views_inscripciones_panel.inscripcion_publica_detalle, name='inscripcion_publica_detalle'),
+
+    # Reinscripciones (listar y detalle)
+    path('reinscripciones/', views_reinscripcion.reinscripciones_listar, name='reinscripciones_listar'),
+    path('reinscripciones/<int:pk>/', views_reinscripcion.reinscripcion_detalle, name='reinscripcion_detalle'),
+
+    # Flujo de reinscripción (formulario y creación)
+    path('reinscripcion/nueva/', views.reinscripcion_nueva, name='reinscripcion_nueva'),
+    path('reinscripcion/crear/', views.reinscripcion_crear, name='reinscripcion_crear'),
+
+    # Documento de reinscripción
+    path('reinscripcion/<int:reinscripcion_id>/documento/', views.generar_documento_reinscripcion, name='generar_documento_reinscripcion'),
     
     # Gestión de alumnos por servicios escolares
     path('alumnos/gestion/', views.gestion_alumnos, name='gestion_alumnos'),
     
-    # Inscripciones
-    path('inscripcion/nueva/', views.inscripcion_nueva, name='inscripcion_nueva'),
-    path('inscripcion/crear/', views.inscripcion_crear, name='inscripcion_crear'),
-    path('inscripcion/<int:inscripcion_id>/documento/', views.generar_documento_inscripcion, name='generar_documento_inscripcion'),
-    
-    # Sistema de Inscripciones Simple
-    path('inscripciones/', views_inscripcion_simple.inscripcion_list_view, name='inscripcion_list'),
-    path('inscripciones/nueva/', views_inscripcion_simple.inscripcion_simple_view, name='inscripcion_simple'),
-    path('inscripciones/<int:pk>/', views_inscripcion_simple.inscripcion_detail_view, name='inscripcion_detail'),
-    path('inscripciones/<int:pk>/cambiar-estado/', views_inscripcion_simple.cambiar_estado_inscripcion, name='cambiar_estado_inscripcion'),
-    path('inscripciones/<int:pk>/crear-alumno/', views_inscripcion_simple.crear_alumno_desde_inscripcion, name='crear_alumno_desde_inscripcion'),
-    path('inscripciones/dashboard/', views_inscripcion_simple.dashboard_inscripciones, name='dashboard_inscripciones'),
-    
-    # Reinscripciones
-    path('reinscripcion/nueva/', views.reinscripcion_nueva, name='reinscripcion_nueva'),
-    path('reinscripcion/crear/', views.reinscripcion_crear, name='reinscripcion_crear'),
-    path('reinscripcion/<int:reinscripcion_id>/documento/', views.generar_documento_reinscripcion, name='generar_documento_reinscripcion'),
-    
-    # Gestión de reinscripciones
-    path('reinscripciones/', views_reinscripcion.listar_reinscripciones, name='reinscripciones_listar'),
-    path('reinscripcion/<int:reinscripcion_id>/', views_reinscripcion.detalle_reinscripcion, name='reinscripcion_detalle'),
-    path('reinscripcion/<int:reinscripcion_id>/aprobar/', views_reinscripcion.aprobar_reinscripcion, name='reinscripcion_aprobar'),
-    path('reinscripcion/<int:reinscripcion_id>/aplicar/', views_reinscripcion.aplicar_reinscripcion, name='reinscripcion_aplicar'),
-    path('reinscripcion/<int:reinscripcion_id>/rechazar/', views_reinscripcion.rechazar_reinscripcion, name='reinscripcion_rechazar'),
+    # Nuevo Proceso de Inscripción (multi-pasos)
+    path('inscripcion-nueva/inicio/', views_inscripcion_nueva.inicio, name='inscripcion_nueva_inicio'),
+    path('inscripcion-nueva/paso/<int:paso>/', views_inscripcion_nueva.paso, name='inscripcion_nueva_paso'),
+    path('inscripcion-nueva/resumen/', views_inscripcion_nueva.resumen, name='inscripcion_nueva_resumen'),
+    path('inscripcion-nueva/confirmacion/<str:folio>/', views_inscripcion_nueva.confirmacion, name='inscripcion_nueva_confirmacion'),
+
+    # Flujo público de Inscripción (similar a Admisión)
+    path('inscripcion-publico/inicio/', views_inscripcion_publico.inscripcion_publico_inicio, name='inscripcion_publico_inicio'),
+    path('inscripcion-publico/<str:folio>/paso/<int:paso>/', views_inscripcion_publico.inscripcion_publico_paso, name='inscripcion_publico_paso'),
+    path('inscripcion-publico/<str:folio>/resumen/', views_inscripcion_publico.inscripcion_publico_resumen, name='inscripcion_publico_resumen'),
+    path('inscripcion-publico/confirmacion/<str:folio>/', views_inscripcion_publico.inscripcion_publico_confirmacion, name='inscripcion_publico_confirmacion'),
     
     # AJAX
     path('ajax/buscar-alumno/', views.buscar_alumno_ajax, name='buscar_alumno_ajax'),
@@ -87,8 +94,6 @@ urlpatterns = [
     path('planes/<int:pk>/', views.plan_estudio_detail, name='plan_estudio_detail'),
     path('planes/<int:pk>/editar/', views.plan_estudio_edit, name='plan_estudio_edit'),
     
-    # Gestión de trámites por servicios escolares
-    
     # ========== AUTENTICACIÓN DE ALUMNOS ==========
     # Sistema de login y portal para estudiantes
     path('auth/login/', views_auth.alumno_login_view, name='alumno_login'),
@@ -97,6 +102,9 @@ urlpatterns = [
     path('auth/calificaciones/', views_auth.alumno_calificaciones_view, name='alumno_calificaciones'),
     path('auth/tramites/', views_auth.alumno_tramites_view, name='alumno_tramites'),
     path('auth/perfil/', views_auth.alumno_perfil_view, name='alumno_perfil'),
+
+    # ========== AUTENTICACIÓN SERVICIOS ESCOLARES ==========
+    path('servicios/login/', views_auth.servicios_login_view, name='servicios_login'),
  
 ]
 

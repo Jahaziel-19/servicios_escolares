@@ -7,6 +7,11 @@ urlpatterns = [
     # Página principal de registro
     path('registro/', views_publico.registro_aspirante, name='registro_aspirante'),
     
+    # Corrección de datos para aspirantes seleccionados
+    path('correccion/inicio/', views_publico.correccion_seleccionado_inicio, name='correccion_seleccionado_inicio'),
+    path('correccion/<str:folio>/', views_publico.correccion_seleccionado_form, name='correccion_seleccionado_form'),
+    path('correccion/exitoso/<str:folio>/', views_publico.correccion_exitoso, name='correccion_exitoso'),
+    
     # Página de confirmación después del registro
     path('registro/exitoso/<str:folio>/', views_publico.registro_exitoso, name='registro_exitoso'),
     

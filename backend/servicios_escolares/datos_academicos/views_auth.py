@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
@@ -261,3 +263,40 @@ def alumno_perfil_view(request):
     }
     
     return render(request, 'datos_academicos/auth/perfil.html', context)
+
+
+# ================== AUTENTICACIÓN DE SERVICIOS ESCOLARES ==================
+def servicios_login_view(request):
+    """
+    Vista de login para usuarios de Servicios Escolares (personal/administrativos).
+    Usa el sistema estándar de autenticación de Django con username y password.
+    Requiere que el usuario tenga permisos (is_staff) o pertenezca al grupo 'ServiciosEscolares'.
+    """
+    # Si ya está autenticado y tiene perfil de servicios, redirigir al dashboard
+    if request.user.is_authenticated and (
+        request.user.is_staff or request.user.is_superuser or request.user.groups.filter(name__in=['ServiciosEscolares', 'Servicios Escolares']).exists()
+    ):
+        next_url = request.GET.get('next') or 'datos_academicos:dashboard'
+        return redirect(next_url)
+
+    form = AuthenticationForm(request, data=request.POST or None)
+
+    if request.method == 'POST':
+        if form.is_valid():
+            user = form.get_user()
+            # Validar permisos para Servicios Escolares
+            if user.is_staff or user.is_superuser or user.groups.filter(name__in=['ServiciosEscolares', 'Servicios Escolares']).exists():
+                login(request, user)
+                messages.success(request, f"¡Bienvenido, {user.get_full_name() or user.username}!")
+                next_url = request.POST.get('next') or request.GET.get('next') or 'datos_academicos:dashboard'
+                return redirect(next_url)
+            else:
+                messages.error(request, 'Tu cuenta no tiene permisos de Servicios Escolares.')
+        else:
+            messages.error(request, 'Usuario o contraseña inválidos.')
+
+    context = {
+        'form': form,
+        'title': 'Acceso Servicios Escolares'
+    }
+    return render(request, 'datos_academicos/auth/servicios_login.html', context)

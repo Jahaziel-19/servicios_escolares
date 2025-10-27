@@ -329,8 +329,49 @@
             border-radius: 4px;
         }
     </style>
-    
-    {% block extra_css %}{% endblock %}
+     
+     <style>
+     /* ===== Global modern form & card styling ===== */
+     .modern-card { border:0; border-radius:16px; box-shadow: 0 8px 24px rgba(16,24,40,.08); overflow:hidden; transition: transform .15s ease, box-shadow .15s ease; background:#fff; }
+     .modern-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(16,24,40,.12); }
+     .card-top { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; color:#fff; background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); }
+     .card-top .title { font-weight:600; }
+     
+     .chip { padding:4px 10px; border-radius:999px; font-size:.75rem; font-weight:600; background: rgba(255,255,255,.18); backdrop-filter: blur(2px); border:1px solid rgba(255,255,255,.3); }
+     .chip.success { background: rgba(25,135,84,.18); border-color: rgba(25,135,84,.4); }
+     .chip.warning { background: rgba(255,193,7,.2); border-color: rgba(255,193,7,.5); color:#212529; }
+     
+     .doc-icon, .pay-icon { width:34px; height:34px; border-radius:10px; background: rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center; margin-right:10px; font-size:18px; }
+     
+     /* File cards */
+     .file-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:8px; }
+     .file-card { border:1px solid #e2e8f0; border-radius:12px; padding:10px; box-shadow: 0 1px 6px rgba(16,24,40,.06); transition: transform .12s ease, box-shadow .12s ease; }
+     .file-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(16,24,40,.12); }
+     .file-icon { width:30px; height:30px; border-radius:8px; background:#f1f5ff; display:flex; align-items:center; justify-content:center; font-size:18px; color:#3b82f6; margin-bottom:6px; }
+     .file-name { font-weight:600; font-size:.92rem; color:#334155; }
+     .file-meta { color:#64748b; font-size:.82rem; }
+     
+     /* Form controls */
+     .form-label { font-weight:600; color:#212121; margin-bottom:4px; }
+     .form-control, .form-select { border-radius:12px; border-color:#e0e0e0; box-shadow:none; transition: box-shadow .15s ease, border-color .15s ease; }
+     .form-control:focus, .form-select:focus { border-color: var(--secondary-color); box-shadow: 0 0 0 0.2rem rgba(25,118,210,.15); }
+     .form-text { color:#64748b; }
+     
+     /* Dropzone hint */
+     .dropzone { border:2px dashed #e2e8f0; border-radius:12px; padding:10px; background:#f8fafc; }
+     .dropzone .hint { color:#64748b; font-size:.82rem; }
+     
+     /* Buttons */
+     .btn { border-radius:10px; transition: transform .12s ease, box-shadow .12s ease; }
+     .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16,24,40,.12); }
+     .btn-primary { background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); border:0; }
+     .btn-success { background: linear-gradient(135deg, var(--success-color), #43a047); border:0; }
+     
+     /* Animations */
+     .fade-in-up { animation: fade-in-up .25s ease both; }
+     @keyframes fade-in-up { from { opacity:0; transform: translateY(6px);} to { opacity:1; transform: translateY(0);} }
+     </style>
+     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="main-container">

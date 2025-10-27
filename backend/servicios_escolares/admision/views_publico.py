@@ -39,15 +39,15 @@ def registro_aspirante(request):
     try:
         periodo_activo = PeriodoAdmision.objects.get(activo=True)
     except PeriodoAdmision.DoesNotExist:
-        return render(request, 'admision/publico/sin_convocatoria.html', {
+        return render(request, 'admision/no_periodo_activo.html', {
             'title': 'Proceso de Admisión No Disponible'
         })
     
     # Verificar si el período está abierto
     if not periodo_activo.esta_abierto:
-        return render(request, 'admision/publico/convocatoria_cerrada.html', {
+        return render(request, 'admision/periodo_cerrado.html', {
             'periodo': periodo_activo,
-            'title': 'Convocatoria Cerrada'
+            'title': 'Periodo de Admisión Cerrado'
         })
     
     form = RegistroAspiranteForm(periodo=periodo_activo)
@@ -494,3 +494,119 @@ def ajax_reenviar_ficha(request):
             'success': False,
             'message': 'Error interno del servidor'
         })
+
+
+@never_cache
+def correccion_seleccionado_inicio(request):
+    """
+    Paso 1: Página para ingresar el folio y validar que el aspirante
+    tiene estado 'seleccionado'. Si es válido, redirige al formulario.
+    """
+    if request.method == 'POST':
+        folio = request.POST.get('folio', '').strip().upper()
+        if not folio:
+            messages.error(request, 'Ingresa tu folio para continuar.')
+            return render(request, 'admision/publico/correccion_seleccionado_inicio.html', {
+                'title': 'Corrección de Datos (Seleccionados)'
+            })
+        # Normalizar variaciones de folio con/sin guiones
+        valor_nodash = re.sub(r'[^A-Z0-9]', '', folio)
+        candidatos = [folio]
+        if re.match(r'^ADM\d{4}\d{6}$', valor_nodash):
+            candidatos.append(f"ADM-{valor_nodash[3:7]}-{valor_nodash[7:]}")
+        candidatos.append(valor_nodash)
+        solicitud = None
+        for f in candidatos:
+            try:
+                solicitud = SolicitudAdmision.objects.get(folio=f)
+                break
+            except SolicitudAdmision.DoesNotExist:
+                continue
+        if not solicitud:
+            messages.error(request, 'No encontramos una solicitud con ese folio.')
+            return render(request, 'admision/publico/correccion_seleccionado_inicio.html', {
+                'title': 'Corrección de Datos (Seleccionados)'
+            })
+        if solicitud.estado != 'seleccionado':
+            messages.warning(request, 'Esta opción solo está disponible para aspirantes con estado "Seleccionado".')
+            return render(request, 'admision/publico/correccion_seleccionado_inicio.html', {
+                'title': 'Corrección de Datos (Seleccionados)'
+            })
+        return redirect('admision:admision_publico:correccion_seleccionado_form', folio=solicitud.folio)
+    # GET
+    return render(request, 'admision/publico/correccion_seleccionado_inicio.html', {
+        'title': 'Corrección de Datos (Seleccionados)'
+    })
+
+
+@never_cache
+def correccion_seleccionado_form(request, folio):
+    """
+    Paso 2: Formulario con estilo de RegistroAspirante, autocompletado
+    con los datos existentes de la solicitud (respuestas_json) para permitir
+    correcciones. Solo válido para estado 'seleccionado'.
+    """
+    solicitud = get_object_or_404(SolicitudAdmision, folio=folio)
+    if solicitud.estado != 'seleccionado':
+        messages.warning(request, 'Esta opción solo está disponible para aspirantes con estado "Seleccionado".')
+        return redirect('admision:admision_publico:correccion_seleccionado_inicio')
+
+    # Preparar datos iniciales desde respuestas_json
+    initial = dict(solicitud.respuestas_json or {})
+    # Asegurar curp y email de nivel superior
+    initial['curp'] = solicitud.curp or initial.get('curp', '')
+    initial['email'] = solicitud.email or initial.get('email', '')
+
+    # Cargar form
+    if request.method == 'POST':
+        form = RegistroAspiranteForm(request.POST, periodo=solicitud.periodo)
+        form_errors_json = None
+        form_errors_json_str = None
+        if form.is_valid():
+            try:
+                solicitud.curp = form.cleaned_data.get('curp', '').upper()
+                solicitud.email = form.cleaned_data.get('email', '')
+                solicitud.respuestas_json = form.get_respuestas_json()
+                solicitud.save()
+                messages.success(request, 'Tus datos han sido actualizados correctamente.')
+                return redirect('admision:admision_publico:correccion_exitoso', folio=solicitud.folio)
+            except Exception as e:
+                logger.error(f"Error al guardar corrección: {str(e)}")
+                messages.error(request, 'Ocurrió un error al guardar tus cambios. Intenta nuevamente.')
+                # Preparar errores JSON si es posible
+                try:
+                    form_errors_json = form.errors.get_json_data()
+                    form_errors_json_str = json.dumps(form_errors_json, ensure_ascii=False)
+                except Exception:
+                    pass
+        else:
+            messages.error(request, 'Por favor, corrige los errores en el formulario.')
+            try:
+                form_errors_json = form.errors.get_json_data()
+                form_errors_json_str = json.dumps(form_errors_json, ensure_ascii=False)
+            except Exception:
+                pass
+        return render(request, 'admision/publico/registro_aspirante.html', {
+            'form': form,
+            'title': 'Corrección de Datos de Aspirante',
+            'form_errors_json': form_errors_json,
+            'form_errors_json_str': form_errors_json_str,
+        })
+    else:
+        form = RegistroAspiranteForm(periodo=solicitud.periodo, initial=initial)
+        return render(request, 'admision/publico/registro_aspirante.html', {
+            'form': form,
+            'title': 'Corrección de Datos de Aspirante'
+        })
+
+
+@never_cache
+def correccion_exitoso(request, folio):
+    """
+    Confirmación estilizada después de guardar correcciones.
+    """
+    solicitud = get_object_or_404(SolicitudAdmision, folio=folio)
+    return render(request, 'admision/publico/correccion_exitoso.html', {
+        'solicitud': solicitud,
+        'title': 'Corrección Exitosa'
+    })

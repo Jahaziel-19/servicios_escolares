@@ -1,0 +1,35 @@
+{% extends 'admision/publico/base_publico.html' %}
+{% load static %}
+
+{% block title %}Inscripción - Inicio{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h1 class="h4 mb-3">Proceso de Inscripción</h1>
+          <p class="text-muted">Ingrese su folio de Admisión para continuar.</p>
+
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" class="mt-3">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="folio" class="form-label">Folio de Admisión</label>
+              <input type="text" id="folio" name="folio" class="form-control text-uppercase" placeholder="ADM-2025-000000" required>
+              <div class="form-text">Ejemplo: ADM-2025-697396</div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Continuar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

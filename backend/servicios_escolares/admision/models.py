@@ -250,6 +250,8 @@ class SolicitudAdmision(models.Model):
         ('enviada', 'Enviada'),
         ('en_revision', 'En Revisión'),
         ('aceptada', 'Aceptada'),
+        ('seleccionado', 'Seleccionado'),
+        ('no_seleccionado', 'No seleccionado'),
         ('rechazada', 'Rechazada'),
     ]
     estado = models.CharField(max_length=20, choices=ESTADOS, default='borrador')
