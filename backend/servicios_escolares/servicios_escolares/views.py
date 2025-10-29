@@ -1,18 +1,22 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from datos_academicos.models import PeriodoEscolar, Alumno, Tramite
+from datos_academicos.models import PeriodoEscolar, Alumno
+from procedimientos.models import Tramite
 from django.db.models import Count
 from .utils import obtener_periodo_activo, necesita_crear_periodo
 from .forms import PeriodoEscolarForm
 from django.contrib import messages
 from django.conf import settings
 
+def public_home(request):
+    """Página de inicio pública con accesos principales."""
+    return render(request, 'public/index.html')
 
 
-
-def home(request):
-    return render(request, 'home.html')
+def styleguide(request):
+    """Página de muestra de componentes por rol (guía de estilos)."""
+    return render(request, 'app/styleguide.html', { 'rol': 'servicios' })
 
 
 @login_required
@@ -69,7 +73,7 @@ def dashboard(request):
         'tramites_cantidades': tramites_cantidades,
         'tramites_recientes': tramites_recientes,
     }
-    return render(request, 'app/dashboard.html', context)
+    return render(request, 'datos_academicos/dashboard.html', context)
 
 
 

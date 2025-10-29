@@ -236,42 +236,35 @@ def informacion_proceso(request):
         'title': 'Información del Proceso de Admisión',
         'carreras': [
             {
-                'codigo': 'sistemas',
-                'nombre': 'Ingeniería en Sistemas Computacionales',
-                'descripcion': 'Forma profesionales capaces de diseñar, desarrollar e implementar sistemas computacionales.',
-                'duracion': '9 semestres',
-                'modalidades': ['Presencial', 'Sabatino']
-            },
-            {
-                'codigo': 'industrial',
-                'nombre': 'Ingeniería Industrial',
-                'descripcion': 'Optimiza procesos productivos y sistemas organizacionales para mejorar la eficiencia.',
-                'duracion': '9 semestres',
-                'modalidades': ['Presencial', 'Sabatino']
-            },
-            {
-                'codigo': 'electromecanica',
+                'codigo': 'IEM',
                 'nombre': 'Ingeniería Electromecánica',
                 'descripcion': 'Integra conocimientos eléctricos y mecánicos para sistemas automatizados.',
                 'duracion': '9 semestres',
                 'modalidades': ['Presencial']
             },
             {
-                'codigo': 'gestion',
+                'codigo': 'IGEM',
                 'nombre': 'Ingeniería en Gestión Empresarial',
                 'descripcion': 'Desarrolla habilidades gerenciales y empresariales con enfoque tecnológico.',
                 'duracion': '9 semestres',
                 'modalidades': ['Presencial', 'Sabatino']
             },
             {
-                'codigo': 'logistica',
+                'codigo': 'ILOG',
                 'nombre': 'Ingeniería en Logística',
-                'descripción': 'Optimiza cadenas de suministro y procesos logísticos empresariales.',
+                'descripcion': 'Optimiza cadenas de suministro y procesos logísticos empresariales.',
                 'duracion': '9 semestres',
                 'modalidades': ['Presencial']
             },
             {
-                'codigo': 'materiales',
+                'codigo': 'IQUI',
+                'nombre': 'Ingeniería Química',
+                'descripcion': 'Estudia y desarrolla procesos químicos para aplicaciones industriales.',
+                'duracion': '9 semestres',
+                'modalidades': ['Presencial']
+            },            
+            {
+                'codigo': 'IMAT',
                 'nombre': 'Ingeniería en Materiales',
                 'descripcion': 'Investiga y desarrolla nuevos materiales para aplicaciones industriales.',
                 'duracion': '9 semestres',

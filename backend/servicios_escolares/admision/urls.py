@@ -6,7 +6,7 @@ app_name = 'admision'
 
 urlpatterns = [
     # URLs públicas para aspirantes (nuevo formulario independiente)
-    path('publico/', include(('admision.urls_publico', 'admision_publico'))),
+    path('publico/', include(('admision.urls_publico', 'admision_publico'), namespace='admision_publico')),
     
     # URLs públicas para aspirantes (formulario builder existente)
     path('', views.solicitud_admision, name='solicitud_admision'),

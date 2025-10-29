@@ -1,10 +1,12 @@
 {% load static %}
+{% load group_filters %}
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
     {% include "includes/head.html" %}
     {% block extrastyle %}{% endblock extrastyle %}
+    {% block extra_css %}{% endblock extra_css %}
     {% block extrahead %}{% endblock extrahead %}
     <style>
         :root {
@@ -109,13 +111,73 @@
             font-weight: 700;
             margin-bottom: 1.5rem;
         }
+
+        /* Sidebar responsive animation */
+        .sidenav {
+            transition: transform .35s ease, width .25s ease, opacity .25s ease;
+            will-change: transform, width;
+            z-index: 1051; /* por encima del overlay */
+        }
+
+        /* Overlay para móvil cuando el sidebar está abierto */
+        .sidenav-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 24, 40, 0.35);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            display: none;
+            z-index: 1040; /* por debajo del sidenav y encima del contenido */
+        }
+
+        /* Usamos la semántica de Material Dashboard: body.g-sidenav-show controla estados */
+        @media (max-width: 1199.98px) {
+            /* Oculto por defecto cuando existe sidenav en layouts móviles/tablet */
+            body.g-sidenav-show:not(.g-sidenav-pinned) .sidenav,
+            body:not(.g-sidenav-pinned) .sidenav,
+            #sidenav-main {
+                transform: translate3d(-110%, 0, 0) !important;
+                opacity: 0.98;
+            }
+            /* Visible cuando está fijado */
+            body.g-sidenav-show.g-sidenav-pinned .sidenav,
+            body.g-sidenav-pinned .sidenav,
+            body.g-sidenav-pinned #sidenav-main {
+                transform: translate3d(0, 0, 0) !important;
+                opacity: 1;
+            }
+
+            /* Mostrar overlay solo en móvil cuando abierto */
+            body.g-sidenav-show.g-sidenav-pinned .sidenav-overlay,
+            body.g-sidenav-pinned .sidenav-overlay { display: block; }
+
+            /* Asegurar que el sidenav no agregue margen en móvil */
+            .sidenav { margin-left: 0 !important; }
+        }
+
+        /* Respeto a usuarios con movimiento reducido */
+        @media (prefers-reduced-motion: reduce) {
+            .sidenav { transition: none; }
+            .sidenav-overlay { backdrop-filter: none; }
+        }
+
+        /* Asegurar empuje del contenido en escritorio cuando el sidenav está presente */
+        @media (min-width: 1199.98px) {
+            body.g-sidenav-show .sidenav.fixed-start + .main-content {
+                margin-left: 14rem; /* coincide con $navbar-vertical-open-width */
+            }
+        }
     </style>
 </head>
 
-<body class="g-sidenav-show bg-gray-100">
+<body data-theme="{{ theme_name|default:'publico' }}" class="{% if request.user.is_authenticated %}{% if request.user.is_superuser or request.user|has_group:'ServiciosEscolares' or request.user|has_group:'Servicios Escolares' %}g-sidenav-show {% endif %}{% endif %}bg-gray-100">
 
     {% block sidebar %}
-        {% include "includes/sidebar_material.html" %}
+        {% if request.user.is_authenticated %}
+            {% if request.user.is_superuser or request.user|has_group:'ServiciosEscolares' or request.user|has_group:'Servicios Escolares' %}
+                {% include "includes/sidebar_material.html" %}
+            {% endif %}
+        {% endif %}
     {% endblock sidebar %}
 
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
@@ -125,6 +187,9 @@
 
         {% block content %}{% endblock content %}
     </main>
+
+    <!-- Overlay para cerrar el sidebar en móvil (fuera de la adyacencia .sidenav + .main-content) -->
+    <div id="sidenav-overlay" class="sidenav-overlay" aria-hidden="true"></div>
 
     {% include "includes/scripts.html" %}
     {% block extra_js %}{% endblock extra_js %}
@@ -149,6 +214,50 @@ document.addEventListener('DOMContentLoaded', function () {
         {% endfor %}
     {% endif %}
 });
+
+// Toggle responsive del sidebar y overlay
+(function(){
+  const body = document.body;
+  const overlay = document.getElementById('sidenav-overlay');
+
+  function isMobile(){ return window.innerWidth < 1200; }
+
+  function closeSidenav(){ body.classList.remove('g-sidenav-pinned'); }
+
+  function syncOverlay(){
+    if (!overlay) return;
+    overlay.style.display = (isMobile() && body.classList.contains('g-sidenav-pinned')) ? 'block' : 'none';
+  }
+
+  // Cerrar con tecla Escape en móvil
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && isMobile() && body.classList.contains('g-sidenav-pinned')) {
+      closeSidenav();
+      syncOverlay();
+    }
+  });
+
+  // Cerrar haciendo clic fuera (overlay)
+  overlay && overlay.addEventListener('click', function(){
+    closeSidenav();
+    syncOverlay();
+  });
+
+  // Observar cambios en la clase del body (producidos por el script del tema)
+  const observer = new MutationObserver(() => { syncOverlay(); });
+  observer.observe(body, { attributes: true, attributeFilter: ['class'] });
+
+  // Responder a cambios de tamaño de ventana
+  window.addEventListener('resize', function(){
+    // En móvil: iniciar cerrado por defecto
+    if (isMobile()) { closeSidenav(); }
+    syncOverlay();
+  });
+
+  // Estado inicial
+  if (isMobile()) { closeSidenav(); }
+  syncOverlay();
+})();
 </script>
 
 </html>

@@ -1,0 +1,239 @@
+/* Tokens base y mapeo de temas por rol */
+
+/* Base (fallback) */
+:root {
+  --color-primary: #2563eb;
+  --color-primary-2: #1e40af;
+  --color-secondary: #0ea5e9;
+  --surface: #ffffff;
+  --surface-alt: #f8fafc;
+  --text: #111827;
+  --text-muted: #6b7280;
+  --radius: 0.75rem;
+  /* Estados */
+  --color-success: #22c55e;
+  --color-success-2: #16a34a;
+  --color-info: #0ea5e9;
+  --color-info-2: #2563eb;
+  --color-danger: #ef4444;
+  --color-danger-2: #7f1d1d;
+}
+
+/* Variantes por rol */
+[data-theme="aspirante"] {
+  --color-primary: #16a34a;
+  --color-primary-2: #166534;
+  --color-secondary: #22c55e;
+}
+
+[data-theme="alumno"] {
+  --color-primary: #0ea5e9;
+  --color-primary-2: #075985;
+  --color-secondary: #06b6d4;
+}
+
+[data-theme="servicios"] {
+  /* Azul institucional (Servicios Escolares) */
+  --color-primary: #1B396A;
+  --color-primary-2: #2c5282;
+  --color-secondary: #3b82f6;
+}
+
+[data-theme="superadmin"] {
+  --color-primary: #ef4444;
+  --color-primary-2: #7f1d1d;
+  --color-secondary: #f59e0b;
+}
+
+[data-theme="publico"] {
+  --color-primary: #2563eb;
+  --color-primary-2: #1e40af;
+  --color-secondary: #0ea5e9;
+}
+
+/* Aplicación de tokens a componentes comunes */
+.bg-gradient-primary {
+  background-image: linear-gradient(195deg, var(--color-primary-2), var(--color-primary)) !important;
+}
+
+.btn-primary,
+.btn.bg-gradient-primary {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+}
+
+.text-primary { color: var(--color-primary) !important; }
+
+.navbar-main, .navbar {
+  background-color: var(--surface) !important;
+  color: var(--text);
+}
+
+.sidenav {
+  border-radius: var(--radius);
+  background-image: linear-gradient(195deg, var(--color-primary-2), var(--color-primary)) !important;
+}
+
+.sidenav .nav-link { color: #fff; }
+.sidenav .nav-link.active { background: rgba(255,255,255,.15) !important; }
+
+.card { background-color: var(--surface) !important; border-radius: var(--radius); }
+.card .text-muted { color: var(--text-muted) !important; }
+
+.badge-theme { background-color: var(--color-secondary) !important; }
+
+/* Tablas en cabecera */
+.table thead { background-color: var(--color-primary) !important; color: #fff !important; }
+.table thead th { border: none !important; }
+
+/* Alerts mapeadas a tokens */
+.alert-success { 
+  background-image: linear-gradient(135deg, var(--color-success-2), var(--color-success));
+  color: #fff; border: none;
+}
+.alert-info { 
+  background-image: linear-gradient(135deg, var(--color-info-2), var(--color-info));
+  color: #fff; border: none;
+}
+.alert-danger { 
+  background-image: linear-gradient(135deg, var(--color-danger-2), var(--color-danger));
+  color: #fff; border: none;
+}
+
+/* Tabs y progreso */
+.nav-tabs .nav-link.active { background-color: var(--color-primary) !important; color: #fff !important; border: none !important; }
+.progress-bar { background-color: var(--color-primary) !important; }
+
+/* Inputs y toggles */
+.form-check-input:checked { background-color: var(--color-primary) !important; border-color: var(--color-primary) !important; }
+.form-control:focus { border-color: var(--color-primary) !important; box-shadow: 0 0 0 .2rem rgba(27,57,106,.15) !important; }
+
+/* Form Controls */
+[data-theme="servicios"] .form-control,
+[data-theme="servicios"] .form-select {
+    border-color: var(--border-color);
+    transition: all 0.3s ease;
+}
+
+[data-theme="servicios"] .form-control:focus,
+[data-theme="servicios"] .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(27, 57, 106, 0.25);
+}
+
+/* Panel de Periodos - Estilos específicos */
+[data-theme="servicios"] .icon-chip {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+[data-theme="servicios"] .stats-card {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(27, 57, 106, 0.2);
+}
+
+[data-theme="servicios"] .nav-tabs .nav-link {
+    border: none;
+    color: var(--text-secondary);
+    background: transparent;
+    transition: all 0.3s ease;
+    border-radius: 8px 8px 0 0;
+    margin-right: 4px;
+}
+
+[data-theme="servicios"] .nav-tabs .nav-link:hover {
+    background: rgba(27, 57, 106, 0.1);
+    color: var(--primary-color);
+}
+
+[data-theme="servicios"] .nav-tabs .nav-link.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+[data-theme="servicios"] .periodo-card {
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    background: white;
+}
+
+[data-theme="servicios"] .periodo-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 25px rgba(27, 57, 106, 0.15);
+    transform: translateY(-2px);
+}
+
+[data-theme="servicios"] .view-toggle {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="servicios"] .view-toggle .btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+[data-theme="servicios"] .empty-state {
+    color: var(--text-secondary);
+}
+
+[data-theme="servicios"] .empty-state i {
+    color: var(--text-muted);
+}
+
+/* Animaciones específicas del tema */
+[data-theme="servicios"] .fade-in {
+    animation: serviciosFadeIn 0.6s ease-in-out;
+}
+
+@keyframes serviciosFadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+[data-theme="servicios"] .slide-in {
+    animation: serviciosSlideIn 0.4s ease-out;
+}
+
+@keyframes serviciosSlideIn {
+    from { 
+        transform: translateX(-20px); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateX(0); 
+        opacity: 1; 
+    }
+}
+
+/* Responsive para panel de periodos */
+@media (max-width: 768px) {
+    [data-theme="servicios"] .stats-card {
+        margin-bottom: 1rem;
+    }
+    
+    [data-theme="servicios"] .nav-tabs {
+        flex-direction: column;
+    }
+    
+    [data-theme="servicios"] .nav-tabs .nav-link {
+        margin-right: 0;
+        margin-bottom: 4px;
+        border-radius: 8px;
+    }
+}

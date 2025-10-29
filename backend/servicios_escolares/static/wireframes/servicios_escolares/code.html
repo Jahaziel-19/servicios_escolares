@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Component Library Showcase - Tlaxco Superior Technological Institute</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1b396a",
+                        "dark-accent": "#252328",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#13181f",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light font-display text-gray-800">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="absolute top-0 left-0 h-96 w-96 bg-primary/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+<div class="absolute bottom-0 right-0 h-96 w-96 bg-dark-accent/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+<div class="layout-container flex h-full grow flex-col">
+<div class="flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+<header class="flex items-center justify-between whitespace-nowrap border border-solid border-gray-200 px-6 py-3 bg-white sticky top-4 z-50 rounded-xl shadow-md">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6 text-primary">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-primary text-lg font-bold leading-tight tracking-[-0.015em]">Tlaxco Superior Technological Institute</h2>
+</div>
+<div class="hidden md:flex flex-1 justify-end gap-8">
+<div class="flex items-center gap-9 text-gray-600">
+<a class="text-sm font-medium leading-normal hover:text-primary transition-colors duration-300" href="#">Dashboard</a>
+<a class="text-sm font-medium leading-normal hover:text-primary transition-colors duration-300" href="#">Students</a>
+<a class="text-sm font-medium leading-normal hover:text-primary transition-colors duration-300" href="#">Courses</a>
+<a class="text-sm font-medium leading-normal hover:text-primary transition-colors duration-300" href="#">Library</a>
+<a class="text-sm font-medium leading-normal hover:text-primary transition-colors duration-300" href="#">Contact</a>
+</div>
+</div>
+</header>
+<main class="mt-8">
+<div class="flex flex-wrap justify-between gap-3 p-4">
+<div class="flex min-w-72 flex-col gap-3">
+<p class="text-dark-accent text-4xl font-black leading-tight tracking-[-0.033em]">Component Library Showcase</p>
+<p class="text-gray-500 text-base font-normal leading-normal">A visual guide for the consistent application of styles and interactions.</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 p-4">
+<a class="flex items-center gap-1 text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors duration-300" href="#"><span class="material-symbols-outlined text-base">home</span> Home</a>
+<span class="text-gray-500 text-sm font-medium leading-normal">/</span>
+<a class="flex items-center gap-1 text-gray-500 text-sm font-medium leading-normal hover:text-primary transition-colors duration-300" href="#"><span class="material-symbols-outlined text-base">layers</span> Components</a>
+<span class="text-gray-500 text-sm font-medium leading-normal">/</span>
+<span class="text-dark-accent text-sm font-medium leading-normal flex items-center gap-1"><span class="material-symbols-outlined text-base">grid_view</span> UI Showcase</span>
+</div>
+<section class="mt-10">
+<h2 class="text-dark-accent text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Action Components</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-4">
+<div class="bg-white border border-gray-200 rounded-xl shadow-lg space-y-4">
+<div class="bg-gradient-to-br from-primary to-[#2a508b] text-white px-6 py-4 rounded-t-xl"><h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">Buttons with Icons</h3></div>
+<div class="p-6 pt-2 space-y-6">
+<div class="space-y-4">
+<p class="text-sm font-medium text-dark-accent">Primary</p>
+<div class="flex items-center gap-4 flex-wrap">
+<button class="flex items-center justify-center gap-2 rounded-lg h-10 px-6 bg-gradient-to-br from-primary to-[#2a508b] text-white text-sm font-bold shadow-md hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:shadow-md transition-all duration-300"><span class="material-symbols-outlined text-base">add_circle</span> Add Record</button>
+<button class="flex items-center justify-center gap-2 rounded-lg h-10 px-6 bg-gradient-to-br from-[#2a508b] to-[#3c72c5] text-white text-sm font-bold shadow-lg -translate-y-1 transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5"><span class="material-symbols-outlined text-base">edit</span> Edit</button>
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-gradient-to-br from-[#162f59] to-[#24457a] text-white text-sm font-bold shadow-inner transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"><span class="material-symbols-outlined text-base">save</span></button>
+</div>
+</div>
+<div class="space-y-4">
+<p class="text-sm font-medium text-dark-accent">Secondary</p>
+<div class="flex items-center gap-4 flex-wrap">
+<button class="flex items-center justify-center gap-2 rounded-lg h-10 px-6 bg-white border border-gray-300 text-primary text-sm font-bold shadow-sm hover:bg-gray-100 active:bg-gray-200 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"><span class="material-symbols-outlined text-base">cloud_upload</span> Upload File</button>
+<button class="flex items-center justify-center gap-2 rounded-lg h-10 px-6 bg-gray-200 border border-gray-300 text-primary text-sm font-bold shadow-sm transition-all duration-300 hover:bg-gray-300 hover:shadow-md hover:-translate-y-0.5"><span class="material-symbols-outlined text-base">print</span> Print</button>
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-300 border border-gray-400 text-primary text-sm font-bold shadow-sm transition-all duration-300 hover:bg-gray-400 hover:shadow-md hover:-translate-y-0.5"><span class="material-symbols-outlined text-base">delete</span></button>
+</div>
+</div>
+<div class="space-y-4">
+<p class="text-sm font-medium text-dark-accent">Tertiary</p>
+<div class="flex items-center gap-4 flex-wrap">
+<button class="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-gray-100 text-dark-accent text-sm font-bold hover:bg-gray-200 active:bg-gray-300 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"><span class="material-symbols-outlined text-base">settings</span> Settings</button>
+<button class="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-gray-200 text-dark-accent text-sm font-bold transition-all duration-300 hover:bg-gray-300 hover:shadow-md hover:-translate-y-0.5"><span class="material-symbols-outlined text-base">help</span> Help</button>
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-300 text-dark-accent text-sm font-bold transition-all duration-300 hover:bg-gray-400 hover:shadow-md hover:-translate-y-0.5"><span class="material-symbols-outlined text-base">logout</span></button>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white border border-gray-200 rounded-xl shadow-lg space-y-4">
+<div class="bg-gradient-to-br from-primary to-[#2a508b] text-white px-6 py-4 rounded-t-xl"><h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">Toggles</h3></div>
+<div class="p-6 pt-2">
+<div class="flex flex-col space-y-4">
+<label class="inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="relative w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all after:duration-300 peer-checked:bg-primary"></div>
+<span class="ms-3 text-sm font-medium text-dark-accent flex items-center gap-2"><span class="material-symbols-outlined text-base text-gray-400">toggle_off</span> Inactive</span>
+</label>
+<label class="inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all after:duration-300 peer-checked:bg-primary"></div>
+<span class="ms-3 text-sm font-medium text-dark-accent flex items-center gap-2"><span class="material-symbols-outlined text-base text-primary">toggle_on</span> Active</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="mt-10">
+<h2 class="text-dark-accent text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Form Controls</h2>
+<div class="bg-white border border-gray-200 rounded-xl shadow-lg space-y-4 overflow-hidden">
+<div class="bg-gradient-to-br from-primary to-[#2a508b] text-white px-6 py-4"><h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">Input Fields &amp; Form Elements</h3></div>
+<div class="p-6 pt-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-6">
+<div class="space-y-4">
+<label class="block text-sm font-medium text-dark-accent" for="text-input">Text Input</label>
+<div class="relative">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="material-symbols-outlined text-gray-400 text-xl">person</span>
+</div>
+<input class="block w-full rounded-lg bg-gray-100 border-gray-300 text-dark-accent shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-all duration-300 placeholder:text-gray-500 pl-10" id="text-input" placeholder="Enter your full name" type="text"/>
+</div>
+</div>
+<div class="space-y-4">
+<label class="block text-sm font-medium text-dark-accent" for="password-input">Password Input</label>
+<div class="relative">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="material-symbols-outlined text-gray-400 text-xl">lock</span>
+</div>
+<input class="block w-full rounded-lg bg-gray-100 border-gray-300 text-dark-accent shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-all duration-300 placeholder:text-gray-500 pl-10" id="password-input" placeholder="Enter your password" type="password"/>
+</div>
+</div>
+<div class="space-y-4">
+<label class="block text-sm font-medium text-dark-accent" for="dropdown">Dropdown</label>
+<div class="relative">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="material-symbols-outlined text-gray-400 text-xl">school</span>
+</div>
+<select class="block w-full rounded-lg bg-gray-100 border-gray-300 text-dark-accent shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-all duration-300 pl-10" id="dropdown">
+<option>Engineering</option>
+<option>Business Administration</option>
+<option>Information Technology</option>
+</select>
+</div>
+</div>
+</div>
+<div class="space-y-6">
+<div class="space-y-4">
+<p class="text-sm font-medium text-gray-600">Checkboxes</p>
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-400 bg-gray-50 text-primary focus:ring-2 focus:ring-offset-0 focus:ring-primary/50" id="checkbox-1" type="checkbox"/>
+<label class="ml-2 block text-sm text-dark-accent" for="checkbox-1">Default</label>
+</div>
+<div class="flex items-center">
+<input checked="" class="h-4 w-4 rounded border-gray-400 bg-gray-50 text-primary focus:ring-2 focus:ring-offset-0 focus:ring-primary/50" id="checkbox-2" type="checkbox"/>
+<label class="ml-2 block text-sm text-dark-accent" for="checkbox-2">Checked</label>
+</div>
+</div>
+<div class="space-y-4">
+<p class="text-sm font-medium text-gray-600">Radio Buttons</p>
+<div class="flex items-center">
+<input class="h-4 w-4 border-gray-400 bg-gray-50 text-primary focus:ring-2 focus:ring-offset-0 focus:ring-primary/50" id="radio-1" name="radio-group" type="radio"/>
+<label class="ml-2 block text-sm text-dark-accent" for="radio-1">Option A</label>
+</div>
+<div class="flex items-center">
+<input checked="" class="h-4 w-4 border-gray-400 bg-gray-50 text-primary focus:ring-2 focus:ring-offset-0 focus:ring-primary/50" id="radio-2" name="radio-group" type="radio"/>
+<label class="ml-2 block text-sm text-dark-accent" for="radio-2">Option B</label>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="mt-10">
+<h2 class="text-dark-accent text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">School Periods Management</h2>
+<div class="bg-white shadow-xl border border-gray-200 rounded-xl overflow-hidden space-y-4">
+<div class="bg-gradient-to-br from-primary to-[#2a508b] text-white px-6 py-4"><h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">Add New School Period</h3></div>
+<div class="p-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-dark-accent" for="period-name">Period Name</label>
+<div class="relative">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="material-symbols-outlined text-gray-400 text-xl">label</span>
+</div>
+<input class="block w-full rounded-lg bg-gray-100 border-gray-300 text-dark-accent shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-all duration-300 placeholder:text-gray-500 pl-10" id="period-name" placeholder="e.g., 2024-2025 Fall" type="text"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-dark-accent" for="start-date">Start Date</label>
+<div class="relative">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="material-symbols-outlined text-gray-400 text-xl">calendar_today</span>
+</div>
+<input class="block w-full rounded-lg bg-gray-100 border-gray-300 text-dark-accent shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-all duration-300 placeholder:text-gray-500 pl-10" id="start-date" type="date"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-dark-accent" for="end-date">End Date</label>
+<div class="relative">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="material-symbols-outlined text-gray-400 text-xl">event</span>
+</div>
+<input class="block w-full rounded-lg bg-gray-100 border-gray-300 text-dark-accent shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-all duration-300 placeholder:text-gray-500 pl-10" id="end-date" type="date"/>
+</div>
+</div>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="flex items-center justify-center gap-2 rounded-lg h-10 px-6 bg-gradient-to-br from-primary to-[#2a508b] text-white text-sm font-bold shadow-md hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:shadow-md transition-all duration-300"><span class="material-symbols-outlined text-base">add_circle</span> Add Period</button>
+</div>
+</div>
+<div class="bg-gradient-to-br from-primary to-[#2a508b] text-white px-6 py-4 mt-4">
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">Current School Periods</h3>
+</div>
+</div>
+<div class="p-6 pt-2">
+<div class="overflow-x-auto">
+<table class="w-full text-sm text-left text-dark-accent">
+<thead class="text-xs text-white uppercase bg-gradient-to-br from-primary to-[#2a508b] font-bold">
+<tr>
+<th class="px-6 py-3" scope="col">Period Name</th>
+<th class="px-6 py-3" scope="col">Start Date</th>
+<th class="px-6 py-3" scope="col">End Date</th>
+<th class="px-6 py-3" scope="col">Status</th>
+<th class="px-6 py-3 text-center" scope="col">Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-gray-200 hover:bg-primary/10 transition-colors duration-300">
+<td class="px-6 py-4 font-medium whitespace-nowrap">2023-2024 Spring</td>
+<td class="px-6 py-4">2024-01-15</td>
+<td class="px-6 py-4">2024-05-30</td>
+<td class="px-6 py-4"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-400 flex items-center gap-1 w-fit"><span class="material-symbols-outlined text-sm">check_circle</span> Active</span></td>
+<td class="px-6 py-4 text-center space-x-2">
+<button class="p-2 rounded-full hover:bg-gray-200 transition-all duration-300 group"><span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">edit</span></button>
+<button class="p-2 rounded-full hover:bg-gray-200 transition-all duration-300 group"><span class="material-symbols-outlined text-red-500 group-hover:scale-110 transition-transform">delete</span></button>
+</td>
+</tr>
+<tr class="border-b border-gray-200 bg-gray-50 hover:bg-primary/10 transition-colors duration-300">
+<td class="px-6 py-4 font-medium whitespace-nowrap">2023-2024 Fall</td>
+<td class="px-6 py-4">2023-08-20</td>
+<td class="px-6 py-4">2023-12-15</td>
+<td class="px-6 py-4"><span class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-gray-400 flex items-center gap-1 w-fit"><span class="material-symbols-outlined text-sm">history</span> Concluded</span></td>
+<td class="px-6 py-4 text-center space-x-2">
+<button class="p-2 rounded-full hover:bg-gray-200 transition-all duration-300 group"><span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">edit</span></button>
+<button class="p-2 rounded-full hover:bg-gray-200 transition-all duration-300 group"><span class="material-symbols-outlined text-red-500 group-hover:scale-110 transition-transform">delete</span></button>
+</td>
+</tr>
+<tr class="border-b border-gray-200 hover:bg-primary/10 transition-colors duration-300">
+<td class="px-6 py-4 font-medium whitespace-nowrap">2023 Summer</td>
+<td class="px-6 py-4">2023-06-01</td>
+<td class="px-6 py-4">2023-07-31</td>
+<td class="px-6 py-4"><span class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-gray-400 flex items-center gap-1 w-fit"><span class="material-symbols-outlined text-sm">history</span> Concluded</span></td>
+<td class="px-6 py-4 text-center space-x-2">
+<button class="p-2 rounded-full hover:bg-gray-200 transition-all duration-300 group"><span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">edit</span></button>
+<button class="p-2 rounded-full hover:bg-gray-200 transition-all duration-300 group"><span class="material-symbols-outlined text-red-500 group-hover:scale-110 transition-transform">delete</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section class="mt-10">
+<h2 class="text-dark-accent text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Information Display</h2>
+<div class="bg-white shadow-xl border border-gray-200 rounded-xl overflow-hidden space-y-4">
+<div class="bg-gradient-to-br from-primary to-[#2a508b] text-white px-6 py-4">
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">Data Table</h3>
+<div class="flex items-center gap-2">
+<input class="block w-full md:w-auto rounded-lg bg-white/90 border-gray-300 text-dark-accent shadow-sm focus:border-primary focus:ring-primary sm:text-sm transition-colors duration-200 placeholder:text-gray-500" placeholder="Search students..." type="search"/>
+<button class="flex items-center justify-center rounded-lg h-10 px-4 bg-white/20 hover:bg-white/30 text-white text-sm font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"><span class="material-symbols-outlined text-lg">search</span></button>
+</div>
+</div>
+</div>
+<div class="p-6 pt-2">
+<div class="overflow-x-auto">
+<table class="w-full text-sm text-left text-dark-accent">
+<thead class="text-xs text-white uppercase bg-gradient-to-br from-primary to-[#2a508b] font-bold">
+<tr>
+<th class="px-6 py-3" scope="col"><button class="flex items-center gap-1 group">Student ID <span class="material-symbols-outlined text-base opacity-50 group-hover:opacity-100 transition-opacity duration-300">unfold_more</span></button></th>
+<th class="px-6 py-3" scope="col"><button class="flex items-center gap-1 group">Name <span class="material-symbols-outlined text-base opacity-50 group-hover:opacity-100 transition-opacity duration-300">unfold_more</span></button></th>
+<th class="px-6 py-3" scope="col"><button class="flex items-center gap-1 group">Course <span class="material-symbols-outlined text-base opacity-50 group-hover:opacity-100 transition-opacity duration-300">unfold_more</span></button></th>
+<th class="px-6 py-3" scope="col"><button class="flex items-center gap-1 group">Status <span class="material-symbols-outlined text-base opacity-50 group-hover:opacity-100 transition-opacity duration-300">unfold_more</span></button></th>
+<th class="px-6 py-3 text-center" scope="col">Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-gray-200 hover:bg-primary/10 transition-colors duration-300">
+<td class="px-6 py-4 font-medium whitespace-nowrap">TSI-001</td>
+<td class="px-6 py-4">Ana Torres</td>
+<td class="px-6 py-4">Software Engineering</td>
+<td class="px-6 py-4"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-400 flex items-center gap-1 w-fit"><span class="material-symbols-outlined text-sm">check_circle</span> Active</span></td>
+<td class="px-6 py-4 text-center"><button class="font-medium text-primary hover:underline">Edit</button></td>
+</tr>
+<tr class="border-b border-gray-200 bg-gray-50 hover:bg-primary/10 transition-colors duration-300">
+<td class="px-6 py-4 font-medium whitespace-nowrap text-dark-accent">TSI-002</td>
+<td class="px-6 py-4 text-dark-accent">Luis Morales</td>
+<td class="px-6 py-4 text-dark-accent">Mechatronics</td>
+<td class="px-6 py-4"><span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-green-400 flex items-center gap-1 w-fit"><span class="material-symbols-outlined text-sm">check_circle</span> Active</span></td>
+<td class="px-6 py-4 text-center"><button class="font-medium text-primary hover:underline">Edit</button></td>
+</tr>
+<tr class="border-b border-gray-200 hover:bg-primary/10 transition-colors duration-300">
+<td class="px-6 py-4 font-medium whitespace-nowrap">TSI-003</td>
+<td class="px-6 py-4">Carla Mendez</td>
+<td class="px-6 py-4">Industrial Engineering</td>
+<td class="px-6 py-4"><span class="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-yellow-400 flex items-center gap-1 w-fit"><span class="material-symbols-outlined text-sm">pause_circle</span> On Hold</span></td>
+<td class="px-6 py-4 text-center"><button class="font-medium text-primary hover:underline">Edit</button></td>
+</tr>
+<tr class="bg-gray-50 hover:bg-primary/10 transition-colors duration-300">
+<td class="px-6 py-4 font-medium whitespace-nowrap">TSI-004</td>
+<td class="px-6 py-4">Javier Rojas</td>
+<td class="px-6 py-4">Business Management</td>
+<td class="px-6 py-4"><span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded border border-red-400 flex items-center gap-1 w-fit"><span class="material-symbols-outlined text-sm">cancel</span> Inactive</span></td>
+<td class="px-6 py-4 text-center"><button class="font-medium text-primary hover:underline">Edit</button></td>
+</tr>
+</tbody>
+</table>
+</div>
+<nav aria-label="Table navigation" class="flex items-center justify-between pt-4">
+<span class="text-sm font-normal text-gray-500">Showing <span class="font-semibold text-dark-accent">1-4</span> of <span class="font-semibold text-dark-accent">100</span></span>
+<ul class="inline-flex items-center -space-x-px text-sm">
+<li><a class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 transition-colors duration-300" href="#">Previous</a></li>
+<li><a class="flex items-center justify-center px-3 h-8 text-white bg-gradient-to-b from-primary to-[#2a508b] border border-primary hover:from-[#2a508b] hover:to-primary transition-all duration-300" href="#">1</a></li>
+<li><a class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 transition-colors duration-300" href="#">2</a></li>
+<li><a class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 transition-colors duration-300" href="#">Next</a></li>
+</ul>
+</nav>
+</div>
+</div>
+</section>
+<section class="mt-10">
+<h2 class="text-dark-accent text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Alerts</h2>
+<div class="p-4">
+<div class="space-y-6">
+<div class="relative p-5 flex items-start gap-4 rounded-xl overflow-hidden bg-gradient-to-br from-[#28a745] to-primary shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+<span class="material-symbols-outlined text-2xl mt-0.5">task_alt</span>
+<div>
+<h4 class="font-bold text-lg">Success</h4>
+<p class="text-sm opacity-90">Your operation was completed successfully. The data has been saved.</p>
+</div>
+<button class="absolute top-2 right-2 p-1 rounded-full hover:bg-white/20 transition-colors"><span class="material-symbols-outlined">close</span></button>
+</div>
+<div class="relative p-5 flex items-start gap-4 rounded-xl overflow-hidden bg-gradient-to-br from-[#0dcaf0] to-[#1b396a] shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+<span class="material-symbols-outlined text-2xl mt-0.5">info</span>
+<div>
+<h4 class="font-bold text-lg">Information</h4>
+<p class="text-sm opacity-90">A new update is available for your profile. Please review the changes.</p>
+</div>
+<button class="absolute top-2 right-2 p-1 rounded-full hover:bg-white/20 transition-colors"><span class="material-symbols-outlined">close</span></button>
+</div>
+<div class="relative p-5 flex items-start gap-4 rounded-xl overflow-hidden bg-gradient-to-br from-red-500 to-dark-accent shadow-lg text-white transform hover:scale-105 transition-transform duration-300">
+<span class="material-symbols-outlined text-2xl mt-0.5">error</span>
+<div>
+<h4 class="font-bold text-lg">Error</h4>
+<p class="text-sm opacity-90">Failed to upload the document. Please check the file format and try again.</p>
+</div>
+<button class="absolute top-2 right-2 p-1 rounded-full hover:bg-white/20 transition-colors"><span class="material-symbols-outlined">close</span></button>
+</div>
+</div>
+</div>
+</section>
+<section class="mt-10 mb-16">
+<h2 class="text-dark-accent text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Navigation &amp; Organization</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-4">
+<div class="bg-white border border-gray-200 rounded-xl shadow-lg space-y-4">
+<div class="bg-gradient-to-br from-primary to-[#2a508b] text-white px-6 py-4 rounded-t-xl"><h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">Tabs</h3></div>
+<div class="p-6 pt-2">
+<div>
+<div class="border-b border-gray-200">
+<nav aria-label="Tabs" class="-mb-px flex space-x-6">
+<a class="border-primary text-primary whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2" href="#"><span class="material-symbols-outlined text-base">person</span> Profile</a>
+<a class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-300" href="#"><span class="material-symbols-outlined text-base">settings</span> Settings</a>
+<a class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-300" href="#"><span class="material-symbols-outlined text-base">notifications</span> Notifications</a>
+</nav>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white border border-gray-200 rounded-xl shadow-lg space-y-4">
+<div class="bg-gradient-to-br from-primary to-[#2a508b] text-white px-6 py-4 rounded-t-xl"><h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">Progress Bars</h3></div>
+<div class="p-6 pt-2 space-y-6">
+<div class="w-full bg-gray-200 rounded-full h-2.5 relative overflow-hidden group">
+<div class="bg-primary h-2.5 rounded-full" style="width: 75%"></div>
+<div class="absolute inset-0 bg-white/30 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
+</div>
+<div class="w-full bg-gray-200 rounded-full h-2.5 relative overflow-hidden group">
+<div class="bg-gradient-to-r from-blue-400 to-primary h-2.5 rounded-full" style="width: 45%"></div>
+<div class="absolute inset-0 bg-white/30 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</div>
+</div>
+</div>
+</body></html>

@@ -7,7 +7,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.db.models import Q, Count, Sum, Avg
 from django.utils.timezone import now
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 import json
 from django.views.decorators.http import require_GET
 from rest_framework import viewsets
@@ -33,9 +33,9 @@ from .serializer import (
     TramiteSerializer
 )
 from procedimientos.models import Tramite, Bitacora
-from .forms_inscripcion import InscripcionForm, ReinscripcionForm, BusquedaAlumnoForm
-from .utils_inscripcion import generar_formato_inscripcion, generar_formato_reinscripcion, crear_plantillas_por_defecto
-from .models_inscripcion import Inscripcion, Reinscripcion
+from .forms_inscripcion import InscripcionForm
+from .utils_inscripcion import generar_formato_inscripcion, crear_plantillas_por_defecto
+from .models_inscripcion import Inscripcion
 
 # API para autocompletado
 @require_GET
@@ -938,101 +938,10 @@ def inscripcion_crear(request):
     })
 
 def reinscripcion_nueva(request):
-    """Vista para mostrar y procesar el formulario de reinscripción"""
-    if request.method == 'POST':
-        try:
-            form = ReinscripcionForm(request.POST, request.FILES)
-            if form.is_valid():
-                try:
-                    reinscripcion = form.save()
-                    
-                    # Crear plantillas por defecto si no existen
-                    try:
-                        crear_plantillas_por_defecto()
-                    except Exception as e:
-                        # Log the error but don't fail the request
-                        print(f"Error creating templates: {e}")
-                    
-                    return JsonResponse({
-                        'success': True,
-                        'folio': reinscripcion.folio,
-                        'reinscripcion_id': reinscripcion.id,
-                        'message': 'Reinscripción registrada exitosamente'
-                    })
-                except Exception as e:
-                    return JsonResponse({
-                        'success': False,
-                        'errors': {'general': [str(e)]}
-                    })
-            else:
-                return JsonResponse({
-                    'success': False,
-                    'errors': form.errors
-                })
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'errors': {'general': [f'Error procesando formulario: {str(e)}']}
-            })
-    else:
-        # GET request - mostrar formulario, protegido por bandera del período
-        periodo_activo = PeriodoEscolar.objects.filter(activo=True).first()
-        if not periodo_activo:
-            messages.error(request, 'No hay un período escolar activo.')
-            return redirect('datos_academicos:gestion_alumnos')
-        if not getattr(periodo_activo, 'reinscripcion_habilitada', True):
-            messages.warning(request, 'Las reinscripciones están deshabilitadas para el período actual.')
-            return redirect('datos_academicos:gestion_alumnos')
-        try:
-            form_reinscripcion = ReinscripcionForm()
-            form_busqueda = BusquedaAlumnoForm()
-            return render(request, 'datos_academicos/reinscripcion_form.html', {
-                'form_reinscripcion': form_reinscripcion,
-                'form_busqueda': form_busqueda,
-                'title': 'Reinscripción de Alumno'
-            })
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'errors': {'general': [f'Error cargando formulario: {str(e)}']}
-            })
+    raise Http404()
 
 def reinscripcion_crear(request):
-    """Vista para procesar la creación de una reinscripción"""
-    if request.method == 'POST':
-        # Verificar período activo y bandera antes de procesar
-        periodo_activo = PeriodoEscolar.objects.filter(activo=True).first()
-        if not periodo_activo or not getattr(periodo_activo, 'reinscripcion_habilitada', True):
-            return JsonResponse({
-                'success': False,
-                'errors': {'periodo_escolar': ['Las reinscripciones están deshabilitadas o no hay período activo']}
-            })
-        form = ReinscripcionForm(request.POST, request.FILES)
-        if form.is_valid():
-            try:
-                reinscripcion = form.save()
-                # Crear plantillas por defecto si no existen
-                crear_plantillas_por_defecto()
-                return JsonResponse({
-                    'success': True,
-                    'folio': reinscripcion.folio,
-                    'reinscripcion_id': reinscripcion.id,
-                    'message': 'Reinscripción registrada exitosamente'
-                })
-            except Exception as e:
-                return JsonResponse({
-                    'success': False,
-                    'errors': {'general': [str(e)]}
-                })
-        else:
-            return JsonResponse({
-                'success': False,
-                'errors': form.errors
-            })
-    return JsonResponse({
-        'success': False,
-        'errors': {'general': ['Método no permitido']}
-    })
+    raise Http404()
 
 @login_required
 def generar_documento_inscripcion(request, inscripcion_id):
@@ -1053,24 +962,8 @@ def generar_documento_inscripcion(request, inscripcion_id):
         messages.error(request, f"Error al generar documento: {str(e)}")
         return redirect('datos_academicos:gestion_alumnos')
 
-@login_required
 def generar_documento_reinscripcion(request, reinscripcion_id):
-    """Vista para generar el documento de reinscripción en formato DOCX"""
-    try:
-        # Validar bandera del período antes de generar
-        reinscripcion = get_object_or_404(Reinscripcion, id=reinscripcion_id)
-        periodo = reinscripcion.periodo_escolar
-        if not periodo or not getattr(periodo, 'activo', False) or not getattr(periodo, 'reinscripcion_habilitada', True):
-            messages.error(request, 'Documento no disponible: período inactivo o reinscripciones deshabilitadas.')
-            return redirect('datos_academicos:gestion_alumnos')
-        response = generar_formato_reinscripcion(reinscripcion_id)
-        return response
-    except ValueError as e:
-        messages.error(request, str(e))
-        return redirect('datos_academicos:gestion_alumnos')
-    except Exception as e:
-        messages.error(request, f"Error al generar documento: {str(e)}")
-        return redirect('datos_academicos:gestion_alumnos')
+    raise Http404()
 
 def buscar_alumno_ajax(request):
     """Vista AJAX para buscar alumnos"""
@@ -1081,7 +974,10 @@ def buscar_alumno_ajax(request):
         # Búsqueda por matrícula específica
         if matricula:
             try:
-                alumno = Alumno.objects.get(matricula=matricula)
+                # Búsqueda más tolerante por matrícula
+                alumno = Alumno.objects.filter(matricula__iexact=matricula).first()
+                if not alumno:
+                    raise Alumno.DoesNotExist
                 return JsonResponse({
                     'success': True,
                     'alumno': {

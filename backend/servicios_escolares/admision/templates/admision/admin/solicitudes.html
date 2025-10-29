@@ -1,7 +1,9 @@
-{% extends "admision/base.html" %}
+{% extends "layouts/base.html" %}
 {% load static %}
 
 {% block title %}Gestión de Solicitudes - Admisión{% endblock %}
+
+{% block breadcrumb %}Admisión / Solicitudes{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -51,7 +53,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
+<div class="container-main">
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">

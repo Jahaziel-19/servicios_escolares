@@ -1,7 +1,9 @@
-{% extends 'admision/base.html' %}
+{% extends 'layouts/base.html' %}
 {% load static %}
 
 {% block title %}Gestión de Formularios - Admisión{% endblock %}
+
+{% block breadcrumb %}Admisión / Formularios{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -62,7 +64,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-main">
     <!-- Header -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">

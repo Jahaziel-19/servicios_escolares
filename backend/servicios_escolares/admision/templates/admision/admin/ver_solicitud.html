@@ -1,8 +1,10 @@
-{% extends "admision/base.html" %}
+{% extends "layouts/base.html" %}
 {% load static %}
 {% load admision_extras %}
 
 {% block title %}Solicitud {{ solicitud.folio }} - Admisión{% endblock %}
+
+{% block breadcrumb %}Admisión / Solicitud{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -71,7 +73,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
+<div class="container-main">
     <!-- Header de la solicitud -->
     <div class="solicitud-header">
         <div class="row align-items-center">

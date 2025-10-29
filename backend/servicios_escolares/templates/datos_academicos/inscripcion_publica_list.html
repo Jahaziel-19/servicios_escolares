@@ -1,5 +1,6 @@
-{% extends "admision/base.html" %}
+{% extends "layouts/base.html" %}
 {% load static %}
+{% load compat %}
 
 {% block title %}Inscripciones públicas{% endblock %}
 
@@ -7,12 +8,33 @@
 <div class="container-fluid mt-4">
   <div class="row mb-3">
     <div class="col-12 d-flex justify-content-between align-items-center">
-      <h2 class="mb-0"><i class="fas fa-users me-2"></i>Inscripciones públicas</h2>
+      <div>
+        <h2 class="mb-0"><i class="fas fa-users me-2"></i>Inscripciones públicas</h2>
+        <div class="text-muted small">Listado público de inscripciones por periodo y estado</div>
+      </div>
       <a href="{% url 'datos_academicos:inscripciones_panel_admin' %}" class="btn btn-outline-secondary">
         <i class="fas fa-arrow-left me-1"></i>Volver al panel
       </a>
     </div>
   </div>
+
+  <!-- Resumen por estado -->
+  {% if inscripciones.model.ESTADO_CHOICES %}
+  <div class="row g-3 mb-3">
+    {% for value,label in inscripciones.model.ESTADO_CHOICES %}
+    <div class="col-sm-6 col-md-3 col-lg-2">
+      <a href="{% url 'datos_academicos:inscripciones_publicas_listar' %}?estado={{ value }}" class="text-decoration-none">
+        <div class="card border-0" style="background: #f8f9fa;">
+          <div class="card-body py-2 d-flex align-items-center justify-content-between">
+            <div class="small text-muted">{{ label }}</div>
+            <span class="badge bg-secondary">{{ conteos|get_item:value }}</span>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <div class="card mb-3">
     <div class="card-body">
@@ -32,13 +54,27 @@
           <button class="btn btn-primary" type="submit"><i class="fas fa-search me-1"></i>Filtrar</button>
         </div>
       </form>
+      {% if estado %}
+      <div class="mt-2">
+        <span class="badge bg-light text-dark">Filtro activo:</span>
+        {% for value,label in inscripciones.model.ESTADO_CHOICES %}
+          {% if value == estado %}
+            <span class="badge bg-info text-dark">{{ label }}</span>
+          {% endif %}
+        {% endfor %}
+        <a href="{% url 'datos_academicos:inscripciones_publicas_listar' %}" class="ms-2 small text-decoration-none">Limpiar</a>
+      </div>
+      {% endif %}
     </div>
   </div>
 
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0"><i class="fas fa-list me-2"></i>Resultados</h5>
-      <span class="badge bg-info">{{ inscripciones|length }} encontrados</span>
+      <div>
+        <span class="badge bg-light text-dark">Página {{ page_obj.number }} de {{ paginator.num_pages }}</span>
+        <span class="badge bg-info">{{ total }} en total</span>
+      </div>
     </div>
     <div class="table-responsive">
       <table class="table table-hover mb-0">
@@ -60,7 +96,21 @@
             <td>{{ ins.nombre }} {{ ins.apellido_paterno }} {{ ins.apellido_materno }}</td>
             <td>{{ ins.carrera_solicitada.nombre|default:"—" }}</td>
             <td>{{ ins.periodo_escolar.nombre|default:"—" }}</td>
-            <td><span class="badge bg-light text-dark">{{ ins.estado }}</span></td>
+            <td>
+              {% with est=ins.estado|lower %}
+              {% if "aprob" in est %}
+                <span class="badge bg-success">{{ ins.estado }}</span>
+              {% elif "rech" in est %}
+                <span class="badge bg-danger">{{ ins.estado }}</span>
+              {% elif "revis" in est %}
+                <span class="badge bg-warning text-dark">{{ ins.estado }}</span>
+              {% elif "env" in est %}
+                <span class="badge bg-info text-dark">{{ ins.estado }}</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ ins.estado }}</span>
+              {% endif %}
+              {% endwith %}
+            </td>
             <td>{{ ins.creado_en|date:"Y-m-d H:i" }}</td>
             <td>
               <a href="{% url 'datos_academicos:inscripcion_publica_detalle' ins.pk %}" class="btn btn-sm btn-outline-primary">
@@ -69,11 +119,48 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="7" class="text-muted">No hay inscripciones.</td></tr>
+          <tr>
+            <td colspan="7" class="text-center py-4">
+              <i class="fas fa-inbox fa-2x text-muted mb-2"></i>
+              <div class="text-muted">No hay inscripciones.</div>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+
+    <!-- Paginación -->
+    {% if paginator.num_pages > 1 %}
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+      <div class="small text-muted">Mostrando {{ inscripciones|length }} de {{ total }}</div>
+      <nav aria-label="Navegación de páginas">
+        <ul class="pagination mb-0">
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if estado %}estado={{ estado }}&{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+          {% endif %}
+
+          {% for p in paginator.page_range %}
+          <li class="page-item {% if p == page_obj.number %}active{% endif %}">
+            <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if estado %}estado={{ estado }}&{% endif %}page={{ p }}">{{ p }}</a>
+          </li>
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}{% if estado %}estado={{ estado }}&{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

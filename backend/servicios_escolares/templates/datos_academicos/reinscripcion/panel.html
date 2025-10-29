@@ -1,0 +1,192 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Panel de Reinscripción{% endblock %}
+
+{% block styles %}
+<style>
+  :root {
+    --primary-700: #153e75;
+    --primary-600: #1f4d96;
+    --primary-500: #2d65c3;
+    --surface: #ffffff;
+    --radius: 10px;
+    --shadow: 0 6px 18px rgba(16, 24, 40, 0.12);
+  }
+
+  .page-header {
+    background: linear-gradient(135deg, var(--primary-700), var(--primary-600));
+    color: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px 20px;
+    margin-bottom: 18px;
+  }
+  .page-header h4 { margin: 0; }
+
+  .card { border: none; border-radius: var(--radius); box-shadow: var(--shadow); }
+  .card-header { background: var(--primary-700); color: #fff; }
+
+  .alert-info { border: none; border-left: 4px solid var(--primary-500); background: #f8fbff; }
+
+  .table thead { background: var(--primary-700); color: #fff; }
+  .table thead th { border: none; }
+  .table tbody tr { transition: background 0.15s ease; }
+  .table tbody tr:hover { background: #f5f7fb; }
+
+  .btn-primary.btn-sm { background: var(--primary-600); border: none; }
+
+  /* Modal con backdrop blur */
+  .modal-backdrop-blur {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 25, 45, 0.18);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+  }
+  .modal-card {
+    width: 480px;
+    max-width: 90vw;
+    background: var(--surface);
+    border-radius: 14px;
+    box-shadow: 0 20px 40px rgba(16, 24, 40, 0.18);
+    overflow: hidden;
+  }
+  .modal-card-header { background: linear-gradient(135deg, var(--primary-700), var(--primary-600)); color: #fff; padding: 12px 16px; }
+  .modal-card-body { padding: 18px; color: #334155; }
+  .modal-card-footer { padding: 12px 16px; display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-ghost { background: #eef2f7; color: #0f172a; border: none; }
+
+  .blurred { filter: blur(2px); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="page-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0"><i class="fas fa-sync-alt me-2"></i>Reinscripción - Servicios Escolares</h4>
+      
+    </div>
+    <div id="page-content" class="card">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <span><i class="fas fa-list me-2"></i>Solicitudes de Reinscripción</span>
+          {% if periodo_activo %}
+            <span class="badge bg-success">Reinscripción {{ periodo_activo.reinscripcion_habilitada|yesno:"habilitada,no habilitada" }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-body">
+        {% if periodo_activo %}
+          <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <div>
+              <i class="fas fa-calendar me-2"></i>
+              Periodo activo: <strong>{{ periodo_activo }}</strong>
+              <span class="ms-3"><i class="fas fa-clock me-1"></i>Inicio: {{ periodo_activo.fecha_inicio|date:'d/m/Y' }}</span>
+              <span class="ms-3">Fin: {{ periodo_activo.fecha_fin|date:'d/m/Y' }}</span>
+            </div>
+          </div>
+        {% else %}
+          <div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>No hay periodo activo configurado.</div>
+        {% endif %}
+
+        <div class="mb-3">
+          <div class="mt-3">
+            <form action="{% url 'datos_academicos:reinscripcion_iniciar_form' %}" method="post" class="row g-2" id="form-iniciar">
+              {% csrf_token %}
+              <div class="col-auto">
+                <input type="text" name="q" id="q-matricula" class="form-control form-control-sm" placeholder="Matrícula exacta (fallback)">
+              </div>
+              <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-play me-1"></i>Iniciar</button>
+              </div>
+            </form>
+            <small class="text-muted">Ingresa la matrícula exacta para iniciar la reinscripción.</small>
+          </div>
+        </div>
+
+        {% if reinscripciones %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Folio</th>
+                  <th>Alumno</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in reinscripciones %}
+                <tr>
+                  <td>{{ r.folio }}</td>
+                  <td>{{ r.alumno.matricula }} - {{ r.alumno.nombre }} {{ r.alumno.apellido_paterno }}</td>
+                  <td><span class="badge bg-secondary">{{ r.estado }}</span></td>
+                  <td>{{ r.fecha_solicitud|date:'d/m/Y H:i' }}</td>
+                  <td>
+                    <a class="btn btn-primary btn-sm" href="{% url 'datos_academicos:reinscripcion_detalle' r.id %}">
+                      <i class="fas fa-eye me-1"></i>Ver
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted">No hay reinscripciones registradas para este periodo.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+  const pageContent = document.getElementById('page-content');
+  const modal = document.getElementById('modal-blur');
+  const btnOpenDemo = document.getElementById('open-modal-demo');
+  const btnCancel = document.getElementById('modal-cancel');
+  const btnConfirm = document.getElementById('modal-confirm');
+  const formIniciar = document.getElementById('form-iniciar');
+
+  function openModal() {
+    modal.style.display = 'flex';
+    pageContent.classList.add('blurred');
+  }
+  function closeModal() {
+    modal.style.display = 'none';
+    pageContent.classList.remove('blurred');
+  }
+
+  btnOpenDemo && btnOpenDemo.addEventListener('click', function(e){
+    e.preventDefault();
+    openModal();
+  });
+
+  formIniciar && formIniciar.addEventListener('submit', function(e){
+    e.preventDefault();
+    openModal();
+  });
+
+  btnCancel && btnCancel.addEventListener('click', closeModal);
+  modal && modal.addEventListener('click', function(e){
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closeModal();
+  });
+
+  btnConfirm && btnConfirm.addEventListener('click', function(){
+    closeModal();
+    formIniciar && formIniciar.submit();
+  });
+</script>
+{% endblock %}

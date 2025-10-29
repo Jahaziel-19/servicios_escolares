@@ -1,9 +1,9 @@
 {% load i18n static djangoadminmaterial %}
 
-<aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3 bg-gradient-dark" id="sidenav-main" style="z-index: 1;  background: linear-gradient(120deg, #1B396A, #2c3e8eca);>
+<aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3 bg-gradient-dark fade-in" id="sidenav-main" style="background: linear-gradient(120deg, #1B396A, #2c3e8eca);">
   <div class="sidenav-header">
     <i class="fas fa-times p-3 cursor-pointer text-white opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
-    <a class="navbar-brand m-0" href="{% url 'home' %}">
+    <a class="navbar-brand m-0" href="{% url 'home_root' %}">
       <img src="{% static "assets/img/logos/itst_blanco.png" %}" class="navbar-brand-img" width="30" height="40"
         alt="main_logo">
       
@@ -15,7 +15,7 @@
     <ul class="navbar-nav">
       <!-- Dashboard Principal -->
       <li class="nav-item">
-        <a class="nav-link {% if 'dashboard' == segment %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
           href="{% url "datos_academicos:dashboard" %}">
           <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
           <i class="material-symbols-rounded opacity-10">dashboard</i>
@@ -25,9 +25,14 @@
         </a>
       </li>
 
+      <!-- Sección: Académico -->
+      <li class="nav-item mt-3">
+        <h6 class="ps-3 text-uppercase text-white text-xs font-weight-bolder opacity-8 navbar-heading">Académico</h6>
+      </li>
+
       <!-- Estudiantes -->
       <li class="nav-item">
-        <a class="nav-link {% if 'gestion_alumnos' == segment %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
+        <a class="nav-link {% if request.resolver_match.url_name == 'gestion_alumnos' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
         href="{% url "datos_academicos:gestion_alumnos" %}">
           <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
             <i class="material-symbols-rounded opacity-10">school</i>
@@ -36,18 +41,12 @@
         </a>
 
       </li>
+      
 
-      <!-- Trámites -->
-      <li class="nav-item">
-        <a class="nav-link text-white {% if request.resolver_match.url_name == 'dashboard_tramites' %}active bg-gradient-dark{% endif %} " 
-        href="{% url 'procedimientos:dashboard_tramites' %}">
-          <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-            <i class="material-symbols-rounded opacity-10">assignment</i>
-          </div>
-          <span class="nav-link-text ms-1">Trámites</span>
-        </a>
+      <!-- Sección: Gestión -->
+      <li class="nav-item mt-3">
+        <h6 class="ps-3 text-uppercase text-white text-xs font-weight-bolder opacity-8 navbar-heading">Gestión</h6>
       </li>
-
       <!-- Admisión -->
       <li class="nav-item">
         <a class="nav-link {% if request.resolver_match.namespace == 'admision' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
@@ -61,7 +60,7 @@
 
       <!-- Calificaciones -->
       <li class="nav-item">
-        <a class="nav-link text-light {% if 'gestion_calificaciones' == segment %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
+        <a class="nav-link {% if request.resolver_match.url_name == 'gestion_calificaciones' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
         href="{% url 'datos_academicos:gestion_calificaciones' %}">
           <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
             <i class="material-symbols-rounded opacity-10">grade</i>
@@ -72,19 +71,50 @@
       
       <!-- Gestión de Materias -->
       <li class="nav-item">
-        <a class="nav-link {% if 'gestion_materias' == segment %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
+        <a class="nav-link {% if request.resolver_match.url_name == 'gestion_materias' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
           href="{% url 'datos_academicos:gestion_materias' %}">
-          <i class="material-symbols-rounded opacity-10">subject</i>
-          <span class="nav-link-text ms-1">Gestión de Materias</span>
+          <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+            <i class="material-symbols-rounded opacity-10">subject</i>
+          </div>
+          <span class="nav-link-text ms-1">Materias</span>
         </a>
       </li>
 
-      <!-- Inscripciones -->
+      <!-- Planes de Estudio -->
       <li class="nav-item">
-              <a class="nav-link text-light" href="{% url 'datos_academicos:inscripcion_nueva_inicio' %}">
-                <span class="sidenav-mini-icon"> </span>
-                <span class="sidenav-normal ms-2 ps-1">Inscripciones</span>
-              </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'plan_estudio_list' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
+           href="{% url 'datos_academicos:plan_estudio_list' %}">
+          <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+            <i class="material-symbols-rounded opacity-10">menu_book</i>
+          </div>
+          <span class="nav-link-text ms-1">Planes de Estudio</span>
+        </a>
+      </li>
+
+      <!-- Periodos -->
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'periodos_listar' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
+           href="{% url 'datos_academicos:periodos_listar' %}">
+          <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+            <i class="material-symbols-rounded opacity-10">calendar_month</i>
+          </div>
+          <span class="nav-link-text ms-1">Periodos</span>
+        </a>
+      </li>
+
+      <!-- Sección: Procesos -->
+      <li class="nav-item mt-3">
+        <h6 class="ps-3 text-uppercase text-white text-xs font-weight-bolder opacity-8 navbar-heading">Procesos</h6>
+      </li>
+      <!-- Reinscripción -->
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'reinscripcion_panel' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
+           href="{% url 'datos_academicos:reinscripcion_panel' %}">
+          <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+            <i class="material-symbols-rounded opacity-10">autorenew</i>
+          </div>
+          <span class="nav-link-text ms-1">Reinscripción</span>
+        </a>
       </li>
 
       <!-- Panel de Inscripciones -->
@@ -97,15 +127,19 @@
           <span class="nav-link-text ms-1">Panel de Inscripciones</span>
         </a>
       </li>
-      
-      <!-- Reinscripciones -->
+
+      <!-- Trámites -->
       <li class="nav-item">
-        <a class="nav-link text-light {% if 'procesos' == segment %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
-          href="{% url 'datos_academicos:reinscripciones_listar' %}">
-          <i class="material-symbols-rounded opacity-10">approval</i>
-          <span class="nav-link-text ms-1">Reinscripciones</span>
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_tramites' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}" 
+        href="{% url 'procedimientos:dashboard_tramites' %}">
+          <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+            <i class="material-symbols-rounded opacity-10">assignment</i>
+          </div>
+          <span class="nav-link-text ms-1">Trámites</span>
         </a>
       </li>
+      
+      {# Ítem de Reinscripciones activado #}
 
       <!-- Configuración -->
             <li class="nav-item">
@@ -125,17 +159,20 @@
   <!-- Información del usuario -->
   <div class="sidenav-footer position-absolute w-100 bottom-0">
     <div class="mx-3">
+      <!--
       <div class="card card-background shadow-none card-background-mask-secondary" id="sidenavCard">
         <div class="full-background" style="background-image: url('{% static 'assets/img/curved-images/white-curved.jpg' %}')"></div>
         <div class="card-body text-start p-3 w-100">
           <div class="icon icon-shape icon-sm bg-white text-center mb-3 d-flex align-items-center justify-content-center border-radius-md">
             <i class="material-symbols-rounded text-dark text-gradient text-lg top-0">star</i>
           </div>
+          
           <div class="docs-info">
             <h6 class="text-white up mb-0">¿Necesitas ayuda?</h6>
             <p class="text-xs font-weight-bold">Consulta la documentación</p>
             <a href="#" target="_blank" class="btn btn-white btn-sm w-100 mb-0">Documentación</a>
           </div>
+        -->
         </div>
       </div>
     </div>

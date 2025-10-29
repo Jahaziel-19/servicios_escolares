@@ -1,0 +1,119 @@
+/* Servicios Escolares - Base de estilos */
+/* Fuente y reset ligero */
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600;700&display=swap');
+
+:root {
+  --se-primary: #1B396A;
+  --se-secondary: #2C5282;
+  --se-accent: #0EA5E9;
+  --se-success: #16a34a;
+  --se-danger: #dc2626;
+  --se-warning: #f59e0b;
+  --se-bg: #f7f9fc;
+  --se-surface: #ffffff;
+  --se-border: #e5e7eb;
+  --se-text: #0f172a;
+  --se-text-secondary: #475569;
+}
+
+html, body {
+  font-family: 'Public Sans', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--se-bg);
+  color: var(--se-text);
+}
+
+/* Contenedor común */
+.se-container {
+  max-width: 1100px;
+  margin: 2rem auto;
+}
+
+/* Tarjetas */
+.se-card {
+  background: var(--se-surface);
+  border: 1px solid var(--se-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(27, 57, 106, 0.06);
+}
+
+.se-card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--se-border);
+  font-weight: 600;
+  color: var(--se-text-secondary);
+}
+
+.se-card-body { padding: 1.25rem; }
+
+/* Botones primarios */
+.se-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  border-radius: 10px;
+  padding: .6rem 1rem;
+  border: 1px solid transparent;
+  font-weight: 600;
+  transition: all .25s ease;
+}
+.se-btn-primary {
+  background: linear-gradient(135deg, var(--se-primary), var(--se-secondary));
+  color: #fff;
+}
+.se-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(27,57,106,.25); }
+
+/* Badges */
+.se-badge { border-radius: 999px; padding: .25rem .6rem; font-size: .78rem; font-weight: 600; }
+.se-badge-success { background: #dcfce7; color: var(--se-success); }
+.se-badge-danger { background: #fee2e2; color: var(--se-danger); }
+
+/* Tabs */
+.se-tabs { border-bottom: 1px solid var(--se-border); display: flex; flex-wrap: wrap; gap: .5rem; }
+.se-tab {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--se-text-secondary);
+  padding: .75rem 1rem;
+  border-radius: 10px 10px 0 0;
+  transition: all .2s ease;
+}
+.se-tab:hover { background: rgba(27,57,106,.08); color: var(--se-primary); }
+.se-tab.active { background: var(--se-primary); color: #fff; }
+
+/* Compatibilidad con Bootstrap tabs existentes */
+.nav.nav-tabs .nav-link { border: none; color: var(--se-text-secondary); background: transparent; border-radius: 10px 10px 0 0; transition: all .2s ease; }
+.nav.nav-tabs .nav-link:hover { background: rgba(27,57,106,.08); color: var(--se-primary); }
+.nav.nav-tabs .nav-link.active { background: var(--se-primary); color: #fff; }
+
+/* Toggle vista */
+.se-view-toggle { background: var(--se-surface); border: 1px solid var(--se-border); border-radius: 12px; }
+.se-view-toggle .btn { border-radius: 10px; }
+.se-view-toggle .btn.active { background: var(--se-primary); color: #fff; }
+
+/* Animaciones */
+.se-fade-in { animation: seFadeIn .35s ease-out; }
+@keyframes seFadeIn { from { opacity: 0; transform: translateY(12px);} to { opacity: 1; transform: translateY(0);} }
+
+.se-slide-in { animation: seSlideIn .35s ease-out; }
+@keyframes seSlideIn { from { opacity: 0; transform: translateX(-12px);} to { opacity: 1; transform: translateX(0);} }
+
+/* Tabla */
+.se-table { border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
+.se-table thead { background: var(--se-primary); color: #fff; }
+.se-table th, .se-table td { padding: .8rem 1rem; }
+.se-table tbody tr:hover { background: #f1f5f9; }
+
+/* Cards de periodo */
+.se-periodo-card { border: 1px solid var(--se-border); border-radius: 14px; transition: all .25s ease; }
+.se-periodo-card:hover { box-shadow: 0 8px 24px rgba(27,57,106,.15); transform: translateY(-2px); border-color: var(--se-primary); }
+
+/* Utilidades */
+.se-text-muted { color: var(--se-text-secondary); }
+.se-icon-chip { width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, var(--se-primary), var(--se-secondary)); }
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .se-tabs { gap: .25rem; }
+  .se-tab { padding: .6rem .8rem; }
+}

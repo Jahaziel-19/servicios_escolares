@@ -1,0 +1,125 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Guía de estilos por rol{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4">Guía de estilos — roles</h2>
+
+  
+  <section class="mb-5" data-theme="{{ rol }}">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex align-items-center mb-3">
+          <span class="badge badge-theme me-2">{{ rol|title }}</span>
+          <h4 class="mb-0">Tema {{ rol }}</h4>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="col-md-6 mb-3">
+        <div class="card p-3">
+          <h6 class="mb-3">Botones</h6>
+          <button class="btn bg-gradient-primary me-2">Primario</button>
+          <button class="btn btn-light border me-2">Secundario</button>
+          <span class="badge badge-theme">Badge</span>
+        </div>
+      </div>
+
+      <!-- Tarjeta -->
+      <div class="col-md-6 mb-3">
+        <div class="card p-3">
+          <h6 class="mb-2">Tarjeta</h6>
+          <p class="text-muted">Superficie con borde redondeado usando tokens.</p>
+          <a class="btn bg-gradient-primary" href="#">Acción</a>
+        </div>
+      </div>
+
+      <!-- Toggles y checks -->
+      <div class="col-md-6 mb-3">
+        <div class="card p-3">
+          <h6 class="mb-2">Controles</h6>
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="switchActive" checked>
+            <label class="form-check-label" for="switchActive">Activo</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="checkExample">
+            <label class="form-check-label" for="checkExample">Opción</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertas -->
+      <div class="col-md-6 mb-3">
+        <div class="card p-3">
+          <h6 class="mb-2">Alertas</h6>
+          <div class="alert alert-success" role="alert">Éxito: operación completada.</div>
+          <div class="alert alert-info" role="alert">Información: cambios guardados.</div>
+          <div class="alert alert-danger" role="alert">Error: ocurrió un problema.</div>
+        </div>
+      </div>
+
+      <!-- Tabs y progreso -->
+      <div class="col-md-6 mb-3">
+        <div class="card p-3">
+          <h6 class="mb-3">Navegación y progreso</h6>
+          <ul class="nav nav-tabs" id="tabDemo" role="tablist">
+            <li class="nav-item" role="presentation">
+              <a class="nav-link active" id="tab1-tab" data-bs-toggle="tab" href="#tab1" role="tab">General</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-link" id="tab2-tab" data-bs-toggle="tab" href="#tab2" role="tab">Ajustes</a>
+            </li>
+          </ul>
+          <div class="tab-content border border-top-0 p-3">
+            <div class="tab-pane fade show active" id="tab1" role="tabpanel">Contenido General</div>
+            <div class="tab-pane fade" id="tab2" role="tabpanel">Contenido Ajustes</div>
+          </div>
+          <div class="progress mt-3" style="height: 8px;">
+            <div class="progress-bar" role="progressbar" style="width: 60%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="col-12">
+        <div class="card p-3">
+          <h6>Tabla</h6>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Elemento</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Componente A</td>
+                  <td><span class="badge badge-theme">Activo</span></td>
+                  <td>
+                    <button class="btn btn-sm bg-gradient-primary">Ver</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Componente B</td>
+                  <td><span class="badge bg-secondary">Pendiente</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-light border">Editar</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+
+  <p class="text-muted">Cada sección aplica <code>data-theme</code> distinto; los componentes consumen las variables de <code>theme.css</code>.</p>
+</div>
+{% endblock %}

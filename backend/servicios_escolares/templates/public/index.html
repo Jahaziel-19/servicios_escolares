@@ -1,0 +1,180 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Servicios Escolares | Inicio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/public.css' %}">
+</head>
+<body class="hp-body">
+  <!-- Barra superior -->
+  <header class="hp-header">
+    <div class="hp-container">
+      <div class="hp-brand">
+        <img class="hp-logo" src="{% static 'logos/itst_blanco.png' %}" alt="Logo institucional" onerror="this.style.display='none'" />
+        <span class="hp-institute">Instituto Tecnológico Superior de Tlaxco | Servicios Escolares</span>
+      </div>
+      <nav class="hp-nav" id="primary-nav">
+        <a href="#" class="hp-link">Servicios</a>
+        <a href="#" class="hp-link">Calendario</a>
+        <!-- <a href="#" class="hp-link">FAQ</a>-->
+        <a href="#" class="hp-link">Contacto</a>
+      </nav>
+      <button class="hp-menu-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="primary-nav">
+        <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+      </button>
+      <!--
+      <div class="hp-search">
+        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+        <input type="search" placeholder="Buscar" aria-label="Buscar" />
+      </div>
+    -->
+    </div>
+  </header>
+
+  <!-- Hero con overlay y CTA cards -->
+  <section class="hp-hero" aria-label="Bienvenida">
+    <div class="hp-hero__overlay"></div>
+    <div class="hp-container hp-hero__content">
+      <h1>Bienvenido(a) a Servicios Escolares</h1>
+      <p class="hp-hero__sub">Tu centro para acceder a trámites académicos, consultas y soporte administrativo del ITST.</p>
+
+      <div class="hp-cta">
+        <!-- Alumno -->
+        <a class="hp-card" href="{% url 'datos_academicos:alumno_login' %}">
+          <div class="hp-card__icon"><span class="material-symbols-outlined" aria-hidden="true">person</span></div>
+          <div class="hp-card__body">
+            <h3>Alumno</h3>
+            <p>Ingresa al portal académico, consulta tu información como trámites y calificaciones.</p>
+          </div>
+        </a>
+
+        <!-- Usuario de Servicios Escolares -->
+        <a class="hp-card" href="{% url 'datos_academicos:servicios_login' %}">
+          <div class="hp-card__icon"><span class="material-symbols-outlined" aria-hidden="true">badge</span></div>
+          <div class="hp-card__body">
+            <h3>Usuario de Servicios Escolares</h3>
+            <p>Acceso administrativo para personal del departamento y gestión interna.</p>
+          </div>
+        </a>
+
+        <!-- Aspirante -->
+        <a class="hp-card" href="{% url 'admision:admision_publico:informacion_proceso' %}">
+          <div class="hp-card__icon"><span class="material-symbols-outlined" aria-hidden="true">school</span></div>
+          <div class="hp-card__body">
+            <h3>Aspirante</h3>
+            <p>Infórmate sobre procesos de admisión, requisitos y fechas importantes.</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Nuestros servicios -->
+  <section class="hp-services" aria-label="Nuestros servicios">
+    <div class="hp-container">
+      <h2>Nuestros Servicios</h2>
+      <p class="hp-services__note">Disponibles próximamente</p>
+      <p class="hp-services__lead">Explora los servicios clave que ofrecemos a nuestra comunidad.</p>
+      <ul class="hp-services__grid" role="list">
+        <li class="hp-service">
+          <span class="material-symbols-outlined" aria-hidden="true">contract_edit</span>
+          <div>
+            <h3>Proceso de Inscripción <span class="hp-badge">Próximamente</span></h3>
+            <p>Guía paso a paso para un registro ágil y claro.</p>
+          </div>
+        </li>
+        <li class="hp-service">
+          <span class="material-symbols-outlined" aria-hidden="true">description</span>
+          <div>
+            <h3>Documentos Académicos <span class="hp-badge">Próximamente</span></h3>
+            <p>Solicita constancias, certificados y otros documentos oficiales.</p>
+          </div>
+        </li>
+        <li class="hp-service">
+          <span class="material-symbols-outlined" aria-hidden="true">volunteer_activism</span>
+          <div>
+            <h3>Información de Becas <span class="hp-badge">Próximamente</span></h3>
+            <p>Descubre oportunidades y requisitos de apoyo financiero.</p>
+          </div>
+        </li>
+        <li class="hp-service">
+          <span class="material-symbols-outlined" aria-hidden="true">event</span>
+          <div>
+            <h3>Calendario Académico <span class="hp-badge">Próximamente</span></h3>
+            <p>Mantente al día con fechas y periodos importantes.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Contacto y ayuda -->
+  <section class="hp-contact" aria-label="Contacto y ayuda">
+    <div class="hp-container">
+      <div class="hp-contact__panel">
+        <h2>Contacto & Ayuda</h2>
+        <div class="hp-contact__grid">
+          <div class="hp-contact__item">
+            <div class="hp-contact__icon"><span class="material-symbols-outlined" aria-hidden="true">location_on</span></div>
+            <div>
+              <strong>Dirección</strong>
+              <p>Carretera Tlaxco-Apizaco, Km 7.5, Tlaxco, Tlaxcala, C.P. 90250</p>
+            </div>
+          </div>
+          <div class="hp-contact__item">
+            <div class="hp-contact__icon"><span class="material-symbols-outlined" aria-hidden="true">schedule</span></div>
+            <div>
+              <strong>Horario</strong>
+              <p>Lunes a Viernes — 9:00 AM a 5:00 PM</p>
+            </div>
+          </div>
+          <div class="hp-contact__item">
+            <div class="hp-contact__icon"><span class="material-symbols-outlined" aria-hidden="true">call</span></div>
+            <div>
+              <strong>Teléfono</strong>
+              <p>(241) 412 1105</p>
+            </div>
+          </div>
+          <div class="hp-contact__item">
+            <div class="hp-contact__icon"><span class="material-symbols-outlined" aria-hidden="true">mail</span></div>
+            <div>
+              <strong>Email</strong>
+              <p>servicios.escolares@itstlaxco.edu.mx</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="hp-footer">
+    <div class="hp-container">
+      <span>© {{ now|date:'Y' }} Instituto Tecnológico Superior de Tlaxco. Todos los derechos reservados.</span>
+      <nav class="hp-footer__nav">
+        <a href="#" class="hp-link">Sitio principal</a>
+        <a href="#" class="hp-link">Privacidad</a>
+        <a href="#" class="hp-link">Redes</a>
+      </nav>
+    </div>
+  </footer>
+<script>
+  (function(){
+    var btn = document.querySelector('.hp-menu-toggle');
+    var nav = document.getElementById('primary-nav');
+    if(!btn || !nav) return;
+    btn.addEventListener('click', function(){
+      var open = nav.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      var icon = btn.querySelector('.material-symbols-outlined');
+      if(icon){ icon.textContent = open ? 'close' : 'menu'; }
+    });
+  })();
+</script>
+</body>
+</html>

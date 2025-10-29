@@ -30,8 +30,8 @@ class DocenteAdmin(admin.ModelAdmin):
 
 @admin.register(PeriodoEscolar)
 class PeriodoEscolarAdmin(admin.ModelAdmin):
-    list_display = ('ciclo', 'año', 'activo', 'inscripcion_habilitada', 'reinscripcion_habilitada')
-    list_filter = ('ciclo', 'año', 'activo', 'inscripcion_habilitada', 'reinscripcion_habilitada')
+    list_display = ('ciclo', 'año', 'activo', 'inscripcion_habilitada')
+    list_filter = ('ciclo', 'año', 'activo', 'inscripcion_habilitada')
     search_fields = ('ciclo', 'año')
 
 @admin.register(Carrera)
@@ -115,6 +115,9 @@ class CalificacionAdmin(admin.ModelAdmin):
             'description': 'Fecha en que se registró la calificación, campo de solo lectura.'
         }),
     )
+# ========== ADMINISTRACIÓN DE REINSCRIPCIONES (ELIMINADA) ==========
+# Se removieron modelos y administración relacionados con Reinscripción y CargaAcadémica.
+
 '''
 admin.site.register(Carrera)
 admin.site.register(Materia)

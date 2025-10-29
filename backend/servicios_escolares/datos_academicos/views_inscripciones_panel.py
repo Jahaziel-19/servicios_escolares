@@ -9,7 +9,7 @@ from django.utils import timezone
 from admision.email_utils import send_email_safe
 
 from .models_inscripcion_simple import InscripcionSimple
-from .models_inscripcion import Reinscripcion
+# Reinscripción eliminada del sistema
 from .models import PeriodoEscolar, Alumno
 from datetime import date
 from .models_inscripcion_nueva import InscripcionNueva, PagoInscripcionConcepto, DocumentoInscripcionNueva
@@ -43,15 +43,9 @@ def inscripciones_panel_admin(request):
     }
     recientes_simple = InscripcionSimple.objects.order_by("-fecha_solicitud")[:5]
 
-    # Stats Reinscripción
-    stats_reins = {
-        "total": Reinscripcion.objects.count(),
-        "pendientes": Reinscripcion.objects.filter(estado="Pendiente").count(),
-        "aprobadas": Reinscripcion.objects.filter(estado="Aprobada").count(),
-        "rechazadas": Reinscripcion.objects.filter(estado="Rechazada").count(),
-        "completadas": Reinscripcion.objects.filter(estado="Completada").count(),
-    }
-    recientes_reins = Reinscripcion.objects.select_related("alumno").order_by("-fecha_solicitud")[:5]
+    # Reinscripción removida: limpiar estadísticas y recientes
+    stats_reins = None
+    recientes_reins = []
 
     # Stats Inscripción Nueva (públicas)
     stats_nueva = {
@@ -72,8 +66,7 @@ def inscripciones_panel_admin(request):
         "periodo_activo": periodo_activo,
         "stats_simple": stats_simple,
         "recientes_simple": recientes_simple,
-        "stats_reins": stats_reins,
-        "recientes_reins": recientes_reins,
+        # Se removieron estadísticas y recientes de Reinscripción
         "stats_nueva": stats_nueva,
         "recientes_nueva": recientes_nueva,
     }
@@ -98,12 +91,21 @@ def inscripciones_publicas_listar(request):
 
     qs = qs.order_by("-creado_en")
 
+    # Paginación
+    from django.core.paginator import Paginator
+    page_number = request.GET.get("page", 1)
+    paginator = Paginator(qs, 15)
+    page_obj = paginator.get_page(page_number)
+
     estados_choices = [c[0] for c in InscripcionNueva.ESTADO_CHOICES]
     conteos = {e: InscripcionNueva.objects.filter(estado=e).count() for e in estados_choices}
 
     context = {
         "title": "Inscripciones públicas",
-        "inscripciones": qs,
+        "inscripciones": page_obj,
+        "paginator": paginator,
+        "page_obj": page_obj,
+        "total": paginator.count,
         "estado": estado,
         "q": q,
         "conteos": conteos,

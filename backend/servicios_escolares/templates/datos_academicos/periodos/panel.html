@@ -1,0 +1,675 @@
+{% extends "layouts/servicios_escolares.html" %}
+{% load static %}
+
+{% block title %}Panel de Periodos{% endblock %}
+
+{% block page_title %}Panel de Periodos{% endblock %}
+{% block breadcrumb %}Gestión / Periodos{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Animaciones y estilos modernos para el panel de periodos */
+.fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.card-hover {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.tab-content {
+    min-height: 500px;
+}
+
+.periodo-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.periodo-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border-color: var(--primary-color, #1B396A);
+}
+
+.periodo-status {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 2;
+}
+
+.view-toggle {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.view-toggle .btn {
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+.view-toggle .btn.active {
+    background: white;
+    color: var(--primary-color, #1B396A);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stats-card {
+    background: linear-gradient(135deg, var(--primary-color, #1B396A) 0%, var(--secondary-color, #2E5A8A) 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.periodo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    opacity: 0.3;
+    margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .periodo-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block se_header %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center">
+            <span class="se-icon-chip me-3"><i class="material-symbols-rounded">calendar_month</i></span>
+            <div>
+                <h2 class="mb-0">Panel de Periodos Académicos</h2>
+                <p class="se-text-muted mb-0">Gestión integral de ciclos escolares</p>
+            </div>
+        </div>
+    </div>
+{% endblock se_header %}
+
+{% block se_tabs %}
+    <ul class="nav nav-tabs nav-fill se-fade-in" id="periodosTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="crear-tab" data-bs-toggle="tab" data-bs-target="#crear" type="button" role="tab">
+                <i class="material-symbols-rounded me-2">add_circle</i>
+                Crear Periodo
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="lista-tab" data-bs-toggle="tab" data-bs-target="#lista" type="button" role="tab">
+                <i class="material-symbols-rounded me-2">list</i>
+                Lista de Periodos
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="admision-tab" data-bs-toggle="tab" data-bs-target="#admision" type="button" role="tab">
+                <i class="material-symbols-rounded me-2">school</i>
+                Periodos de Admisión
+            </button>
+        </li>
+    </ul>
+{% endblock se_tabs %}
+
+{% block se_content %}
+<div class="py-4 se-fade-in">
+    <!-- Header con estadísticas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <!-- Estadísticas rápidas -->
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center">
+                            <i class="material-symbols-rounded me-3" style="font-size: 2rem;">schedule</i>
+                            <div>
+                                <h3 class="mb-0">{{ stats.total_periodos }}</h3>
+                                <small class="opacity-8">Total Periodos</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center">
+                            <i class="material-symbols-rounded me-3" style="font-size: 2rem;">check_circle</i>
+                            <div>
+                                <h3 class="mb-0">{{ stats.activos }}</h3>
+                                <small class="opacity-8">Activos</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center">
+                            <i class="material-symbols-rounded me-3" style="font-size: 2rem;">school</i>
+                            <div>
+                                <h3 class="mb-0">{{ stats.admision_abiertos }}</h3>
+                                <small class="opacity-8">Admisión Abierta</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center">
+                            <i class="material-symbols-rounded me-3" style="font-size: 2rem;">trending_up</i>
+                            <div>
+                                <h3 class="mb-0">{{ stats.este_año }}</h3>
+                                <small class="opacity-8">Este Año</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido de tabs -->
+    <div class="row">
+        <div class="col-12 se-card">
+            <div class="se-card-body">
+                <div class="tab-content" id="periodosTabsContent">
+                        <!-- Tab: Crear Periodo -->
+                        <div class="tab-pane fade slide-in" id="crear" role="tabpanel">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8">
+                                    <div class="text-center mb-4">
+                                        <i class="material-symbols-rounded text-primary" style="font-size: 3rem;">add_circle</i>
+                                        <h4 class="mt-2">Crear Nuevo Periodo Académico</h4>
+                                        <p class="text-muted">Define las fechas y configuración del nuevo ciclo escolar</p>
+                                    </div>
+                                    
+                                    <form method="post" id="formCrearPeriodo" novalidate>
+                                        {% csrf_token %}
+                                        
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Ciclo Escolar</label>
+                                                <select class="form-select" name="ciclo" required>
+                                                    <option value="">Seleccionar ciclo</option>
+                                                    <option value="Enero-Junio">Enero-Junio</option>
+                                                    <option value="Agosto-Diciembre">Agosto-Diciembre</option>
+                                                    <option value="Anual">Anual</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Año</label>
+                                                <input type="number" class="form-control" name="año" min="2020" max="2030" value="{{ current_year }}" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row g-3 mt-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Fecha de Inicio</label>
+                                                <input type="date" class="form-control" name="fecha_inicio" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Fecha de Fin</label>
+                                                <input type="date" class="form-control" name="fecha_fin" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row g-3 mt-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Inicio de Vacaciones</label>
+                                                <input type="date" class="form-control" name="inicio_vacaciones">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Fin de Vacaciones</label>
+                                                <input type="date" class="form-control" name="fin_vacaciones">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mt-4">
+                                            <div class="col-12">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" name="activo" id="activoSwitch">
+                                                    <label class="form-check-label" for="activoSwitch">
+                                                        Marcar como periodo activo
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-center mt-4">
+                                            <button type="submit" class="btn btn-gradient-primary btn-lg">
+                                                <i class="material-symbols-rounded me-2">save</i>
+                                                Crear Periodo
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab: Lista de Periodos -->
+                        <div class="tab-pane fade show active" id="lista" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h5 class="mb-0">Periodos Académicos</h5>
+                                    <small class="text-muted">{{ periodos|length }} periodo{{ periodos|length|pluralize }}</small>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <!-- Filtros -->
+                                    <select class="form-select form-select-sm" id="filtroAño" style="width: auto;">
+                                        <option value="">Todos los años</option>
+                                        {% for año in años_disponibles %}
+                                        <option value="{{ año }}">{{ año }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    
+                                    <!-- Toggle vista -->
+                                    <div class="view-toggle">
+                                        <button class="btn btn-sm active" id="vistaLista" data-view="lista">
+                                            <i class="material-symbols-rounded">view_list</i>
+                                        </button>
+                                        <button class="btn btn-sm" id="vistaCards" data-view="cards">
+                                            <i class="material-symbols-rounded">view_module</i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Vista Lista -->
+                            <div id="contenidoLista" class="slide-in">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Periodo</th>
+                                                <th>Fechas</th>
+                                                <th>Vacaciones</th>
+                                                <th class="text-center">Estado</th>
+                                                <th class="text-center">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for periodo in periodos %}
+                                            <tr data-año="{{ periodo.año }}">
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="icon-chip me-3 bg-light">
+                                                            <i class="material-symbols-rounded text-primary">calendar_month</i>
+                                                        </div>
+                                                        <div>
+                                                            <h6 class="mb-0">{{ periodo.ciclo }} {{ periodo.año }}</h6>
+                                                            <small class="text-muted">ID: {{ periodo.id }}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div>
+                                                        <strong>{{ periodo.fecha_inicio|date:"d/m/Y" }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">{{ periodo.fecha_fin|date:"d/m/Y" }}</small>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {% if periodo.inicio_vacaciones %}
+                                                    <div>
+                                                        <small>{{ periodo.inicio_vacaciones|date:"d/m/Y" }}</small>
+                                                        {% if periodo.fin_vacaciones %}
+                                                        <br><small class="text-muted">{{ periodo.fin_vacaciones|date:"d/m/Y" }}</small>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% else %}
+                                                    <span class="text-muted">No definido</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-center">
+                                                    {% if periodo.activo %}
+                                                    <span class="badge bg-success">Activo</span>
+                                                    {% else %}
+                                                    <span class="badge bg-secondary">Inactivo</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn-group" role="group">
+                                                        <a href="{% url 'datos_academicos:periodo_editar' periodo.id %}" 
+                                                           class="btn btn-sm btn-outline-primary" title="Editar">
+                                                            <i class="material-symbols-rounded">edit</i>
+                                                        </a>
+                                                        <button class="btn btn-sm btn-outline-secondary" 
+                                                                onclick="togglePeriodo({{ periodo.id }})" title="Cambiar estado">
+                                                            <i class="material-symbols-rounded">
+                                                                {% if periodo.activo %}toggle_on{% else %}toggle_off{% endif %}
+                                                            </i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="5" class="text-center py-5">
+                                                    <div class="empty-state">
+                                                        <i class="material-symbols-rounded">calendar_month</i>
+                                                        <h6>No hay periodos registrados</h6>
+                                                        <p class="text-muted">Crea tu primer periodo académico</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Vista Cards -->
+                            <div id="contenidoCards" class="d-none">
+                                <div class="periodo-grid">
+                                    {% for periodo in periodos %}
+                                    <div class="periodo-card card-hover" data-año="{{ periodo.año }}">
+                                        <div class="card-body position-relative">
+                                            <div class="periodo-status">
+                                                {% if periodo.activo %}
+                                                <span class="badge bg-success">Activo</span>
+                                                {% else %}
+                                                <span class="badge bg-secondary">Inactivo</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="icon-chip me-3">
+                                                    <i class="material-symbols-rounded">calendar_month</i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="mb-0">{{ periodo.ciclo }}</h5>
+                                                    <small class="text-muted">{{ periodo.año }}</small>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <small class="text-muted">Inicio:</small>
+                                                    <strong>{{ periodo.fecha_inicio|date:"d/m/Y" }}</strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between">
+                                                    <small class="text-muted">Fin:</small>
+                                                    <strong>{{ periodo.fecha_fin|date:"d/m/Y" }}</strong>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if periodo.inicio_vacaciones %}
+                                            <div class="mb-3 p-2 bg-light rounded">
+                                                <small class="text-muted d-block">Vacaciones:</small>
+                                                <small>{{ periodo.inicio_vacaciones|date:"d/m/Y" }}
+                                                {% if periodo.fin_vacaciones %} - {{ periodo.fin_vacaciones|date:"d/m/Y" }}{% endif %}
+                                                </small>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            <div class="d-flex gap-2">
+                                                <a href="{% url 'datos_academicos:periodo_editar' periodo.id %}" 
+                                                   class="btn btn-sm btn-outline-primary flex-fill">
+                                                    <i class="material-symbols-rounded me-1">edit</i>
+                                                    Editar
+                                                </a>
+                                                <button class="btn btn-sm btn-outline-secondary" 
+                                                        onclick="togglePeriodo({{ periodo.id }})">
+                                                    <i class="material-symbols-rounded">
+                                                        {% if periodo.activo %}toggle_on{% else %}toggle_off{% endif %}
+                                                    </i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-12">
+                                        <div class="empty-state">
+                                            <i class="material-symbols-rounded">calendar_month</i>
+                                            <h6>No hay periodos registrados</h6>
+                                            <p class="text-muted">Crea tu primer periodo académico</p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab: Periodos de Admisión -->
+                        <div class="tab-pane fade" id="admision" role="tabpanel">
+                            <div class="text-center mb-4">
+                                <i class="material-symbols-rounded text-primary" style="font-size: 3rem;">school</i>
+                                <h4 class="mt-2">Periodos de Admisión</h4>
+                                <p class="text-muted">Gestiona los periodos específicos para procesos de admisión</p>
+                            </div>
+                            
+                            <div class="row">
+                                {% for periodo_admision in periodos_admision %}
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="card periodo-card card-hover">
+                                        <div class="card-body position-relative">
+                                            <div class="periodo-status">
+                                                {% if periodo_admision.activo %}
+                                                <span class="badge bg-success">Abierto</span>
+                                                {% else %}
+                                                <span class="badge bg-danger">Cerrado</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="icon-chip me-3">
+                                                    <i class="material-symbols-rounded">school</i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">{{ periodo_admision.nombre }}</h6>
+                                                    <small class="text-muted">{{ periodo_admision.año }}</small>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <small class="text-muted">Inicio:</small>
+                                                    <strong>{{ periodo_admision.fecha_inicio|date:"d/m/Y" }}</strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between">
+                                                    <small class="text-muted">Fin:</small>
+                                                    <strong>{{ periodo_admision.fecha_fin|date:"d/m/Y" }}</strong>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if periodo_admision.descripcion %}
+                                            <p class="text-sm text-muted mb-3">{{ periodo_admision.descripcion|truncatewords:15 }}</p>
+                                            {% endif %}
+                                            
+                                            <div class="d-flex gap-2">
+                                                <a href="#" class="btn btn-sm btn-outline-primary flex-fill">
+                                                    <i class="material-symbols-rounded me-1">visibility</i>
+                                                    Ver
+                                                </a>
+                                                <a href="#" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="material-symbols-rounded">edit</i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="col-12">
+                                    <div class="empty-state">
+                                        <i class="material-symbols-rounded">school</i>
+                                        <h6>No hay periodos de admisión</h6>
+                                        <p class="text-muted">Los periodos de admisión se gestionan desde el módulo de Admisión</p>
+                                        <a href="#" class="btn btn-outline-primary">
+                                            <i class="material-symbols-rounded me-2">add</i>
+                                            Ir a Admisión
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div class="loading-spinner" id="loadingSpinner">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2 text-muted">Procesando...</p>
+</div>
+{% endblock se_content %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle entre vista lista y cards
+    const vistaLista = document.getElementById('vistaLista');
+    const vistaCards = document.getElementById('vistaCards');
+    const contenidoLista = document.getElementById('contenidoLista');
+    const contenidoCards = document.getElementById('contenidoCards');
+    
+    vistaLista.addEventListener('click', function() {
+        vistaLista.classList.add('active');
+        vistaCards.classList.remove('active');
+        contenidoLista.classList.remove('d-none');
+        contenidoCards.classList.add('d-none');
+    });
+    
+    vistaCards.addEventListener('click', function() {
+        vistaCards.classList.add('active');
+        vistaLista.classList.remove('active');
+        contenidoCards.classList.remove('d-none');
+        contenidoLista.classList.add('d-none');
+    });
+    
+    // Filtro por año
+    const filtroAño = document.getElementById('filtroAño');
+    filtroAño.addEventListener('change', function() {
+        const añoSeleccionado = this.value;
+        const filas = document.querySelectorAll('[data-año]');
+        
+        filas.forEach(fila => {
+            if (añoSeleccionado === '' || fila.dataset.año === añoSeleccionado) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    });
+    
+    // Animaciones en tabs
+    const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+    tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            const targetPane = document.querySelector(e.target.getAttribute('data-bs-target'));
+            targetPane.classList.add('slide-in');
+            setTimeout(() => {
+                targetPane.classList.remove('slide-in');
+            }, 400);
+        });
+    });
+    
+    // Formulario crear periodo
+    const formCrear = document.getElementById('formCrearPeriodo');
+    if (formCrear) {
+        formCrear.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Mostrar loading
+            document.getElementById('loadingSpinner').style.display = 'block';
+            
+            // Simular envío (aquí iría la lógica real)
+            setTimeout(() => {
+                document.getElementById('loadingSpinner').style.display = 'none';
+                
+                // Mostrar mensaje de éxito
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    <i class="material-symbols-rounded me-2">check_circle</i>
+                    Periodo creado exitosamente
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                formCrear.insertBefore(alert, formCrear.firstChild);
+                
+                // Limpiar formulario
+                formCrear.reset();
+                
+                // Cambiar a tab de lista
+                document.getElementById('lista-tab').click();
+            }, 2000);
+        });
+    }
+});
+
+// Función para toggle de periodo
+function togglePeriodo(periodoId) {
+    if (confirm('¿Estás seguro de cambiar el estado de este periodo?')) {
+        // Aquí iría la lógica AJAX para cambiar el estado
+        window.location.href = `/datos_academicos/periodos/${periodoId}/toggle-activo/`;
+    }
+}
+
+// Efectos de hover en cards
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.card-hover');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock extra_js %}

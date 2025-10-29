@@ -1,202 +1,179 @@
-{% extends "admision/base.html" %}
+{% extends "layouts/base.html" %}
 {% load static %}
+{% load myfilters %}
 
 {% block title %}Dashboard Administrativo - Admisión{% endblock %}
 
-{% block extra_css %}
-<style>
-    .stats-card {
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s;
-    }
-    
-    .stats-card:hover {
-        transform: translateY(-2px);
-    }
-    
-    .stats-icon {
-        font-size: 3rem;
-        opacity: 0.8;
-    }
-    
-    .chart-container {
-        position: relative;
-        height: 300px;
-    }
-    
-    .quick-actions .btn {
-        margin: 5px;
-    }
-</style>
-{% endblock %}
+{% block breadcrumb %}Admisión / Dashboard{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <!-- Header -->
+<div class="container-main fade-in">
+    <!-- Header con gradiente -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard Administrativo</h2>
-                    <p class="text-muted">Sistema de Admisión - Instituto Tecnológico Superior de Tlaxco</p>
-                </div>
-                <div class="quick-actions">
-                    <a href="{% url 'admision:admin_solicitudes' %}" class="btn btn-primary">
-                        <i class="fas fa-list me-1"></i>Ver Solicitudes
-                    </a>
-                    <a href="{% url 'admin:admision_periodoadmision_changelist' %}" class="btn btn-secondary">
-                        <i class="fas fa-cog me-1"></i>Configurar
-                    </a>
+            <div class="glass-container p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-2">
+                            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">dashboard</span>
+                            Dashboard Administrativo
+                        </h2>
+                        <div class="icon-chip mb-3">
+                            <span class="material-symbols-outlined">school</span>
+                            <span>Sistema de Admisión - Instituto Tecnológico Superior de Tlaxco</span>
+                        </div>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="{% url 'admision:admin_solicitudes' %}" class="btn-gradient-primary me-2">
+                            <span class="material-symbols-outlined me-1">list</span>
+                            Ver Solicitudes
+                        </a>
+                        <a href="{% url 'admin:admision_periodoadmision_changelist' %}" class="btn-gradient-secondary">
+                            <span class="material-symbols-outlined me-1">settings</span>
+                            Configurar
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Estadísticas Generales -->
+    <!-- Estadísticas Generales con diseño moderno -->
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="mb-0">{{ stats.total_solicitudes }}</h3>
-                            <p class="mb-0">Total Solicitudes</p>
-                        </div>
-                        <i class="fas fa-file-alt stats-icon"></i>
+            <div class="animate-card glass-container card-kpi gradient-primary p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-start">
+                        <h3 class="mb-0 fw-bold">{{ stats.total_solicitudes }}</h3>
+                        <p class="mb-0 opacity-75">Total Solicitudes</p>
                     </div>
+                    <span class="material-symbols-outlined" style="font-size: 3rem; opacity: 0.85;">description</span>
                 </div>
             </div>
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="mb-0">{{ stats.fichas_generadas }}</h3>
-                            <p class="mb-0">Fichas Generadas</p>
-                        </div>
-                        <i class="fas fa-file-pdf stats-icon"></i>
+            <div class="animate-card glass-container card-kpi gradient-pink p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-start">
+                        <h3 class="mb-0 fw-bold">{{ stats.fichas_generadas }}</h3>
+                        <p class="mb-0 opacity-75">Fichas Generadas</p>
                     </div>
+                    <span class="material-symbols-outlined" style="font-size: 3rem; opacity: 0.85;">picture_as_pdf</span>
                 </div>
             </div>
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="mb-0">{{ stats.emails_enviados }}</h3>
-                            <p class="mb-0">Emails Enviados</p>
-                        </div>
-                        <i class="fas fa-envelope stats-icon"></i>
+            <div class="animate-card glass-container card-kpi gradient-cyan p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-start">
+                        <h3 class="mb-0 fw-bold">{{ stats.emails_enviados }}</h3>
+                        <p class="mb-0 opacity-75">Emails Enviados</p>
                     </div>
+                    <span class="material-symbols-outlined" style="font-size: 3rem; opacity: 0.85;">mail</span>
                 </div>
             </div>
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card stats-card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="mb-0">{{ periodo_activo.nombre|default:"N/A" }}</h3>
-                            <p class="mb-0">Período Activo</p>
-                        </div>
-                        <i class="fas fa-calendar stats-icon"></i>
+            <div class="animate-card glass-container card-kpi gradient-sunset p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-start">
+                        <h3 class="mb-0 fw-bold">{{ periodo_activo.nombre|default:"N/A" }}</h3>
+                        <p class="mb-0 opacity-75">Período Activo</p>
                     </div>
+                    <span class="material-symbols-outlined" style="font-size: 3rem; opacity: 0.85;">calendar_today</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Estadísticas por Estado -->
+    <!-- Estadísticas por Estado con diseño moderno -->
     <div class="row mb-4">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-chart-bar me-2"></i>Solicitudes por Estado</h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="estadosChart"></canvas>
-                    </div>
+            <div class="animate-card glass-container p-4">
+                <h5 class="mb-4">
+                    <span class="material-symbols-outlined me-2" style="vertical-align: middle;">bar_chart</span>
+                    Solicitudes por Estado
+                </h5>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="estadosChart"></canvas>
                 </div>
             </div>
         </div>
         
         <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-list me-2"></i>Resumen por Estado</h5>
+            <div class="animate-card glass-container p-4">
+                <h5 class="mb-4">
+                    <span class="material-symbols-outlined me-2" style="vertical-align: middle;">list</span>
+                    Resumen por Estado
+                </h5>
+                {% for estado_code, estado_name in estados %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-medium">{{ estado_name }}</span>
+                    <span class="soft-badge">{{ stats.por_estado|dict_get:estado_code|default_if_none:"0" }}</span>
                 </div>
-                <div class="card-body">
-                    {% for estado_code, estado_name in estados %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>{{ estado_name }}</span>
-                        <span class="badge bg-secondary">{{ stats.por_estado|default_if_none:0 }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 
-    <!-- Solicitudes Recientes -->
+    <!-- Solicitudes Recientes con diseño moderno -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5><i class="fas fa-clock me-2"></i>Solicitudes Recientes</h5>
-                    <a href="{% url 'admision:admin_solicitudes' %}" class="btn btn-sm btn-outline-primary">
+            <div class="animate-card glass-container p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">
+                        <span class="material-symbols-outlined me-2" style="vertical-align: middle;">schedule</span>
+                        Solicitudes Recientes
+                    </h5>
+                    <a href="{% url 'admision:admin_solicitudes' %}" class="btn-gradient-primary btn-sm">
+                        <span class="material-symbols-outlined me-1">visibility</span>
                         Ver todas
                     </a>
                 </div>
-                <div class="card-body">
-                    {% if solicitudes_recientes %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Folio</th>
-                                    <th>CURP</th>
-                                    <th>Email</th>
-                                    <th>Estado</th>
-                                    <th>Fecha</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for solicitud in solicitudes_recientes %}
-                                <tr>
-                                    <td><strong>{{ solicitud.folio }}</strong></td>
-                                    <td>{{ solicitud.curp }}</td>
-                                    <td>{{ solicitud.email }}</td>
-                                    <td>
-                                        <span class="badge bg-{% if solicitud.estado == 'aceptada' %}success{% elif solicitud.estado == 'rechazado' %}danger{% elif solicitud.estado == 'en_revision' %}warning{% else %}secondary{% endif %}">
-                                            {{ solicitud.get_estado_display }}
-                                        </span>
-                                    </td>
-                                    <td>{{ solicitud.fecha_registro|date:"d/m/Y H:i" }}</td>
-                                    <td>
-                                        <a href="{% url 'admision:admin_ver_solicitud' solicitud.id %}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No hay solicitudes recientes</p>
-                    </div>
-                    {% endif %}
+                {% if solicitudes_recientes %}
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Folio</th>
+                                <th>CURP</th>
+                                <th>Email</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for solicitud in solicitudes_recientes %}
+                            <tr>
+                                <td><strong>{{ solicitud.folio }}</strong></td>
+                                <td>{{ solicitud.curp }}</td>
+                                <td>{{ solicitud.email }}</td>
+                                <td>
+                                    <span class="soft-badge {% if solicitud.estado == 'aceptada' %}bg-success{% elif solicitud.estado == 'rechazado' %}bg-danger{% elif solicitud.estado == 'en_revision' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ solicitud.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>{{ solicitud.fecha_registro|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'admision:admin_ver_solicitud' solicitud.id %}" class="btn-gradient-primary btn-sm">
+                                        <span class="material-symbols-outlined">visibility</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <span class="material-symbols-outlined mb-3" style="font-size: 4rem; color: #6c757d;">inbox</span>
+                    <p class="text-muted">No hay solicitudes recientes</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -204,36 +181,35 @@
     <!-- Acciones Rápidas -->
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-bolt me-2"></i>Acciones Rápidas</h5>
+            <div class="glass-container p-4 animate-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="material-symbols-outlined me-2">bolt</span>
+                    <h5 class="mb-0">Acciones Rápidas</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'admin:admision_periodoadmision_add' %}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-plus-circle mb-2 d-block" style="font-size: 2rem;"></i>
-                                Nuevo Período
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'admision:admin_formularios' %}" class="btn btn-outline-success w-100">
-                                <i class="fas fa-edit mb-2 d-block" style="font-size: 2rem;"></i>
-                                Configurar Formularios
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'admision:admin_solicitudes' %}?estado=en_revision" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-search mb-2 d-block" style="font-size: 2rem;"></i>
-                                Revisar Pendientes
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'admin:admision_configuracionadmision_changelist' %}" class="btn btn-outline-info w-100">
-                                <i class="fas fa-cogs mb-2 d-block" style="font-size: 2rem;"></i>
-                                Configuración
-                            </a>
-                        </div>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin:admision_periodoadmision_add' %}" class="btn-gradient-primary w-100">
+                            <span class="material-symbols-outlined mb-1 d-block">add_circle</span>
+                            Nuevo Período
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admision:admin_formularios' %}" class="btn-gradient-success w-100">
+                            <span class="material-symbols-outlined mb-1 d-block">edit</span>
+                            Configurar Formularios
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admision:admin_solicitudes' %}?estado=en_revision" class="btn-gradient-secondary w-100">
+                            <span class="material-symbols-outlined mb-1 d-block">search</span>
+                            Revisar Pendientes
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'admin:admision_configuracionadmision_changelist' %}" class="btn-gradient-secondary w-100">
+                            <span class="material-symbols-outlined mb-1 d-block">tune</span>
+                            Configuración
+                        </a>
                     </div>
                 </div>
             </div>

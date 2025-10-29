@@ -281,15 +281,7 @@
                             </div>
                         </button>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <button type="button" class="btn btn-warning btn-lg w-100 shadow-sm" onclick="mostrarFormularioReinscripcion()">
-                            <i class="fas fa-user-edit me-2"></i>
-                            <div>
-                                <strong>Reinscripción</strong>
-                                <small class="d-block">Proceso de reinscripción</small>
-                            </div>
-                        </button>
-                    </div>
+                    
             <li class="list-group-item border-0 d-flex justify-content-between ps-0 border-radius-lg">
               <div class="d-flex align-items-center">
                 <div class="icon icon-shape icon-sm me-3 bg-gradient-info shadow text-center">
@@ -342,30 +334,6 @@
     </div>
 </div>
 
-<!-- Modal para Reinscripción -->
-<div class="modal fade" id="reinscripcionModal" tabindex="-1" aria-labelledby="reinscripcionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title" id="reinscripcionModalLabel">
-                    <i class="fas fa-user-edit me-2"></i>Reinscripción de Alumno
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="reinscripcionFormContainer">
-                    <!-- El formulario se cargará aquí dinámicamente -->
-                    <div class="text-center">
-                        <div class="spinner-border text-warning" role="status">
-                            <span class="visually-hidden">Cargando...</span>
-                        </div>
-                        <p class="mt-2">Cargando formulario de reinscripción...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -548,39 +516,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
-    // Función para mostrar formulario de reinscripción
-    window.mostrarFormularioReinscripcion = function() {
-        const modal = new bootstrap.Modal(document.getElementById('reinscripcionModal'));
-        const container = document.getElementById('reinscripcionFormContainer');
-        
-        // Mostrar loading
-        container.innerHTML = `
-            <div class="text-center">
-                <div class="spinner-border text-warning" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mt-2">Cargando formulario de reinscripción...</p>
-            </div>
-        `;
-        
-        modal.show();
-        
-        // Cargar formulario dinámicamente
-        fetch('/datos_academicos/reinscripcion/nueva/')
-            .then(response => response.text())
-            .then(html => {
-                container.innerHTML = html;
-            })
-            .catch(error => {
-                container.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Error al cargar el formulario de reinscripción. Por favor, intente nuevamente.
-                    </div>
-                `;
-                console.error('Error:', error);
-            });
-    }
     
     // Función para procesar formulario de inscripción
     function procesarInscripcion(form) {
@@ -655,78 +590,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return false; // Prevenir envío normal del formulario
     }
     
-    // Función para procesar formulario de reinscripción
-    window.procesarReinscripcion = function(form) {
-        const formData = new FormData(form);
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        
-        // Mostrar loading en botón
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
-        submitBtn.disabled = true;
-        
-        fetch('/datos_academicos/reinscripcion/crear/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Mostrar mensaje de éxito
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Reinscripción Exitosa!',
-                    html: `
-                        <p>Folio: <strong>${data.folio}</strong></p>
-                        <p>La reinscripción ha sido registrada correctamente.</p>
-                        <div class="mt-3">
-                            <a href="/datos_academicos/reinscripcion/${data.reinscripcion_id}/documento/" 
-                               class="btn btn-primary btn-sm" target="_blank">
-                                <i class="fas fa-download me-2"></i>Descargar Formato
-                            </a>
-                        </div>
-                    `,
-                    confirmButtonText: 'Cerrar'
-                }).then(() => {
-                    // Cerrar modal y recargar datos
-                    bootstrap.Modal.getInstance(document.getElementById('reinscripcionModal')).hide();
-                    location.reload();
-                });
-            } else {
-                // Mostrar errores
-                let errorMsg = 'Por favor, corrija los siguientes errores:\n';
-                for (let field in data.errors) {
-                    errorMsg += `- ${data.errors[field].join(', ')}\n`;
-                }
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error en la Reinscripción',
-                    text: errorMsg,
-                    confirmButtonText: 'Aceptar'
-                });
-            }
-        })
-        .catch(error => {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error del Sistema',
-                text: 'Ocurrió un error al procesar la reinscripción. Por favor, intente nuevamente.',
-                confirmButtonText: 'Aceptar'
-            });
-            console.error('Error:', error);
-        })
-        .finally(() => {
-            // Restaurar botón
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        });
-        
-        return false; // Prevenir envío normal del formulario
-    }
 
     // Funciones de utilidad
     window.generarReporteAlumnos = function() {

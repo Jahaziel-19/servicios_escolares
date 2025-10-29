@@ -4,10 +4,11 @@ from rest_framework.routers import DefaultRouter
 from . import views
 # from . import views_inscripcion_simple
 from . import views_inscripciones_panel
-from . import views_reinscripcion
 from . import views_auth
 from . import views_inscripcion_nueva
 from . import views_inscripcion_publico
+from . import views_periodos
+from . import views_reinscripcion
 
 router = DefaultRouter()
 router.register(r'ciclo_escolar', views.PeriodoEscolarViewSet)
@@ -40,16 +41,20 @@ urlpatterns = [
     path('inscripciones/publicas/', views_inscripciones_panel.inscripciones_publicas_listar, name='inscripciones_publicas_listar'),
     path('inscripciones/publicas/<int:pk>/', views_inscripciones_panel.inscripcion_publica_detalle, name='inscripcion_publica_detalle'),
 
-    # Reinscripciones (listar y detalle)
-    path('reinscripciones/', views_reinscripcion.reinscripciones_listar, name='reinscripciones_listar'),
-    path('reinscripciones/<int:pk>/', views_reinscripcion.reinscripcion_detalle, name='reinscripcion_detalle'),
+    # Reinscripción (panel y flujo interno)
+    path('reinscripcion/', views_reinscripcion.reinscripcion_panel, name='reinscripcion_panel'),
+    path('reinscripcion/iniciar/', views_reinscripcion.reinscripcion_iniciar_form, name='reinscripcion_iniciar_form'),
+    path('reinscripcion/<int:alumno_id>/iniciar/', views_reinscripcion.reinscripcion_iniciar, name='reinscripcion_iniciar'),
+    path('reinscripcion/<int:reins_id>/', views_reinscripcion.reinscripcion_detalle, name='reinscripcion_detalle'),
+    path('reinscripcion/<int:reins_id>/validar/documentos/', views_reinscripcion.reinscripcion_validar_documentos, name='reinscripcion_validar_documentos'),
+    path('reinscripcion/<int:reins_id>/validar/pagos/', views_reinscripcion.reinscripcion_validar_pagos, name='reinscripcion_validar_pagos'),
+    path('reinscripcion/<int:reins_id>/asignar/materias/', views_reinscripcion.reinscripcion_asignar_materias, name='reinscripcion_asignar_materias'),
+    path('reinscripcion/<int:reins_id>/eliminar/item/<int:item_id>/', views_reinscripcion.reinscripcion_eliminar_materia_item, name='reinscripcion_eliminar_materia_item'),
+    path('reinscripcion/<int:reins_id>/confirmar/', views_reinscripcion.reinscripcion_confirmar, name='reinscripcion_confirmar'),
+    path('reinscripcion/<int:reins_id>/pago/registrar/', views_reinscripcion.reinscripcion_registrar_pago, name='reinscripcion_registrar_pago'),
+    path('reinscripcion/<int:reins_id>/carga/pdf/', views_reinscripcion.reinscripcion_subir_carga_pdf, name='reinscripcion_subir_carga_pdf'),
 
-    # Flujo de reinscripción (formulario y creación)
-    path('reinscripcion/nueva/', views.reinscripcion_nueva, name='reinscripcion_nueva'),
-    path('reinscripcion/crear/', views.reinscripcion_crear, name='reinscripcion_crear'),
-
-    # Documento de reinscripción
-    path('reinscripcion/<int:reinscripcion_id>/documento/', views.generar_documento_reinscripcion, name='generar_documento_reinscripcion'),
+    # (Reinscripción removida temporalmente)
     
     # Gestión de alumnos por servicios escolares
     path('alumnos/gestion/', views.gestion_alumnos, name='gestion_alumnos'),
@@ -93,6 +98,15 @@ urlpatterns = [
     path('planes/nuevo/', views.plan_estudio_create, name='plan_estudio_create'),
     path('planes/<int:pk>/', views.plan_estudio_detail, name='plan_estudio_detail'),
     path('planes/<int:pk>/editar/', views.plan_estudio_edit, name='plan_estudio_edit'),
+
+    # Periodos
+    path('periodos/', views_periodos.periodos_panel, name='periodos_panel'),
+    path('periodos/lista/', views_periodos.periodos_listar, name='periodos_listar'),
+    path('periodos/editar/', views_periodos.periodo_editar, name='periodo_editar'),
+    path('periodos/<int:periodo_id>/editar/', views_periodos.periodo_editar, name='periodo_editar'),
+    path('periodos/<int:periodo_id>/toggle-activo/', views_periodos.periodo_toggle_activo, name='periodo_toggle_activo'),
+    path('periodos/transicion/aplicar/', views_periodos.periodo_aplicar_transicion, name='periodo_aplicar_transicion'),
+    
     
     # ========== AUTENTICACIÓN DE ALUMNOS ==========
     # Sistema de login y portal para estudiantes

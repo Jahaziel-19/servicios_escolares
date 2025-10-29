@@ -1,0 +1,143 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{% if periodo %}Editar Periodo{% else %}Crear Periodo{% endif %}{% endblock %}
+
+{% block page_title %}{% if periodo %}Editar Periodo Académico{% else %}Crear Periodo Académico{% endif %}{% endblock %}
+{% block breadcrumb %}Gestión / Periodos / {% if periodo %}Editar{% else %}Crear{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 fade-in">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <div class="icon-chip me-3">
+            <i class="material-symbols-rounded">calendar_month</i>
+          </div>
+          <div>
+            <h2 class="mb-0">{% if periodo %}Editar{% else %}Crear{% endif %} periodo académico</h2>
+            <p class="text-muted mb-0">Define ciclo, fechas y estado del periodo</p>
+          </div>
+        </div>
+        <div>
+          <a href="{% url 'datos_academicos:periodos_listar' %}" class="btn btn-outline-secondary">
+            <i class="material-symbols-rounded">arrow_back</i>
+            Regresar
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="row">
+    <div class="col-12 col-lg-10">
+      <div class="card animate-card">
+        <div class="card-header pb-0">
+          <div class="d-flex align-items-center">
+            <i class="material-symbols-rounded text-primary me-2">edit_calendar</i>
+            <h6 class="mb-0">Datos del periodo</h6>
+          </div>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+              {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Ciclo</label>
+                {{ form.ciclo }}
+                {% if form.ciclo.errors %}
+                  <div class="text-danger small">{{ form.ciclo.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Año</label>
+                {{ form.año }}
+                {% if form.año.errors %}
+                  <div class="text-danger small">{{ form.año.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-4 d-flex align-items-end">
+                <div class="form-check form-switch">
+                  {{ form.activo }}
+                  <label class="form-check-label">Activo</label>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Fecha inicio</label>
+                {{ form.fecha_inicio }}
+                {% if form.fecha_inicio.errors %}
+                  <div class="text-danger small">{{ form.fecha_inicio.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Fecha fin</label>
+                {{ form.fecha_fin }}
+                {% if form.fecha_fin.errors %}
+                  <div class="text-danger small">{{ form.fecha_fin.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Inicio vacaciones</label>
+                {{ form.inicio_vacaciones }}
+                {% if form.inicio_vacaciones.errors %}
+                  <div class="text-danger small">{{ form.inicio_vacaciones.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Fin vacaciones</label>
+                {{ form.fin_vacaciones }}
+                {% if form.fin_vacaciones.errors %}
+                  <div class="text-danger small">{{ form.fin_vacaciones.errors|striptags }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+              <a href="{% url 'datos_academicos:periodos_listar' %}" class="btn btn-outline-secondary me-2">
+                <i class="material-symbols-rounded">close</i>
+                Cancelar
+              </a>
+              <button type="submit" class="btn btn-gradient-primary">
+                <i class="material-symbols-rounded">save</i>
+                Guardar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help card -->
+    <div class="col-12 col-lg-2">
+      <div class="card help-card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <i class="material-symbols-rounded text-info me-2">info</i>
+            <h6 class="mb-0">Tips</h6>
+          </div>
+          <ul class="text-sm text-muted ps-3">
+            <li>El ciclo puede ser "ENE-JUN" o "AGO-DIC".</li>
+            <li>Fechas deben ser coherentes y no traslaparse.</li>
+            <li>Activa el periodo para habilitar inscripciones.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

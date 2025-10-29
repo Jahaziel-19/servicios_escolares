@@ -1,0 +1,47 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Nueva Residencia{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Nueva Residencia</h2>
+    <a href="{% url 'procedimientos:residencias_panel' %}" class="btn btn-outline-secondary">Volver al panel</a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card">
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">{{ form.alumno.label_tag }}{{ form.alumno }}</div>
+          <div class="col-md-6">{{ form.periodo_escolar.label_tag }}{{ form.periodo_escolar }}</div>
+
+          <div class="col-md-6">{{ form.empresa.label_tag }}{{ form.empresa }}</div>
+          <div class="col-md-6">{{ form.proyecto.label_tag }}{{ form.proyecto }}</div>
+
+          <div class="col-md-6">{{ form.asesor_interno.label_tag }}{{ form.asesor_interno }}</div>
+          <div class="col-md-6">{{ form.asesor_externo.label_tag }}{{ form.asesor_externo }}</div>
+
+          <div class="col-md-4">{{ form.fecha_inicio.label_tag }}{{ form.fecha_inicio }}</div>
+          <div class="col-md-4">{{ form.fecha_fin.label_tag }}{{ form.fecha_fin }}</div>
+          <div class="col-md-4">{{ form.horas_programadas.label_tag }}{{ form.horas_programadas }}</div>
+
+          <div class="col-md-4">{{ form.estado.label_tag }}{{ form.estado }}</div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">Guardar</button>
+          <a href="{% url 'procedimientos:residencias_panel' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

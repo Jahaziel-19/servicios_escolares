@@ -24,9 +24,10 @@ from . import views
 urlpatterns = [
     
     #Rutas generales
-    path('inicio/', views.home, name='home'),
+    path('', views.public_home, name='home_root'),
     path('configuracion/', views.configuracion, name='configuracion'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('styleguide/', views.styleguide, name='styleguide'),
 
     # Rutas admin
     path('admin/', admin.site.urls),
@@ -36,11 +37,11 @@ urlpatterns = [
 
     # Rutas apps
     path('formbuilder/', include('formbuilder.urls')),
-    path('datos_academicos/', include('datos_academicos.urls')),
+    path('datos_academicos/', include(('datos_academicos.urls', 'datos_academicos'), namespace='datos_academicos')),
     path('docsbuilder/', include('docsbuilder.urls')),
     path('excel_importer/', include('excel_importer.urls')),
     path('procedimientos/', include('procedimientos.urls')),
-    path('admision/', include('admision.urls')),
+    path('admision/', include(('admision.urls', 'admision'), namespace='admision')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 

@@ -4,8 +4,9 @@ from io import BytesIO
 from django.http import HttpResponse
 from django.conf import settings
 import os
-from .models_inscripcion import Inscripcion, Reinscripcion
+from .models_inscripcion import Inscripcion
 from .models import Alumno, Carrera, PeriodoEscolar
+from openpyxl import load_workbook
 
 
 def generar_formato_inscripcion(inscripcion_id, plantilla_path=None):
@@ -58,52 +59,7 @@ def generar_formato_inscripcion(inscripcion_id, plantilla_path=None):
 
 
 def generar_formato_reinscripcion(reinscripcion_id, plantilla_path=None):
-    """
-    Genera el formato de reinscripción en formato DOCX usando una plantilla
-    """
-    try:
-        reinscripcion = Reinscripcion.objects.get(id=reinscripcion_id)
-        
-        # Usar plantilla por defecto si no se especifica una
-        if not plantilla_path:
-            plantilla_path = os.path.join(
-                settings.MEDIA_ROOT, 
-                'plantillas', 
-                'formato_reinscripcion.docx'
-            )
-        
-        # Verificar que existe la plantilla
-        if not os.path.exists(plantilla_path):
-            raise FileNotFoundError(f"No se encontró la plantilla en: {plantilla_path}")
-        
-        # Crear contexto con datos de la reinscripción
-        contexto = crear_contexto_reinscripcion(reinscripcion)
-        
-        # Generar documento
-        doc = DocxTemplate(plantilla_path)
-        doc.render(contexto)
-        
-        # Crear buffer para la respuesta
-        buffer = BytesIO()
-        doc.save(buffer)
-        buffer.seek(0)
-        
-        # Crear nombre del archivo
-        nombre_archivo = f"reinscripcion_{reinscripcion.folio}_{reinscripcion.alumno.matricula}.docx"
-        
-        # Crear respuesta HTTP
-        response = HttpResponse(
-            buffer.getvalue(),
-            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        )
-        response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
-        
-        return response
-        
-    except Reinscripcion.DoesNotExist:
-        raise ValueError(f"No se encontró la reinscripción con ID: {reinscripcion_id}")
-    except Exception as e:
-        raise Exception(f"Error al generar formato de reinscripción: {str(e)}")
+    raise NotImplementedError('Función de reinscripción eliminada')
 
 
 def crear_contexto_inscripcion(inscripcion):
@@ -170,73 +126,18 @@ def crear_contexto_inscripcion(inscripcion):
 
 
 def crear_contexto_reinscripcion(reinscripcion):
-    """
-    Crea el contexto de variables para el formato de reinscripción
-    """
-    alumno = reinscripcion.alumno
-    
-    contexto = {
-        # Información básica
-        'folio': reinscripcion.folio,
-        'fecha_reinscripcion': reinscripcion.fecha_reinscripcion.strftime('%d/%m/%Y'),
-        'fecha_emision': datetime.now().strftime('%d/%m/%Y'),
-        
-        # Datos del alumno
-        'matricula': alumno.matricula,
-        'nombre_completo': f"{alumno.nombre} {alumno.apellido_paterno} {alumno.apellido_materno}".strip(),
-        'nombre': alumno.nombre,
-        'apellido_paterno': alumno.apellido_paterno,
-        'apellido_materno': alumno.apellido_materno,
-        'curp': alumno.curp,
-        
-        # Datos académicos actuales
-        'carrera_actual': alumno.carrera.nombre if alumno.carrera else '',
-        'semestre_actual': alumno.semestre,
-        'promedio_actual': str(alumno.promedio) if alumno.promedio else '',
-        'creditos_aprobados': str(alumno.creditos_aprobados) if alumno.creditos_aprobados else '',
-        'estatus_actual': alumno.get_estatus_display(),
-        
-        # Datos de reinscripción
-        'periodo_escolar': str(reinscripcion.periodo_escolar) if reinscripcion.periodo_escolar else '',
-        'semestre_reinscripcion': reinscripcion.semestre,
-        'motivo_reinscripcion': reinscripcion.get_motivo_reinscripcion_display(),
-        'observaciones': reinscripcion.observaciones or '',
-        
-        # Datos específicos según el motivo
-        'fecha_baja': reinscripcion.fecha_baja.strftime('%d/%m/%Y') if reinscripcion.fecha_baja else '',
-        'motivo_baja': reinscripcion.motivo_baja or '',
-        'carrera_anterior': reinscripcion.carrera_anterior.nombre if reinscripcion.carrera_anterior else '',
-        'carrera_nueva': reinscripcion.carrera_nueva.nombre if reinscripcion.carrera_nueva else '',
-        
-        # Contacto actualizado
-        'telefono_actualizado': reinscripcion.telefono_actualizado or alumno.telefono or '',
-        'email_actualizado': reinscripcion.email_actualizado or alumno.email or '',
-        
-        # Estado del proceso
-        'estatus': reinscripcion.get_estatus_display(),
-    }
-    
-    return contexto
+    return {}
 
 
 def crear_plantillas_por_defecto():
     """
-    Crea las plantillas por defecto para inscripción y reinscripción si no existen
+    Crea las plantillas por defecto para inscripción si no existen
     """
     plantillas_dir = os.path.join(settings.MEDIA_ROOT, 'plantillas')
-    
-    # Crear directorio si no existe
     os.makedirs(plantillas_dir, exist_ok=True)
-    
-    # Plantilla de inscripción
     plantilla_inscripcion = os.path.join(plantillas_dir, 'formato_inscripcion.docx')
     if not os.path.exists(plantilla_inscripcion):
         crear_plantilla_inscripcion_basica(plantilla_inscripcion)
-    
-    # Plantilla de reinscripción
-    plantilla_reinscripcion = os.path.join(plantillas_dir, 'formato_reinscripcion.docx')
-    if not os.path.exists(plantilla_reinscripcion):
-        crear_plantilla_reinscripcion_basica(plantilla_reinscripcion)
 
 
 def crear_plantilla_inscripcion_basica(ruta_archivo):
@@ -312,57 +213,41 @@ def crear_plantilla_inscripcion_basica(ruta_archivo):
 
 
 def crear_plantilla_reinscripcion_basica(ruta_archivo):
+    pass
+
+
+# Módulo: utils_inscripcion (añadir funciones)
+def validar_documentos_y_pagos(matricula: str, folio_pago: str = '', referencia: str = '') -> dict:
     """
-    Crea una plantilla básica de reinscripción con variables de ejemplo
+    Valida documentos y pagos contra archivos Excel en la carpeta de producto no conforme.
+    Busca coincidencias por matrícula y/o referencias/folios.
     """
-    from docx import Document
-    
-    doc = Document()
-    
-    # Título
-    titulo = doc.add_heading('FORMATO DE REINSCRIPCIÓN', 0)
-    titulo.alignment = 1  # Centrado
-    
-    # Información básica
-    doc.add_heading('INFORMACIÓN BÁSICA', level=1)
-    doc.add_paragraph(f'Folio: {{{{ folio }}}}')
-    doc.add_paragraph(f'Fecha de reinscripción: {{{{ fecha_reinscripcion }}}}')
-    doc.add_paragraph(f'Período escolar: {{{{ periodo_escolar }}}}')
-    
-    # Datos del alumno
-    doc.add_heading('DATOS DEL ALUMNO', level=1)
-    doc.add_paragraph(f'Matrícula: {{{{ matricula }}}}')
-    doc.add_paragraph(f'Nombre completo: {{{{ nombre_completo }}}}')
-    doc.add_paragraph(f'CURP: {{{{ curp }}}}')
-    doc.add_paragraph(f'Carrera actual: {{{{ carrera_actual }}}}')
-    doc.add_paragraph(f'Semestre actual: {{{{ semestre_actual }}}}')
-    doc.add_paragraph(f'Promedio: {{{{ promedio_actual }}}}')
-    doc.add_paragraph(f'Créditos aprobados: {{{{ creditos_aprobados }}}}')
-    
-    # Datos de reinscripción
-    doc.add_heading('DATOS DE REINSCRIPCIÓN', level=1)
-    doc.add_paragraph(f'Semestre a cursar: {{{{ semestre_reinscripcion }}}}')
-    doc.add_paragraph(f'Motivo de reinscripción: {{{{ motivo_reinscripcion }}}}')
-    doc.add_paragraph(f'Observaciones: {{{{ observaciones }}}}')
-    
-    # Información adicional (condicional)
-    doc.add_heading('INFORMACIÓN ADICIONAL', level=1)
-    doc.add_paragraph(f'Fecha de baja: {{{{ fecha_baja }}}}')
-    doc.add_paragraph(f'Motivo de baja: {{{{ motivo_baja }}}}')
-    doc.add_paragraph(f'Carrera anterior: {{{{ carrera_anterior }}}}')
-    doc.add_paragraph(f'Nueva carrera: {{{{ carrera_nueva }}}}')
-    
-    # Contacto actualizado
-    doc.add_heading('CONTACTO ACTUALIZADO', level=1)
-    doc.add_paragraph(f'Teléfono: {{{{ telefono_actualizado }}}}')
-    doc.add_paragraph(f'Email: {{{{ email_actualizado }}}}')
-    
-    # Estado del proceso
-    doc.add_heading('ESTADO DEL PROCESO', level=1)
-    
-    # Firmas
-    doc.add_paragraph('\n\n')
-    doc.add_paragraph('_' * 30 + '                    ' + '_' * 30)
-    doc.add_paragraph('Firma del alumno                           Firma del responsable')
-    
-    doc.save(ruta_archivo)
+    base_dir = r"C:\Users\Jahaziel\Documents\GitHub\servicios_escolares\backend\servicios_escolares\base de datos\Procesos\producto no conforme"
+    resultados = {'valido': True, 'errores': [], 'detalles': []}
+
+    try:
+        for nombre in os.listdir(base_dir):
+            if not nombre.lower().endswith(('.xlsx', '.xlsm')):
+                continue
+            wb = load_workbook(os.path.join(base_dir, nombre), data_only=True)
+            for ws in wb.worksheets:
+                # Escanear filas buscando problemas
+                for row in ws.iter_rows(values_only=True):
+                    if not row:
+                        continue
+                    row_str = ' '.join([str(c) for c in row if c is not None]).lower()
+                    if matricula and matricula.lower() in row_str:
+                        resultados['valido'] = False
+                        resultados['errores'].append('Producto no conforme asociado a la matrícula')
+                        resultados['detalles'].append({'archivo': nombre, 'hoja': ws.title, 'fila': row})
+                    if folio_pago and folio_pago.lower() in row_str:
+                        resultados['valido'] = False
+                        resultados['errores'].append('Folio de pago observado en producto no conforme')
+                        resultados['detalles'].append({'archivo': nombre, 'hoja': ws.title, 'fila': row})
+                    if referencia and referencia.lower() in row_str:
+                        resultados['valido'] = resultados['valido'] and False
+                        resultados['errores'].append('Referencia observada en producto no conforme')
+                        resultados['detalles'].append({'archivo': nombre, 'hoja': ws.title, 'fila': row})
+        return resultados
+    except Exception as e:
+        return {'valido': False, 'errores': [f'Error al validar: {str(e)}'], 'detalles': []}

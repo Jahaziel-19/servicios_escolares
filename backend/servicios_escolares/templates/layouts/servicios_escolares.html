@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% include "includes/head_servicios.html" %}
+
+    <style>
+        /* Ajustes básicos para independencia del layout */
+        :root { --color-primary: #1D4ED8; }
+        .sidenav { transition: transform .35s ease, width .25s ease, opacity .25s ease; will-change: transform, width; z-index: 1051; }
+        .sidenav-overlay { position: fixed; inset: 0; background: rgba(16, 24, 40, 0.35); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); display: none; z-index: 1040; }
+        @media (max-width: 1199.98px) {
+            body.g-sidenav-show:not(.g-sidenav-pinned) .sidenav,
+            body:not(.g-sidenav-pinned) .sidenav,
+            #sidenav-main { transform: translate3d(-110%, 0, 0) !important; opacity: 0.98; }
+            body.g-sidenav-show.g-sidenav-pinned .sidenav,
+            body.g-sidenav-pinned .sidenav,
+            body.g-sidenav-pinned #sidenav-main { transform: translate3d(0, 0, 0) !important; opacity: 1; }
+            body.g-sidenav-show.g-sidenav-pinned .sidenav-overlay,
+            body.g-sidenav-pinned .sidenav-overlay { display: block; }
+            .sidenav { margin-left: 0 !important; }
+        }
+        @media (min-width: 1199.98px) {
+            body.g-sidenav-show .sidenav.fixed-start + .main-content { margin-left: 14rem; }
+        }
+    </style>
+</head>
+
+<body data-theme="{{ theme_name|default:'servicios' }}" class="g-sidenav-show bg-gray-100">
+
+    {% block sidebar %}
+        {% if request.user.is_authenticated %}
+            {% if request.user.is_superuser or theme_name == 'servicios' %}
+                {% include "includes/sidebar_material.html" %}
+            {% endif %}
+        {% endif %}
+    {% endblock sidebar %}
+
+    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+        {% block navigation %}
+            {% include "includes/navigation.html" %}
+        {% endblock navigation %}
+
+        <div class="se-container">
+            {% block se_header %}{% endblock se_header %}
+            {% block se_tabs %}{% endblock se_tabs %}
+            <div class="mt-3">
+                {% block se_content %}{% endblock se_content %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Overlay para cerrar el sidebar en móvil -->
+    <div id="sidenav-overlay" class="sidenav-overlay" aria-hidden="true"></div>
+
+    {% include "includes/scripts_servicios.html" %}
+
+    {% include "includes/modal_periodo.html" %}
+    {% include "includes/success_modal.html" %}
+    {% include "includes/error_modal.html" %}
+    {% include "includes/success_auto_modal.html" %}
+
+</body>
+</html>

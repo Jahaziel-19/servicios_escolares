@@ -1,0 +1,131 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Periodos Académicos{% endblock %}
+
+{% block page_title %}Periodos Académicos{% endblock %}
+{% block breadcrumb %}Gestión / Periodos{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 fade-in">
+    <!-- Header con chip de icono -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="icon-chip me-3">
+                        <i class="material-symbols-rounded">calendar_month</i>
+                    </div>
+                    <div>
+                        <h2 class="mb-0">Gestión de Periodos Académicos</h2>
+                        <p class="text-muted mb-0">Administración de ciclos escolares</p>
+                    </div>
+                </div>
+                <div>
+                    <a href="{% url 'datos_academicos:periodo_editar' %}" class="btn btn-gradient-primary btn-icon">
+                        <i class="material-symbols-rounded">add</i>
+                        Crear nuevo periodo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta principal con tabla moderna -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card animate-card">
+                <div class="card-header pb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="material-symbols-rounded text-primary me-2">view_list</i>
+                        <h6 class="mb-0">Listado de Periodos</h6>
+                    </div>
+                </div>
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div class="table-responsive p-0">
+                        <table class="table table modern align-items-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-white text-xxs font-weight-bolder opacity-10">Periodo</th>
+                                    <th class="text-uppercase text-white text-xxs font-weight-bolder opacity-10 ps-2">Fechas</th>
+                                    <th class="text-center text-uppercase text-white text-xxs font-weight-bolder opacity-10">Estado</th>
+                                    <th class="text-center text-uppercase text-white text-xxs font-weight-bolder opacity-10">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in periodos %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">{{ p.ciclo }} {{ p.año }}</h6>
+                                                <p class="text-xs text-secondary mb-0">ID: {{ p.id }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="text-xs font-weight-bold mb-0">{{ p.fecha_inicio|date:"d/m/Y" }}</p>
+                                        <p class="text-xs text-secondary mb-0">{{ p.fecha_fin|date:"d/m/Y" }}</p>
+                                    </td>
+                                    <td class="align-middle text-center text-sm">
+                                        {% if p.activo %}
+                                            <span class="badge badge-soft-success">Activo</span>
+                                        {% else %}
+                                            <span class="badge badge-soft text-dark">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <a href="{% url 'datos_academicos:periodo_editar' p.id %}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                                            <i class="material-symbols-rounded text-xs">edit</i>
+                                        </a>
+                                        <a href="{% url 'datos_academicos:periodo_toggle_activo' p.id %}" class="btn btn-sm btn-outline-secondary" title="Cambiar estado">
+                                            <i class="material-symbols-rounded text-xs">{% if p.activo %}toggle_on{% else %}toggle_off{% endif %}</i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="material-symbols-rounded opacity-6" style="font-size: 3rem;">calendar_month</i>
+                                            <p class="mb-0">No hay periodos registrados</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloque de ayuda -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card help-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center">
+                                <i class="material-symbols-rounded text-info me-3" style="font-size: 2rem;">help</i>
+                                <div>
+                                    <h6 class="mb-1">¿Necesitas ayuda con los periodos académicos?</h6>
+                                    <p class="text-sm text-muted mb-0">Gestiona los ciclos escolares, activa/desactiva periodos y configura fechas importantes.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-outline-info btn-sm">
+                                <i class="material-symbols-rounded me-1">support</i>
+                                Documentación
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

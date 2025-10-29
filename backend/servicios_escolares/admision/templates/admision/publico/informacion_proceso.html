@@ -1,11 +1,161 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    
-</body>
-</html>
+{% extends 'admision/publico/base_publico.html' %}
+
+{% block title %}{{ title|default:"Información del Proceso de Admisión" }}{% endblock %}
+{% block meta_description %}{{ meta_description|default:'Conoce el proceso de admisión, pasos y carreras disponibles.' }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .info-hero {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: #fff;
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .info-hero h1 { font-weight: 700; margin: 0; }
+    .info-hero p { margin: 0.5rem 0 0; opacity: 0.95; }
+
+    .periodo-banner {
+        background: rgba(255,255,255,0.95);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-left: 4px solid var(--info-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .periodo-fechas { font-size: 0.95rem; color: #425466; }
+
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0 2rem;
+    }
+    .step-card {
+        background: rgba(255,255,255,0.95);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        border: 1px solid rgba(255,255,255,0.4);
+        padding: 1.25rem;
+    }
+    .step-title { font-weight: 600; color: var(--primary-color); }
+    .step-icon { font-size: 1.25rem; margin-right: 0.35rem; }
+
+    .careers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1rem;
+    }
+    .career-card {
+        background: rgba(255,255,255,0.95);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        border: 1px solid rgba(255,255,255,0.4);
+        padding: 1.25rem;
+    }
+    .career-title { font-weight: 600; color: var(--primary-color); }
+    .career-meta { color: #425466; font-size: 0.95rem; }
+    .mod-badge { background: rgba(25,118,210,0.1); color: var(--secondary-color); border: 1px solid rgba(25,118,210,0.2); padding: 0.15rem 0.5rem; border-radius: 999px; margin-right: 0.35rem; font-size: 0.8rem; }
+
+    .cta-card {
+        background: rgba(255,255,255,0.95);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        border: 1px solid rgba(255,255,255,0.4);
+        padding: 1.5rem;
+        text-align: center;
+        margin-top: 2rem;
+    }
+    .cta-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <div class="info-hero">
+        <h1><i class="bi bi-info-circle step-icon"></i>Información del Proceso de Admisión</h1>
+        <p>Conoce los pasos, fechas y carreras disponibles para ingresar.</p>
+    </div>
+
+    {% if periodo %}
+    <div class="periodo-banner">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h5 class="mb-1">{{ periodo.nombre }}</h5>
+                {% if periodo.descripcion %}
+                <p class="mb-0">{{ periodo.descripcion }}</p>
+                {% endif %}
+            </div>
+            <div class="text-end periodo-fechas">
+                <div><strong>Inicio:</strong> {{ periodo.fecha_inicio|date:"d/m/Y" }}</div>
+                <div><strong>Fin:</strong> {{ periodo.fecha_fin|date:"d/m/Y" }}</div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Actualmente no hay un período de admisión activo. Puedes consultar esta página para conocer el proceso o regresar más tarde.
+    </div>
+    {% endif %}
+
+    <div class="content-body">
+        <h4 class="mb-3">Pasos del proceso</h4>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-title"><i class="bi bi-person-plus step-icon"></i>Registro de aspirante</div>
+                <p class="mb-0">Completa tu solicitud con tus datos personales, académicos y de contacto.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-title"><i class="bi bi-card-checklist step-icon"></i>Revisión y evaluación</div>
+                <p class="mb-0">Tu solicitud es revisada. Se pueden considerar evaluaciones o entrevistas según la carrera.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-title"><i class="bi bi-megaphone step-icon"></i>Resultados</div>
+                <p class="mb-0">Recibirás la notificación del estado de tu solicitud y el siguiente paso a seguir.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-title"><i class="bi bi-file-earmark-text step-icon"></i>Ficha de admisión</div>
+                <p class="mb-0">Genera tu ficha con instrucciones y requisitos para completar tu proceso de inscripción.</p>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Carreras disponibles</h4>
+        <div class="careers-grid">
+            {% for carrera in carreras %}
+            <div class="career-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="career-title">{{ carrera.nombre }}</div>
+                        <div class="career-meta">Duración: {{ carrera.duracion }}</div>
+                    </div>
+                </div>
+                <p class="mt-2 mb-2">{{ carrera.descripcion }}</p>
+                {% if carrera.modalidades %}
+                <div class="mt-2">
+                    {% for modalidad in carrera.modalidades %}
+                    <span class="mod-badge">{{ modalidad }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="cta-card">
+            <h5 class="mb-2">¿Listo para empezar?</h5>
+            <p class="mb-3">Inicia tu registro o consulta el estado de tu solicitud.</p>
+            <div class="cta-actions">
+                <a class="btn btn-primary" href="{% url 'admision:admision_publico:registro_aspirante' %}">
+                    <i class="bi bi-person-plus me-2"></i>Iniciar registro
+                </a>
+                <a class="btn btn-outline-primary" href="{% url 'admision:admision_publico:consultar_solicitud' %}">
+                    <i class="bi bi-search me-2"></i>Consultar solicitud
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

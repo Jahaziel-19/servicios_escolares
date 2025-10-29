@@ -1,0 +1,112 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Emitir Acta de Residencia{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="row align-items-center mb-3">
+    <div class="col">
+      <h4 class="mb-0">Emitir Acta de Residencia</h4>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'procedimientos:residencias_panel' %}">Residencias</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Emitir Acta</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Alumno</label>
+                {{ form.alumno }}
+                {{ form.alumno.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Periodo escolar</label>
+                {{ form.periodo_escolar }}
+                {{ form.periodo_escolar.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Empresa</label>
+                {{ form.empresa }}
+                {{ form.empresa.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Proyecto</label>
+                {{ form.proyecto }}
+                {{ form.proyecto.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Asesor interno</label>
+                {{ form.asesor_interno }}
+                {{ form.asesor_interno.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Asesor externo</label>
+                {{ form.asesor_externo }}
+                {{ form.asesor_externo.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Fecha inicio</label>
+                {{ form.fecha_inicio }}
+                {{ form.fecha_inicio.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Fecha fin</label>
+                {{ form.fecha_fin }}
+                {{ form.fecha_fin.errors }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Horas programadas</label>
+                {{ form.horas_programadas }}
+                {{ form.horas_programadas.errors }}
+              </div>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+              <button type="submit" class="btn btn-primary">Emitir Acta (PDF)</button>
+              <a href="{% url 'procedimientos:residencias_panel' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="mb-2">Residencia actual</h6>
+          <ul class="list-unstyled small">
+            <li><strong>Alumno:</strong> {{ residencia.alumno }}</li>
+            <li><strong>Empresa:</strong> {{ residencia.empresa }}</li>
+            <li><strong>Proyecto:</strong> {{ residencia.proyecto }}</li>
+            <li><strong>Fechas:</strong> {{ residencia.fecha_inicio }} — {{ residencia.fecha_fin }}</li>
+            <li><strong>Horas:</strong> {{ residencia.horas_cumplidas }}/{{ residencia.horas_programadas|default:0 }}</li>
+          </ul>
+          <p class="text-muted mb-0">Completa o corrige los datos antes de emitir el acta.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+ </div>
+{% endblock %}

@@ -10,6 +10,7 @@ class Tramite(models.Model):
         ('constancia', 'Constancia'),
         ('kardex', 'Kardex'),
         ('boleta', 'Boleta'),
+        ('acta_residencia', 'Acta de Residencia'),
         # Agrega otros tipos según sea necesario
     ]
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, related_name='tramites')
@@ -97,3 +98,60 @@ class Proceso(models.Model):
         from django.utils import timezone
         hoy = timezone.now().date()
         return self.activo and self.fecha_inicio <= hoy <= self.fecha_fin
+
+
+class Residencia(models.Model):
+    ESTADO_CHOICES = [
+        ('SOLICITADA', 'Solicitada'),
+        ('EN_CURSO', 'En curso'),
+        ('CONCLUIDA', 'Concluida'),
+        ('APROBADA', 'Aprobada'),
+        ('REPROBADA', 'Reprobada'),
+    ]
+
+    alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, related_name='residencias')
+    periodo_escolar = models.ForeignKey(PeriodoEscolar, on_delete=models.SET_NULL, null=True, blank=True, related_name='residencias')
+    empresa = models.CharField(max_length=200)
+    proyecto = models.CharField(max_length=200)
+    asesor_interno = models.CharField(max_length=150)
+    asesor_externo = models.CharField(max_length=150, blank=True)
+    fecha_inicio = models.DateField(null=True, blank=True)
+    fecha_fin = models.DateField(null=True, blank=True)
+    horas_programadas = models.PositiveIntegerField(null=True, blank=True)
+    horas_cumplidas = models.PositiveIntegerField(default=0)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='SOLICITADA')
+
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-creado']
+        verbose_name = 'Residencia Profesional'
+        verbose_name_plural = 'Residencias Profesionales'
+        unique_together = ('alumno', 'proyecto')
+
+    def __str__(self):
+        return f"{self.alumno.matricula} - {self.empresa} - {self.proyecto}"
+
+    def avance_horas(self):
+        if not self.horas_programadas or self.horas_programadas == 0:
+            return 0
+        return round((self.horas_cumplidas / self.horas_programadas) * 100, 2)
+
+
+class ResidenciaBitacoraEntry(models.Model):
+    residencia = models.ForeignKey(Residencia, on_delete=models.CASCADE, related_name='bitacora')
+    fecha = models.DateField()
+    actividad = models.TextField()
+    horas = models.PositiveIntegerField(default=0)
+    evidencia = models.CharField(max_length=255, blank=True)
+    hoja = models.CharField(max_length=100, blank=True)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha', '-creado']
+        verbose_name = 'Entrada de Bitácora de Residencia'
+        verbose_name_plural = 'Entradas de Bitácora de Residencia'
+
+    def __str__(self):
+        return f"{self.residencia.alumno.matricula} - {self.fecha} - {self.horas}h"

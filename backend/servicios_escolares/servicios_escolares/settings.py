@@ -84,6 +84,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'servicios_escolares.context_processors.theme',
             ],
             'builtins': [
                 'template_tags.templatetags.compat',
@@ -224,5 +225,5 @@ elif EMAIL_BACKEND_ENV:
 
 # DATOS ACADEMICOS
 INSTITUCION_NOMBRE = "INSTITUTO TECNOLÓGICO SUPERIOR DE TLAXCO"
-CONTACTO_TELEFONO = "1234567890"
+CONTACTO_TELEFONO = "2414123115"
 CONTACTO_EMAIL = "contacto@itsTlaxco.edu.mx"

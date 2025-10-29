@@ -1,0 +1,124 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Residencias Profesionales{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="row align-items-center mb-3">
+    <div class="col">
+      <h4 class="mb-0">Residencias Profesionales</h4>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'procedimientos:lista_procesos' %}">Procedimientos</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Residencias</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-auto">
+      <div class="d-flex gap-2">
+        <a href="{% url 'procedimientos:residencias_crear' %}" class="btn btn-success">Nueva Residencia</a>
+        <a href="{% url 'procedimientos:residencias_importar_excel' %}" class="btn btn-primary">Importar desde Excel</a>
+      </div>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-2">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="text-muted">Total</div>
+          <div class="fs-4 fw-bold">{{ indicadores.total }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="text-muted">En curso</div>
+          <div class="fs-4 fw-bold">{{ indicadores.en_curso }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="text-muted">Concluidas</div>
+          <div class="fs-4 fw-bold">{{ indicadores.concluidas }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="text-muted">Aprobadas</div>
+          <div class="fs-4 fw-bold">{{ indicadores.aprobadas }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="text-muted">Reprobadas</div>
+          <div class="fs-4 fw-bold">{{ indicadores.reprobadas }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="text-muted">Horas totales</div>
+          <div class="fs-4 fw-bold">{{ indicadores.horas_totales }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h6 class="mb-3">Últimas residencias registradas</h6>
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Matrícula</th>
+              <th>Alumno</th>
+              <th>Carrera</th>
+              <th>Empresa</th>
+              <th>Proyecto</th>
+              <th>Horas</th>
+              <th>Avance</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in residencias %}
+            <tr>
+              <td class="text-monospace">{{ r.alumno.matricula }}</td>
+              <td>{{ r.alumno.nombre }} {{ r.alumno.apellido_paterno }} {{ r.alumno.apellido_materno }}</td>
+              <td>{{ r.alumno.carrera.nombre }}</td>
+              <td>{{ r.empresa }}</td>
+              <td>{{ r.proyecto }}</td>
+              <td>{{ r.horas_cumplidas }}/{{ r.horas_programadas|default:0 }}</td>
+              <td>{{ r.avance_horas }}%</td>
+              <td>
+                <a class="btn btn-outline-secondary btn-sm" href="{% url 'procedimientos:residencias_emitir_acta' r.id %}">Emitir Acta (PDF)</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-center text-muted">Sin registros</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

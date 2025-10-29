@@ -1,0 +1,84 @@
+{% load static %}
+
+<!-- Núcleo Bootstrap (independiente del script global) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3tWgFJt8eZ8uHfKZKfF1k3kH7wZlS9m4sQk1X2lRkq1F2drw5VjO2OeV3DkKmYl" crossorigin="anonymous"></script>
+
+<!-- Scrollbar plugins necesarios para el sidenav -->
+<script src="{% static 'assets/js/plugins/perfect-scrollbar.min.js' %}"></script>
+<script src="{% static 'assets/js/plugins/smooth-scrollbar.min.js' %}"></script>
+
+<!-- Control Center para Material Dashboard (solo si se usa el sidebar MD) -->
+<script src="{% static 'assets/js/material-dashboard.min.js' %}"></script>
+
+<!-- Scripts específicos para Servicios: tabs y sidebar responsive -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Remover cualquier modal de progreso heredado accidentalmente
+    const progressModal = document.getElementById('progressModal');
+    if (progressModal) {
+      try { progressModal.remove(); } catch (e) { console.warn('No se pudo remover progressModal:', e); }
+    }
+
+    // 1) Activación explícita de tabs Bootstrap (garantiza navegación)
+    const tabTriggers = document.querySelectorAll('#periodosTabs [data-bs-toggle="tab"]');
+    tabTriggers.forEach((triggerEl) => {
+      triggerEl.addEventListener('click', function(e) {
+        e.preventDefault();
+        try {
+          const tab = new bootstrap.Tab(triggerEl);
+          tab.show();
+        } catch (err) {
+          // Si por alguna razón Bootstrap no está disponible, no romper la UI
+          console.warn('Bootstrap.Tab no disponible:', err);
+        }
+      });
+    });
+
+    // 2) Sidebar responsive con overlay en pantallas pequeñas
+    const body = document.body;
+    const overlay = document.getElementById('sidenav-overlay');
+    const toggler = document.getElementById('iconNavbarSidenav');
+
+    function isMobile() { return window.innerWidth < 1200; }
+    function syncOverlay() {
+      if (!overlay) return;
+      const show = isMobile() && body.classList.contains('g-sidenav-pinned');
+      overlay.style.display = show ? 'block' : 'none';
+    }
+    function openSidenav() { body.classList.add('g-sidenav-pinned'); syncOverlay(); }
+    function closeSidenav() { body.classList.remove('g-sidenav-pinned'); syncOverlay(); }
+
+    // Control manual del toggler para asegurar comportamiento en móvil
+    if (toggler) {
+      toggler.addEventListener('click', function() {
+        if (body.classList.contains('g-sidenav-pinned')) {
+          closeSidenav();
+        } else {
+          openSidenav();
+        }
+      });
+    }
+
+    // Cerrar con overlay clic
+    if (overlay) {
+      overlay.addEventListener('click', closeSidenav);
+    }
+
+    // Cerrar con Escape en móvil
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && isMobile() && body.classList.contains('g-sidenav-pinned')) {
+        closeSidenav();
+      }
+    });
+
+    // Sincronizar en resize y estado inicial
+    window.addEventListener('resize', function() {
+      if (isMobile()) { closeSidenav(); }
+      syncOverlay();
+    });
+    if (isMobile()) { closeSidenav(); }
+    syncOverlay();
+  });
+</script>
+
+{% block extra_js %}{% endblock extra_js %}

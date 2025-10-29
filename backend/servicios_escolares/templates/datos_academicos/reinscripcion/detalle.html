@@ -1,0 +1,366 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Detalle de Reinscripción{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="card border-info">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="fas fa-user-graduate me-2"></i> {{ reins.alumno.matricula }} - {{ reins.alumno.nombre }} {{ reins.alumno.apellido_paterno }}</h5>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="card bg-light">
+              <div class="card-body">
+                <h6 class="card-title"><i class="fas fa-info-circle me-1"></i>Estado</h6>
+                <p class="mb-2"><span class="badge bg-secondary">{{ reins.estado }}</span></p>
+                <p class="mb-1"><strong>Folio:</strong> {{ reins.folio }}</p>
+                <p class="mb-1"><strong>Periodo:</strong> {{ reins.periodo_escolar.nombre }}</p>
+                <p class="mb-0"><strong>Solicitada:</strong> {{ reins.fecha_solicitud|date:'d/m/Y H:i' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header"><i class="fas fa-receipt me-2"></i>Comprobantes de Pago</div>
+              <div class="card-body">
+                <form method="post" enctype="multipart/form-data" action="{% url 'datos_academicos:reinscripcion_registrar_pago' reins.id %}" class="row g-2 align-items-end">
+                  {% csrf_token %}
+                  <div class="col-md-4">
+                    <label class="form-label">Concepto</label>
+                    <input type="text" name="concepto" class="form-control" placeholder="Ej. Reinscripción" required>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Monto</label>
+                    <input type="number" step="0.01" name="monto" class="form-control" placeholder="Ej. 500.00">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Comprobante (PDF/imagen)</label>
+                    <input type="file" name="comprobante" class="form-control" accept="application/pdf,image/*">
+                  </div>
+                  <div class="col-md-2 form-check mt-4">
+                    <input type="checkbox" name="condonado" id="condonado" class="form-check-input">
+                    <label class="form-check-label" for="condonado">Condonar</label>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Motivo de condonación</label>
+                    <input type="text" name="motivo_condonacion" class="form-control" placeholder="Opcional">
+                  </div>
+                  <div class="col-12">
+                    <button type="submit" class="btn btn-outline-primary"><i class="fas fa-plus me-1"></i>Agregar pago</button>
+                  </div>
+                </form>
+
+                {% if reins.pagos.all %}
+                <div class="table-responsive mt-3">
+                  <table class="table table-sm align-middle">
+                    <thead>
+                      <tr>
+                        <th>Concepto</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                        <th>Comprobante</th>
+                        <th>Motivo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for p in reins.pagos.all %}
+                      <tr>
+                        <td>{{ p.concepto }}</td>
+                        <td>{{ p.monto|default:"-" }}</td>
+                        <td>{% if p.condonado %}<span class="badge bg-warning text-dark">Condonado</span>{% else %}<span class="badge bg-info">Adjunto</span>{% endif %}</td>
+                        <td>{% if p.comprobante %}<a href="{{ p.comprobante.url }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
+                        <td>{{ p.motivo_condonacion|default:"" }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="card mt-3">
+              <div class="card-header"><i class="fas fa-book me-2"></i>Asignación de Materias</div>
+              <div class="card-body">
+              <div class="mb-3 position-relative" style="max-width: 520px;">
+                <label class="form-label">Agregar materia (nombre o clave)</label>
+                <input type="search" id="materia-search" class="form-control" placeholder="Escribe nombre o clave y presiona Enter para clave exacta" autocomplete="off">
+                <div id="materia-results" class="card shadow-sm position-absolute" style="top: 100%; left: 0; right: 0; z-index: 10; display: none;">
+                  <div class="list-group list-group-flush"></div>
+                </div>
+                <small class="text-muted">Selecciona de la lista para agregar, o presiona Enter para asignar por clave exacta.</small>
+                <div id="asignacion-msg" class="mt-2" style="min-height: 1rem;"></div>
+              </div>
+                {% if items %}
+                  <div class="table-responsive mt-3">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th>Materia</th>
+                          <th>Semestre</th>
+                          <th>Adelantada</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for it in items %}
+                        <tr>
+                          <td>{{ it.materia.nombre }}</td>
+                          <td>{{ it.semestre_asignado }}</td>
+                          <td>{{ it.adelantada|yesno:"Sí,No" }}</td>
+                          <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-item" data-url="{% url 'datos_academicos:reinscripcion_eliminar_materia_item' reins.id it.id %}">
+                              <i class="fas fa-trash-alt"></i>
+                            </button>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                {% else %}
+                  <p class="text-muted mt-2 mb-0">Sin materias asignadas.</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="card mt-3">
+              <div class="card-header"><i class="fas fa-check-circle me-2"></i>Confirmación Final</div>
+              <div class="card-body">
+                <button id="btn-confirmar" class="btn btn-success" {% if reins.estado == 'Completada' %}disabled{% endif %}>
+                  <i class="fas fa-check me-1"></i> Confirmar Reinscripción
+                </button>
+                {% if carga %}
+                <small class="text-muted ms-2">Carga: {{ carga.estado }} | Créditos: {{ carga.total_creditos }}</small>
+                {% endif %}
+                <div class="mt-3">
+                  <form id="form-carga-pdf" method="post" enctype="multipart/form-data" action="{% url 'datos_academicos:reinscripcion_subir_carga_pdf' reins.id %}">
+                    {% csrf_token %}
+                    <label class="form-label">Adjuntar PDF de carga académica</label>
+                    <div class="d-flex gap-2 align-items-center">
+                      <input type="file" name="carga_pdf" class="form-control" accept="application/pdf">
+                      <button type="submit" class="btn btn-outline-success"><i class="fas fa-upload me-1"></i>Adjuntar</button>
+                    </div>
+                    {% if reins.carga_academica_pdf %}
+                      <small class="text-muted d-block mt-1">Actual: <a href="{{ reins.carga_academica_pdf.url }}" target="_blank">Ver PDF</a></small>
+                    {% endif %}
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><i class="fas fa-history me-2"></i>Registro de Cambios</div>
+      <div class="card-body">
+        <ul class="list-unstyled mb-0" id="log-list">
+          {% for l in reins.logs.all %}
+          <li class="mb-2"><small>{{ l.fecha|date:'d/m/Y H:i' }} · <strong>{{ l.accion }}</strong> · {{ l.detalles }}</small></li>
+          {% empty %}
+          <li class="text-muted">Sin cambios registrados.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function getCsrfToken() {
+  const inputToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+  if (inputToken) return inputToken;
+  const metaToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  if (metaToken) return metaToken;
+  return getCookie('csrftoken');
+}
+function post(url) {
+  return fetch(url, { method: 'POST', headers: { 'X-CSRFToken': getCsrfToken() } }).then(r => r.json())
+}
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+document.getElementById('btn-validar-docs')?.addEventListener('click', () => {
+  // Funcionalidad de validación de documentos removida
+})
+document.getElementById('btn-validar-pagos')?.addEventListener('click', () => {
+  // Funcionalidad de validación de pagos removida
+})
+document.getElementById('btn-confirmar')?.addEventListener('click', () => {
+  post('{% url "datos_academicos:reinscripcion_confirmar" reins.id %}').then(() => location.reload())
+})
+
+// Autocompletado de materias y agregado a la selección
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('materia-search');
+  const resultsCard = document.getElementById('materia-results');
+  const resultsList = resultsCard?.querySelector('.list-group');
+  const msg = document.getElementById('asignacion-msg');
+
+  function asignarMateriaId(id) {
+    const fd = new FormData();
+    fd.append('materias', id);
+    fetch('{% url "datos_academicos:reinscripcion_asignar_materias" reins.id %}', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCsrfToken() },
+      body: fd
+    }).then(async (r) => {
+      const isJson = r.headers.get('content-type')?.includes('application/json');
+      const data = isJson ? await r.json() : null;
+      if (r.ok) {
+        msg.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Materia asignada correctamente.</span>';
+        location.reload();
+      } else {
+        msg.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>Error al asignar materia.</span>';
+      }
+      resultsCard.style.display = 'none';
+    }).catch(() => {
+      msg.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>Error de red al asignar.</span>';
+      resultsCard.style.display = 'none';
+    });
+  }
+
+  function asignarPorClave(clave) {
+    const fd = new FormData();
+    fd.append('materia_clave', clave);
+    fetch('{% url "datos_academicos:reinscripcion_asignar_materias" reins.id %}', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCsrfToken() },
+      body: fd
+    }).then(async (r) => {
+      const isJson = r.headers.get('content-type')?.includes('application/json');
+      const data = isJson ? await r.json() : null;
+      if (r.ok) {
+        msg.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Materia asignada por clave.</span>';
+        location.reload();
+      } else {
+        msg.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>${data?.error || 'No se pudo asignar por clave'}</span>`;
+      }
+    }).catch(() => {
+      msg.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>Error de red.</span>';
+    });
+  }
+
+  function renderMaterias(data) {
+    resultsList.innerHTML = '';
+    if (!data || data.length === 0) { resultsCard.style.display = 'none'; return; }
+    data.forEach(m => {
+      const item = document.createElement('a');
+      item.className = 'list-group-item list-group-item-action';
+      item.href = '#';
+      item.textContent = `${m.clave} · ${m.nombre}`;
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        asignarMateriaId(m.id);
+      });
+      resultsList.appendChild(item);
+    });
+    resultsCard.style.display = 'block';
+  }
+
+  function buscarMaterias() {
+    const q = input.value.trim();
+    if (q.length < 2) { resultsCard.style.display = 'none'; return; }
+    fetch('{% url "datos_academicos:api_materia_list" %}?q=' + encodeURIComponent(q))
+      .then(r => r.json()).then(renderMaterias)
+      .catch(() => { resultsCard.style.display = 'none'; });
+  }
+
+  input?.addEventListener('input', buscarMaterias);
+  // Algunas implementaciones capturan Enter en keyup, otras en keydown; manejamos ambas.
+  function onEnter(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const clave = input.value.trim();
+      if (clave) asignarPorClave(clave);
+    }
+  }
+  input?.addEventListener('keydown', onEnter);
+  input?.addEventListener('keyup', onEnter);
+});
+
+// Interceptar el envío de "Asignar seleccionadas" para usar AJAX y recargar
+// (Sin selector múltiple, el alta es por sugerencias o Enter)
+
+// Asignar por clave exacta
+(function(){
+  const btn = document.getElementById('btn-agregar-clave');
+  const input = document.getElementById('materia-clave');
+  const msg = document.getElementById('asignacion-msg');
+  if (!btn || !input) return;
+  btn.addEventListener('click', () => {
+    const clave = input.value.trim();
+    if (!clave) { msg.innerHTML = '<span class="text-warning">Ingresa una clave.</span>'; return; }
+      const fd = new FormData();
+      fd.append('materia_clave', clave);
+      fetch('{% url "datos_academicos:reinscripcion_asignar_materias" reins.id %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCsrfToken() },
+        body: fd
+      }).then(async (r) => {
+      const isJson = r.headers.get('content-type')?.includes('application/json');
+      const data = isJson ? await r.json() : null;
+      if (r.ok) {
+        msg.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Materia asignada por clave.</span>';
+        location.reload();
+      } else {
+        msg.innerHTML = `<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>${data?.error || 'No se pudo asignar por clave'}</span>`;
+      }
+    }).catch(() => {
+      msg.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-circle me-1"></i>Error de red.</span>';
+    });
+  });
+})();
+
+// Eliminar materia asignada
+(function(){
+  document.querySelectorAll('.btn-eliminar-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.getAttribute('data-url');
+      fetch(url, { method: 'POST', headers: { 'X-CSRFToken': getCsrfToken() } })
+        .then(r => r.json())
+        .then(data => {
+          if (data?.ok) { location.reload(); }
+          else { alert('No se pudo eliminar la materia.'); }
+        })
+        .catch(() => alert('Error de red al eliminar.'));
+    });
+  });
+})();
+
+// Validación cliente para adjuntar PDF
+(function(){
+  const form = document.getElementById('form-carga-pdf');
+  if (!form) return;
+  form.addEventListener('submit', (e) => {
+    const fileInput = form.querySelector('input[name="carga_pdf"]');
+    const file = fileInput?.files?.[0];
+    if (!file) {
+      e.preventDefault();
+      alert('Selecciona un archivo PDF antes de adjuntar.');
+      return;
+    }
+    if (file.type !== 'application/pdf') {
+      e.preventDefault();
+      alert('El archivo debe ser un PDF.');
+    }
+  });
+})();
+</script>
+{% endblock %}
