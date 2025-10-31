@@ -2,7 +2,7 @@
 Vistas administrativas para gestionar registros de aspirantes del formulario público
 """
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
@@ -17,7 +17,12 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from io import BytesIO
 
-from .models import SolicitudAdmision, PeriodoAdmision, FichaAdmision
+from .models import (
+    SolicitudAdmision, PeriodoAdmision, FichaAdmision,
+    SolicitudEstadoLog, SolicitudAdjunto
+)
+from django.contrib.contenttypes.models import ContentType
+from audit.models import AuditLog
 from .email_utils import (
     enviar_notificacion_cambio_estado, 
     enviar_ficha_por_email,
@@ -32,7 +37,8 @@ def _is_admin_user(user):
     )
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_is_admin_user, login_url='/datos_academicos/servicios/login/')
 def admin_dashboard_publico(request):
     """Dashboard administrativo para registros públicos"""
     if not _is_admin_user(request.user):
@@ -78,25 +84,45 @@ def admin_dashboard_publico(request):
                 'count': count
             })
         
+        # Periodos de admisión para gestión en el dashboard público
+        periodos_admision = PeriodoAdmision.objects.all().order_by('-año', '-fecha_inicio')
+
+        # Listado para tabla (más amplio que recientes)
+        solicitudes_tabla = solicitudes_periodo.order_by('-fecha_registro')[:50]
+
         context = {
             'periodo_actual': periodo_actual,
             'total_solicitudes': total_solicitudes,
             'solicitudes_hoy': solicitudes_hoy,
             'stats_estado': stats_estado,
             'solicitudes_recientes': solicitudes_recientes,
+            'solicitudes_tabla': solicitudes_tabla,
             'stats_carrera': stats_carrera,
             'registros_por_dia': registros_por_dia,
+            'periodos_admision': periodos_admision,
+            'solicitudes_historial': SolicitudAdmision.objects.filter(periodo__activo=False).order_by('-fecha_registro'),
         }
     else:
         context = {
             'periodo_actual': None,
-            'mensaje': 'No hay período de admisión activo'
+            'mensaje': 'No hay período de admisión activo',
+            'total_solicitudes': 0,
+            'solicitudes_hoy': 0,
+            'stats_estado': [],
+            'solicitudes_recientes': [],
+            'solicitudes_tabla': [],
+            'stats_carrera': [],
+            'registros_por_dia': [],
+            'periodos_admision': PeriodoAdmision.objects.all().order_by('-año', '-fecha_inicio'),
+            'solicitudes_historial': SolicitudAdmision.objects.filter(periodo__activo=False).order_by('-fecha_registro'),
         }
     
-    return render(request, 'admision/admin/dashboard.html', context)
+    # Render específico para el dashboard público administrativo
+    return render(request, 'admision/admin/dashboard_publico.html', context)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_is_admin_user, login_url='/datos_academicos/servicios/login/')
 def admin_solicitudes_publico(request):
     """Lista de solicitudes del formulario público con filtros"""
     if not _is_admin_user(request.user):
@@ -184,7 +210,8 @@ def admin_solicitudes_publico(request):
     return render(request, 'admision/admin/solicitudes_publico.html', context)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_is_admin_user, login_url='/datos_academicos/servicios/login/')
 def admin_ver_solicitud_publico(request, folio):
     """Ver detalles de una solicitud específica"""
     if not _is_admin_user(request.user):
@@ -199,53 +226,190 @@ def admin_ver_solicitud_publico(request, folio):
     except FichaAdmision.DoesNotExist:
         pass
     
+    # Logs de auditoría asociados a esta Solicitud
+    try:
+        ct = ContentType.objects.get_for_model(SolicitudAdmision)
+        audit_logs = AuditLog.objects.filter(content_type=ct, object_id=str(solicitud.pk)).order_by('-created_at')[:200]
+    except Exception:
+        audit_logs = []
+
     context = {
         'solicitud': solicitud,
         'ficha': ficha,
         'estados_choices': SolicitudAdmision.ESTADOS,
+        'audit_logs': audit_logs,
     }
     
     return render(request, 'admision/admin/ver_solicitud_publico.html', context)
 
 
-@login_required
-@require_http_methods(["POST"])
-def admin_cambiar_estado_solicitud(request, folio):
-    """Cambiar estado de una solicitud"""
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_is_admin_user, login_url='/datos_academicos/servicios/login/')
+def admin_solicitud_detalle_json(request, folio):
+    """Retorna el detalle de la solicitud en JSON para el panel lateral"""
     if not _is_admin_user(request.user):
         return JsonResponse({'error': 'No autorizado'}, status=403)
+
     solicitud = get_object_or_404(SolicitudAdmision, folio=folio)
-    
-    nuevo_estado = request.POST.get('estado')
+    ficha = FichaAdmision.objects.filter(solicitud=solicitud).first()
+
+    # Construir respuesta base
+    data = {
+        'solicitud': {
+            'folio': solicitud.folio,
+            'curp': solicitud.curp,
+            'email': solicitud.email,
+            'estado': solicitud.estado,
+            'estado_display': solicitud.get_estado_display(),
+            'periodo': solicitud.periodo.nombre,
+            'fecha_registro': solicitud.fecha_registro.strftime('%Y-%m-%d %H:%M:%S'),
+            'fecha_modificacion': solicitud.fecha_modificacion.strftime('%Y-%m-%d %H:%M:%S') if solicitud.fecha_modificacion else None,
+            'ip_registro': solicitud.ip_registro,
+            'respuestas': solicitud.respuestas_json,
+        },
+        'ficha': (
+            {
+                'id': ficha.id,
+                'numero_ficha': ficha.numero_ficha,
+                'archivo_pdf_url': ficha.archivo_pdf.url if ficha.archivo_pdf else None,
+            } if ficha else None
+        ),
+        'adjuntos': [
+            {
+                'id': a.id,
+                'nombre': a.nombre or (a.archivo.name.split('/')[-1] if a.archivo else ''),
+                'url': a.archivo.url if a.archivo else None,
+                'descripcion': a.descripcion,
+                'fecha_subida': a.fecha_subida.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            for a in solicitud.adjuntos.all().order_by('-fecha_subida')
+        ],
+        'estados_choices': list(SolicitudAdmision.ESTADOS),
+    }
+
+    # Logs de estado (para cambios de estado y notificaciones)
+    estado_items = [
+        {
+            'type': 'estado',
+            'id': l.id,
+            'estado_anterior': l.estado_anterior,
+            'nuevo_estado': l.nuevo_estado,
+            'comentario': l.comentario,
+            'notificacion_enviada': l.notificacion_enviada,
+            'resultado_notificacion': l.resultado_notificacion,
+            'usuario': getattr(l.usuario, 'username', None),
+            'fecha': l.fecha.strftime('%Y-%m-%d %H:%M:%S'),
+        }
+        for l in solicitud.estado_logs.all().order_by('-fecha')
+    ]
+
+    # Logs de auditoría de cambios específicos en la Solicitud
+    try:
+        ct = ContentType.objects.get_for_model(SolicitudAdmision)
+        audits = AuditLog.objects.filter(content_type=ct, object_id=str(solicitud.pk)).order_by('-created_at')[:200]
+        audit_items = [
+            {
+                'type': 'audit',
+                'id': a.id,
+                'action': a.action,
+                'changes': a.changes or {},
+                'usuario': a.actor_username,
+                'fecha': a.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            for a in audits
+        ]
+    except Exception:
+        audit_items = []
+
+    # Unificar ambos tipos de logs en una línea de tiempo ordenada (desc)
+    timeline = sorted(estado_items + audit_items, key=lambda x: x['fecha'], reverse=True)
+    data['logs'] = timeline
+
+    return JsonResponse(data, status=200)
+
+
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_is_admin_user, login_url='/datos_academicos/servicios/login/')
+@require_http_methods(["POST"])
+def admin_cambiar_estado_solicitud(request, folio):
+    """Cambiar estado de una solicitud (soporta AJAX y adjuntos)"""
+    if not _is_admin_user(request.user):
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+
+    solicitud = get_object_or_404(SolicitudAdmision, folio=folio)
+
+    # Permitir ambos nombres de parámetro
+    nuevo_estado = request.POST.get('nuevo_estado') or request.POST.get('estado')
     comentario = request.POST.get('comentario', '')
-    
-    if nuevo_estado in dict(SolicitudAdmision.ESTADOS_CHOICES):
+
+    valid_codes = [code for code, _ in getattr(SolicitudAdmision, 'ESTADOS', [])]
+    if nuevo_estado in valid_codes:
         estado_anterior = solicitud.estado
         solicitud.estado = nuevo_estado
         solicitud.save()
-        
-        # Enviar notificación por email
+
+        # Crear log inicial (sin estado de notificación todavía)
+        log = SolicitudEstadoLog.objects.create(
+            solicitud=solicitud,
+            estado_anterior=estado_anterior,
+            nuevo_estado=nuevo_estado,
+            comentario=comentario,
+            usuario=request.user if request.user.is_authenticated else None,
+        )
+
+        # Guardar adjuntos opcionales ligados al log
+        archivos_subidos = request.FILES.getlist('adjuntos')
+        for f in archivos_subidos:
+            adj = SolicitudAdjunto(
+                solicitud=solicitud,
+                log=log,
+                archivo=f,
+                nombre=getattr(f, 'name', ''),
+                subido_por=request.user if request.user.is_authenticated else None,
+            )
+            adj.save()
+
+        # Enviar notificación incluyendo adjuntos (si se subieron)
+        noti_ok = False
+        noti_msg = ''
         try:
-            enviar_notificacion_cambio_estado(
-                solicitud, 
-                estado_anterior
-            )
-            messages.success(
-                request, 
-                f'Estado cambiado a "{solicitud.get_estado_display()}" y notificación enviada.'
-            )
+            ok = enviar_notificacion_cambio_estado(solicitud, estado_anterior, adjuntos=archivos_subidos, log=log)
+            noti_ok = bool(ok)
+            noti_msg = 'Notificación enviada.' if ok else 'No se pudo enviar la notificación.'
+            if ok:
+                messages.success(request, f'Estado cambiado a "{solicitud.get_estado_display()}" y notificación enviada.')
+            else:
+                messages.warning(request, f'Estado cambiado pero no se pudo enviar la notificación.')
         except Exception as e:
-            messages.warning(
-                request, 
-                f'Estado cambiado pero no se pudo enviar la notificación: {str(e)}'
-            )
+            noti_ok = False
+            noti_msg = f'Error al enviar notificación: {str(e)}'
+            messages.warning(request, f'Estado cambiado pero no se pudo enviar la notificación: {str(e)}')
+
+        # Actualizar log con resultado de notificación
+        log.notificacion_enviada = noti_ok
+        log.resultado_notificacion = noti_msg
+        log.save()
+
+        # Si es AJAX, retornar JSON en lugar de redirección
+        wants_json = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', '')
+        if wants_json:
+            return JsonResponse({
+                'ok': True,
+                'folio': solicitud.folio,
+                'nuevo_estado': solicitud.estado,
+                'estado_display': solicitud.get_estado_display(),
+                'log_id': log.id,
+                'notificacion_enviada': noti_ok,
+                'mensaje': noti_msg,
+            }, status=200)
     else:
         messages.error(request, 'Estado no válido.')
-    
+
     return redirect('admision:admin_ver_solicitud_publico', folio=folio)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_is_admin_user, login_url='/datos_academicos/servicios/login/')
 def admin_generar_ficha_publico(request, folio):
     if not _is_admin_user(request.user):
         messages.error(request, 'Acceso restringido: solo personal de Servicios Escolares.')
@@ -285,7 +449,8 @@ def admin_generar_ficha_publico(request, folio):
     return redirect('admision:admin_ver_solicitud_publico', folio=folio)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_is_admin_user, login_url='/datos_academicos/servicios/login/')
 def admin_exportar_solicitudes(request):
     if not _is_admin_user(request.user):
         messages.error(request, 'Acceso restringido: solo personal de Servicios Escolares.')
@@ -431,7 +596,8 @@ def _exportar_excel(solicitudes):
     return response
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_is_admin_user, login_url='/datos_academicos/servicios/login/')
 def admin_estadisticas_avanzadas(request):
     if not _is_admin_user(request.user):
         messages.error(request, 'Acceso restringido: solo personal de Servicios Escolares.')

@@ -1,0 +1,50 @@
+{% load static %}
+<!-- Modal: Crear Admisión -->
+<div class="modal fade" id="modalCrearAdmision" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Crear periodo de admisión</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'admision:periodos_panel' %}">
+        {% csrf_token %}
+        <input type="hidden" name="_scope" value="admision">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label">Nombre</label>
+              <input type="text" class="form-control" name="nombre" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Año</label>
+              <input type="number" class="form-control" name="año" min="2020" max="2035" value="{{ current_year }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fecha de Inicio</label>
+              <input type="datetime-local" class="form-control" name="fecha_inicio" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fecha de Fin</label>
+              <input type="datetime-local" class="form-control" name="fecha_fin" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Descripción</label>
+              <textarea class="form-control" name="descripcion" rows="2" placeholder="Descripción del periodo"></textarea>
+            </div>
+            <div class="col-12">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="activo" id="crearActivoAdm">
+                <label class="form-check-label" for="crearActivoAdm">Marcar como periodo activo</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="material-symbols-rounded me-1">save</i>Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -10,6 +10,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse, Http404
 import json
 from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_POST
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
@@ -36,6 +37,147 @@ from procedimientos.models import Tramite, Bitacora
 from .forms_inscripcion import InscripcionForm
 from .utils_inscripcion import generar_formato_inscripcion, crear_plantillas_por_defecto
 from .models_inscripcion import Inscripcion
+from django.core.paginator import Paginator
+from django.db import IntegrityError
+
+# --- JSON APIs para gestión de alumnos (para tabs en gestión) ---
+@require_GET
+@login_required
+def api_alumnos_list(request):
+    """Devuelve lista paginada de alumnos con filtros de búsqueda.
+
+    Parámetros:
+    - q: texto de búsqueda (nombre, apellidos, matrícula, carrera)
+    - carrera: id de carrera
+    - estatus: estatus exacto
+    - page: número de página
+    - page_size: tamaño de página (por defecto 24)
+    """
+    q = request.GET.get('q', '').strip()
+    carrera = request.GET.get('carrera')
+    estatus = request.GET.get('estatus')
+    page = int(request.GET.get('page', 1))
+    page_size = int(request.GET.get('page_size', 24))
+
+    queryset = Alumno.objects.select_related('carrera')
+
+    if q:
+        queryset = queryset.filter(
+            Q(nombre__icontains=q) |
+            Q(apellido_paterno__icontains=q) |
+            Q(apellido_materno__icontains=q) |
+            Q(matricula__icontains=q) |
+            Q(carrera__nombre__icontains=q)
+        )
+
+    if carrera:
+        queryset = queryset.filter(carrera_id=carrera)
+
+    if estatus:
+        queryset = queryset.filter(estatus=estatus)
+
+    queryset = queryset.order_by('matricula')
+
+    paginator = Paginator(queryset, page_size)
+    page_obj = paginator.get_page(page)
+
+    items = [{
+        'id': a.id,
+        'matricula': a.matricula,
+        'nombre_completo': f"{a.nombre} {a.apellido_paterno or ''} {a.apellido_materno or ''}".strip(),
+        'carrera': a.carrera.nombre if a.carrera_id else '',
+        'estatus': a.estatus,
+        'semestre': a.semestre,
+    } for a in page_obj.object_list]
+
+    return JsonResponse({
+        'results': items,
+        'page': page_obj.number,
+        'total_pages': paginator.num_pages,
+        'total': paginator.count,
+    })
+
+
+@require_GET
+@login_required
+def api_alumno_detail(request, pk):
+    """Devuelve información detallada de un alumno para el panel lateral."""
+    alumno = get_object_or_404(Alumno.objects.select_related('carrera'), pk=pk)
+
+    data = {
+        'id': alumno.id,
+        'matricula': alumno.matricula,
+        'nombre': alumno.nombre,
+        'apellido_paterno': alumno.apellido_paterno,
+        'apellido_materno': alumno.apellido_materno,
+        'carrera': alumno.carrera.nombre if alumno.carrera_id else '',
+        'semestre': alumno.semestre,
+        'estatus': alumno.estatus,
+        'promedio': float(alumno.promedio) if alumno.promedio is not None else 0.0,
+        'creditos_aprobados': alumno.creditos_aprobados,
+        'creditos_totales': alumno.creditos_totales,
+        'modalidad': alumno.get_modalidad_display() if hasattr(alumno, 'get_modalidad_display') else alumno.modalidad,
+        'email': getattr(alumno, 'email', ''),
+        # Campos personales y de contacto
+        'curp': getattr(alumno, 'curp', ''),
+        'fecha_nacimiento': getattr(alumno, 'fecha_nacimiento', None).isoformat() if getattr(alumno, 'fecha_nacimiento', None) else None,
+        'sexo': getattr(alumno, 'sexo', ''),
+        'estado_civil': getattr(alumno, 'estado_civil', ''),
+        'telefono': getattr(alumno, 'telefono', ''),
+        'rfc': getattr(alumno, 'rfc', ''),
+        'nss': getattr(alumno, 'nss', ''),
+        'calle': getattr(alumno, 'calle', ''),
+        'numero_exterior': getattr(alumno, 'numero_exterior', ''),
+        'numero_interior': getattr(alumno, 'numero_interior', ''),
+        'colonia': getattr(alumno, 'colonia', ''),
+        'municipio': getattr(alumno, 'municipio', ''),
+        'estado': getattr(alumno, 'estado', ''),
+        'codigo_postal': getattr(alumno, 'codigo_postal', ''),
+    }
+
+    return JsonResponse(data)
+
+@require_POST
+@login_required
+def api_alumno_update(request, pk):
+    """Actualiza datos personales y de contacto del alumno y retorna JSON de éxito."""
+    alumno = get_object_or_404(Alumno, pk=pk)
+
+    # Campos permitidos (personales y contacto)
+    allowed_fields = [
+        'nombre', 'apellido_paterno', 'apellido_materno',
+        'curp', 'email', 'fecha_nacimiento', 'sexo', 'estado_civil', 'telefono',
+        'rfc', 'nss', 'calle', 'numero_exterior', 'numero_interior', 'colonia',
+        'municipio', 'estado', 'codigo_postal'
+    ]
+
+    # Asignación controlada de campos
+    for field in allowed_fields:
+        if field in request.POST:
+            value = request.POST.get(field)
+            setattr(alumno, field, value)
+
+    # Manejo de fecha
+    if 'fecha_nacimiento' in request.POST:
+        from datetime import datetime
+        raw = request.POST.get('fecha_nacimiento')
+        if raw:
+            try:
+                alumno.fecha_nacimiento = datetime.fromisoformat(raw).date()
+            except ValueError:
+                # Intentar formato 'YYYY-MM-DD'
+                try:
+                    alumno.fecha_nacimiento = datetime.strptime(raw, '%Y-%m-%d').date()
+                except Exception:
+                    pass
+
+    alumno.save()
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Datos personales actualizados correctamente.',
+        'alumno_id': alumno.id,
+    })
 
 # API para autocompletado
 @require_GET
@@ -87,6 +229,19 @@ def api_materia_list(request):
     } for materia in materias]
     
     return JsonResponse(data, safe=False)
+
+# Periodos (para selects en modales)
+@require_GET
+@login_required(login_url='/datos_academicos/servicios/login/')
+def api_periodos_list(request):
+    periodos = PeriodoEscolar.objects.all().order_by('-fecha_inicio')
+    items = [{
+        'id': p.id,
+        'ciclo': p.ciclo or '',
+        'año': p.año,
+        'activo': bool(p.activo),
+    } for p in periodos]
+    return JsonResponse(items, safe=False)
 
 # Views servicios escolares
 @login_required(login_url='/datos_academicos/servicios/login/')
@@ -220,6 +375,7 @@ def gestion_alumnos(request):
         'alumnos_mes': alumnos_mes,
         'total_creditos_aprobados': total_creditos_aprobados,
         'carreras_populares': carreras_stats,
+        'carreras': Carrera.objects.all(),
         'estatus_distribucion': estatus_distribucion,
         'carreras_data': carreras_data,
         'cantidades_data': cantidades_data,
@@ -671,12 +827,18 @@ def calificacion_create(request):
                     calificacion = form.save(commit=False)
                     calificacion.materia = materia
                     calificacion.save()
+                    # Recalcular promedio y créditos del alumno
+                    if calificacion.alumno:
+                        calificacion.alumno.actualizar_datos_academicos()
                     messages.success(request, 'Calificación creada correctamente.')
                     return redirect('datos_academicos:calificacion_list')
                 except Materia.DoesNotExist:
                     messages.error(request, f'No se encontró la materia con ID: {materia_id}')
             else:
-                form.save()
+                calificacion = form.save()
+                # Recalcular promedio y créditos del alumno
+                if calificacion.alumno:
+                    calificacion.alumno.actualizar_datos_academicos()
                 messages.success(request, 'Calificación creada correctamente.')
                 return redirect('datos_academicos:calificacion_list')
         else:
@@ -690,6 +852,153 @@ def calificacion_create(request):
     return render(request, 'datos_academicos/calificaciones/calificacion_form.html', {
         'form': form,
         'materias_json': json.dumps(list(materias), cls=DjangoJSONEncoder),
+    })
+
+
+# --- JSON API para listado de calificaciones (para tab) ---
+@require_GET
+@login_required
+def api_calificaciones_list(request):
+    """Devuelve lista paginada de calificaciones con filtros simples."""
+    q = request.GET.get('q', '').strip()
+    periodo = request.GET.get('periodo')
+    acreditacion = request.GET.get('acreditacion')
+    order = request.GET.get('order', 'recientes')  # recientes | antiguas
+    page = int(request.GET.get('page', 1))
+    page_size = int(request.GET.get('page_size', 25))
+
+    qs = Calificacion.objects.select_related('alumno', 'materia', 'periodo_escolar')
+
+    if q:
+        qs = qs.filter(
+            Q(alumno__nombre__icontains=q) |
+            Q(alumno__matricula__icontains=q) |
+            Q(materia__nombre__icontains=q)
+        )
+
+    if periodo:
+        qs = qs.filter(periodo_escolar_id=periodo)
+
+    if acreditacion:
+        qs = qs.filter(acreditacion=acreditacion)
+
+    # Ordenamiento por fecha de registro
+    if order == 'antiguas':
+        qs = qs.order_by('fecha_registro')
+    else:
+        qs = qs.order_by('-fecha_registro')
+
+    paginator = Paginator(qs, page_size)
+    page_obj = paginator.get_page(page)
+
+    items = [{
+        'id': c.id,
+        'alumno': f"{c.alumno.nombre} ({c.alumno.matricula})",
+        'alumno_nombre': c.alumno.nombre,
+        'alumno_matricula': c.alumno.matricula,
+        'materia': c.materia.nombre,
+        'materia_clave': getattr(c.materia, 'clave', ''),
+        'periodo': f"{getattr(c.periodo_escolar, 'ciclo', '')} {getattr(c.periodo_escolar, 'año', '')}",
+        'periodo_id': getattr(c.periodo_escolar, 'id', None),
+        'calificacion': float(c.calificacion) if c.calificacion is not None else None,
+        'creditos': c.creditos,
+        'acreditacion': c.acreditacion,
+        'fecha_registro': c.fecha_registro.isoformat() if c.fecha_registro else None,
+        'observaciones': c.observaciones or '',
+    } for c in page_obj.object_list]
+
+    return JsonResponse({
+        'results': items,
+        'page': page_obj.number,
+        'total_pages': paginator.num_pages,
+        'total': paginator.count,
+    })
+
+@require_POST
+@login_required
+def api_calificacion_create(request):
+    """Crea una calificación vía JSON. Acepta alumno_id o matricula y materia_id."""
+    from django.forms.models import model_to_dict
+
+    alumno_id = request.POST.get('alumno') or request.POST.get('alumno_id')
+    matricula = request.POST.get('matricula')
+    materia_id = request.POST.get('materia') or request.POST.get('materia_id')
+    periodo_id = request.POST.get('periodo_escolar') or request.POST.get('periodo_escolar_id')
+    calificacion_val = request.POST.get('calificacion')
+    creditos_val = request.POST.get('creditos')
+    acreditacion = request.POST.get('acreditacion')
+    observaciones = request.POST.get('observaciones', '')
+
+    # Resolver alumno
+    alumno_obj = None
+    if alumno_id:
+        try:
+            alumno_obj = Alumno.objects.get(id=int(alumno_id))
+        except (Alumno.DoesNotExist, ValueError):
+            pass
+    if not alumno_obj and matricula:
+        alumno_obj = Alumno.objects.filter(matricula__iexact=matricula).first()
+    if not alumno_obj:
+        return JsonResponse({'success': False, 'message': 'Alumno no encontrado.'}, status=400)
+
+    # Resolver materia
+    try:
+        materia_obj = Materia.objects.get(id=int(materia_id))
+    except (Materia.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({'success': False, 'message': 'Materia no válida.'}, status=400)
+
+    # Resolver periodo
+    try:
+        periodo_obj = PeriodoEscolar.objects.get(id=int(periodo_id))
+    except (PeriodoEscolar.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({'success': False, 'message': 'Período escolar no válido.'}, status=400)
+
+    # Validar duplicado antes de crear
+    if Calificacion.objects.filter(
+        alumno=alumno_obj,
+        materia=materia_obj,
+        periodo_escolar=periodo_obj
+    ).exists():
+        return JsonResponse({'success': False, 'message': 'La calificación ya existe para este alumno, materia y período.'}, status=409)
+
+    # Crear calificación
+    cal = Calificacion(
+        alumno=alumno_obj,
+        materia=materia_obj,
+        periodo_escolar=periodo_obj,
+        acreditacion=acreditacion or 'Ordinario',
+        observaciones=observaciones or ''
+    )
+    try:
+        if calificacion_val is not None and calificacion_val != '':
+            cal.calificacion = float(calificacion_val)
+        # Créditos: si no se envían, usar los créditos de la materia
+        if creditos_val is not None and creditos_val != '':
+            cal.creditos = int(creditos_val)
+        else:
+            cal.creditos = getattr(materia_obj, 'creditos', 0) or 0
+    except ValueError:
+        return JsonResponse({'success': False, 'message': 'Valores de calificación/créditos inválidos.'}, status=400)
+
+    try:
+        cal.save()
+    except IntegrityError:
+        return JsonResponse({'success': False, 'message': 'La calificación ya existe (restricción de unicidad).'}, status=409)
+    # Recalcular promedio y créditos del alumno
+    if cal.alumno:
+        cal.alumno.actualizar_datos_academicos()
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Calificación registrada correctamente.',
+        'item': {
+            'id': cal.id,
+            'alumno': f"{cal.alumno.nombre} ({cal.alumno.matricula})",
+            'materia': cal.materia.nombre,
+            'periodo': f"{getattr(cal.periodo_escolar, 'ciclo', '')} {getattr(cal.periodo_escolar, 'año', '')}",
+            'calificacion': float(cal.calificacion) if cal.calificacion is not None else None,
+            'acreditacion': cal.acreditacion,
+        }
     })
 
 

@@ -5,7 +5,7 @@ from datos_academicos.models import PeriodoEscolar
 class PeriodoEscolarForm(forms.ModelForm):
     class Meta:
         model = PeriodoEscolar
-        fields = ['ciclo', 'año', 'fecha_inicio', 'fecha_fin', 'inicio_vacaciones', 'fin_vacaciones', 'activo']
+        fields = ['ciclo', 'año', 'fecha_inicio', 'fecha_fin', 'inicio_vacaciones', 'fin_vacaciones', 'activo', 'inscripcion_habilitada', 'reinscripcion_habilitada']
         widgets = {
             'ciclo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. ENE-JUN'}),
             'año': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 2025'}),

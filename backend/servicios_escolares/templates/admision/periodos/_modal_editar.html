@@ -1,0 +1,49 @@
+{% load static %}
+<!-- Modal: Editar Admisión -->
+<div class="modal fade" id="modalEditarAdmision" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar periodo de admisión</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" id="formEditarAdmision">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label">Nombre</label>
+              <input type="text" class="form-control" name="nombre" id="edit_nombre_adm" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Año</label>
+              <input type="number" class="form-control" name="año" id="edit_anio_adm" min="2020" max="2035" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fecha de Inicio</label>
+              <input type="datetime-local" class="form-control" name="fecha_inicio" id="edit_inicio_adm" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fecha de Fin</label>
+              <input type="datetime-local" class="form-control" name="fecha_fin" id="edit_fin_adm" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Descripción</label>
+              <textarea class="form-control" name="descripcion" id="edit_desc_adm" rows="2" placeholder="Descripción del periodo"></textarea>
+            </div>
+            <div class="col-12">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="activo" id="edit_activo_adm">
+                <label class="form-check-label" for="edit_activo_adm">Marcar como periodo activo</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="material-symbols-rounded me-1">save</i>Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

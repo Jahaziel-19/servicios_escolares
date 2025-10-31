@@ -187,6 +187,13 @@
             </p>
         </div>
 
+        {% if comentario_cambio %}
+        <div class="info-box">
+            <h4>📝 Comentario del área</h4>
+            <p style="white-space: pre-line;">{{ comentario_cambio }}</p>
+        </div>
+        {% endif %}
+
         {% if solicitud.estado == 'aceptada' %}
         <div class="next-steps">
             <h4>🎯 ¡Felicitaciones! Próximos Pasos</h4>

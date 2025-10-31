@@ -1,104 +1,511 @@
 {% extends "layouts/base.html" %}
 {% load static %}
 
-{% block title %}Periodos Académicos{% endblock %}
+{% block title %}Gestión de Periodos Académicos{% endblock %}
 
-{% block page_title %}Periodos Académicos{% endblock %}
+{% block page_title %}Gestión de Periodos Académicos{% endblock %}
 {% block breadcrumb %}Gestión / Periodos{% endblock %}
 
-{% block content %}
-<div class="container-fluid py-4 fade-in">
-    <!-- Header con chip de icono -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <div class="icon-chip me-3">
-                        <i class="material-symbols-rounded">calendar_month</i>
-                    </div>
-                    <div>
-                        <h2 class="mb-0">Gestión de Periodos Académicos</h2>
-                        <p class="text-muted mb-0">Administración de ciclos escolares</p>
-                    </div>
-                </div>
-                <div>
-                    <a href="{% url 'datos_academicos:periodo_editar' %}" class="btn btn-gradient-primary btn-icon">
-                        <i class="material-symbols-rounded">add</i>
-                        Crear nuevo periodo
-                    </a>
-                </div>
-            </div>
+{% block extra_css %}
+  <style>
+  /* Página: Periodos Lista (scoped) */
+  .pl-container { --pl-primary: #1B396A; --pl-accent: #0ea5e9; --pl-bg:#252328; --pl-muted:#6b7280; padding-bottom: 16px; background: linear-gradient(180deg, rgba(27,57,106,0.06), rgba(37,35,40,0.04)); }
+  .pl-shell { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+  .pl-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; text-align: center; }
+  .pl-title { display: flex; align-items: center; gap: 12px; }
+  .pl-title .icon-chip { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: #1B396A; color: #fff; box-shadow: 0 6px 18px rgba(27,57,106,.18); }
+  .pl-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .pl-toolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; background: rgba(255,255,255,0.6); border: 1px solid rgba(2,14,45,0.08); border-radius: 14px; padding: 10px 12px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .pl-toolbar .pl-search { flex: 1; display:flex; align-items:center; gap:8px; background:#fff; border: 1px solid rgba(2,14,45,0.08); border-radius: 12px; padding: 6px 10px; }
+  .pl-toolbar .pl-search input { width:100%; border:0; outline:0; }
+  .pl-toolbar .form-select { min-width: 220px; border-radius: 12px; border: 1px solid rgba(2,14,45,0.1); }
+  .pl-toolbar .btn-new { display:inline-flex; align-items:center; gap:6px; background: linear-gradient(180deg,#1b396a,#123056); color:#fff; border: 0; box-shadow: 0 6px 14px rgba(27,57,106,.25); }
+  .pl-toolbar .btn-new:hover { filter: brightness(1.05); }
+  .pl-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-weight: 600; font-size: 12px; }
+  .pl-badge--ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; } /* success fuerte */
+  .pl-badge--off { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; } /* danger fuerte */
+  .pl-badge--info { background: #e6f6ff; color: #075985; border: 1px solid #bae6fd; } /* azul cielo */
+  .pl-badge--danger { background: #ffe9e9; color: #7f1d1d; border: 1px solid #fecaca; } /* rojo claro */
+
+  /* Card header dark */
+  .pl-card-head { background: #252328; color: #fff; border-radius: 12px; padding: 10px 12px; display:flex; align-items:center; gap:12px; margin: -2px -2px 12px -2px; }
+  .pl-card-head h6 { color:#fff; font-weight:700; margin:0; }
+  .pl-card-head .sub { color: rgba(255,255,255,.85); font-size: 12px; }
+  .icon-chip.head { width: 36px; height: 36px; border-radius: 10px; display:grid; place-items:center; background:#1B396A; color:#fff; }
+
+  /* Grid de cards (desktop) */
+  .pl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; padding: 8px 4px; }
+  .pl-cardx { background: rgba(255,255,255,0.6); border: 1px solid rgba(2,14,45,0.08); border-radius: 16px; box-shadow: 0 12px 26px rgba(2,14,45,0.08); transition: transform .2s ease, box-shadow .2s ease; backdrop-filter: saturate(120%) blur(8px); -webkit-backdrop-filter: saturate(120%) blur(8px); }
+  .pl-cardx:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(2,14,45,0.10); }
+  .pl-cardx .pl-card-body { padding: 18px; position: relative; }
+  .pl-status { position: absolute; top: 12px; right: 12px; }
+  .pl-actions-lg .material-symbols-rounded { font-size: 22px; }
+  .icon-chip.big { width: 44px; height: 44px; border-radius: 12px; display:grid; place-items:center; background: linear-gradient(145deg,#eaf7ff,#f3fbff); color:#0ea5e9; box-shadow: inset 0 1px 0 rgba(255,255,255,.6); }
+  .title-text { font-weight:600; }
+  .pl-list { display: none; } /* ocultar lista móvil en desktop */
+
+  /* Modal glassmorphism */
+  .modal-backdrop.show { background: rgba(12,17,28,0.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .modal-content { background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.78)); border: 1px solid rgba(255,255,255,0.45); box-shadow: 0 24px 60px rgba(2,14,45,0.25); backdrop-filter: blur(10px) saturate(120%); -webkit-backdrop-filter: blur(10px) saturate(120%); border-radius: 16px; }
+  .modal-header { 
+    border-bottom-color: rgba(2,14,45,0.08); 
+    background: linear-gradient(180deg, #1B396A, #123056);
+    color: #fff;
+    border-top-left-radius: 16px; border-top-right-radius: 16px;
+  }
+  .modal-header .modal-title { color:#fff; font-weight:700; }
+  .modal-header .btn-close { filter: invert(1) grayscale(1); opacity: .9; }
+  .modal-footer { border-top-color: rgba(2,14,45,0.08); }
+  /* Responsive modal dialog */
+  @media (max-width: 576px){
+    .modal-dialog { margin: 10px; }
+    .modal-content { border-radius: 14px; }
+  }
+
+  /* Animaciones */
+  .fade-in { animation: fade-in .35s ease both; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+
+  /* Responsive */
+  @media (max-width: 992px) { 
+    .pl-header { align-items: stretch; }
+    .pl-actions { width: 100%; justify-content: space-between; }
+  }
+  @media (max-width: 768px) {
+    .pl-grid { display: none; }
+    .pl-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  }
+  </style>
+{% endblock extra_css %}
+
+  {% block content %}
+<div class="container-fluid py-4 fade-in pl-container" data-page="periodos-lista" data-active-tab="{{ active_tab|default:'' }}">
+    <!-- Header -->
+      <div class="row mb-3">
+      <div class="col-12">
+        <div class="ip-header">
+          <span class="ip-chip"><i class="material-symbols-rounded">calendar_month</i></span>
+          <div>
+            <h2 class="mb-0">Gestión de Periodos Académicos</h2>
+            <p class="text-muted mb-0">Administra, filtra y crea periodos académicos</p>
+          </div>
         </div>
+      </div>
     </div>
 
-    <!-- Tarjeta principal con tabla moderna -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card animate-card">
-                <div class="card-header pb-0">
-                    <div class="d-flex align-items-center">
-                        <i class="material-symbols-rounded text-primary me-2">view_list</i>
-                        <h6 class="mb-0">Listado de Periodos</h6>
-                    </div>
-                </div>
-                <div class="card-body px-0 pt-0 pb-2">
-                    <div class="table-responsive p-0">
-                        <table class="table table modern align-items-center mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="text-uppercase text-white text-xxs font-weight-bolder opacity-10">Periodo</th>
-                                    <th class="text-uppercase text-white text-xxs font-weight-bolder opacity-10 ps-2">Fechas</th>
-                                    <th class="text-center text-uppercase text-white text-xxs font-weight-bolder opacity-10">Estado</th>
-                                    <th class="text-center text-uppercase text-white text-xxs font-weight-bolder opacity-10">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for p in periodos %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex px-2 py-1">
-                                            <div class="d-flex flex-column justify-content-center">
-                                                <h6 class="mb-0 text-sm">{{ p.ciclo }} {{ p.año }}</h6>
-                                                <p class="text-xs text-secondary mb-0">ID: {{ p.id }}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <p class="text-xs font-weight-bold mb-0">{{ p.fecha_inicio|date:"d/m/Y" }}</p>
-                                        <p class="text-xs text-secondary mb-0">{{ p.fecha_fin|date:"d/m/Y" }}</p>
-                                    </td>
-                                    <td class="align-middle text-center text-sm">
-                                        {% if p.activo %}
-                                            <span class="badge badge-soft-success">Activo</span>
-                                        {% else %}
-                                            <span class="badge badge-soft text-dark">Inactivo</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="align-middle text-center">
-                                        <a href="{% url 'datos_academicos:periodo_editar' p.id %}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
-                                            <i class="material-symbols-rounded text-xs">edit</i>
-                                        </a>
-                                        <a href="{% url 'datos_academicos:periodo_toggle_activo' p.id %}" class="btn btn-sm btn-outline-secondary" title="Cambiar estado">
-                                            <i class="material-symbols-rounded text-xs">{% if p.activo %}toggle_on{% else %}toggle_off{% endif %}</i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center py-4">
-                                        <div class="text-muted">
-                                            <i class="material-symbols-rounded opacity-6" style="font-size: 3rem;">calendar_month</i>
-                                            <p class="mb-0">No hay periodos registrados</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <div class="pl-shell">
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="pl-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if active_tab != 'admision' %}active{% endif %}" id="tab-acad" data-bs-toggle="tab" data-bs-target="#pane-lista" type="button" role="tab">
+          <i class="material-symbols-rounded me-1">view_list</i> Académicos
+        </button>
+      </li>
+      {% if active_tab == 'admision' %}
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-adm" data-bs-toggle="tab" data-bs-target="#pane-admision" type="button" role="tab">
+          <i class="material-symbols-rounded me-1">group_add</i> Admisión
+        </button>
+      </li>
+      {% endif %}
+    </ul>
+
+    <div class="tab-content" id="pl-tabs-content">
+      <!-- Contenido: Académicos -->
+      <div class="tab-pane fade {% if active_tab != 'admision' %}show active{% endif %}" id="pane-lista" role="tabpanel" aria-labelledby="tab-acad">
+        <!-- Grid de cards (desktop) + lista móvil -->
+        <div class="row">
+          <div class="col-12">
+            <div class="ip-toolbar" data-listing-root="periodos">
+              <div class="ip-search flex-grow-1">
+                <i class="material-symbols-rounded">search</i>
+                <input id="ip-search" type="search" placeholder="Buscar por ciclo, año o fecha..." class="form-control border-0 bg-transparent" />
+              </div>
+              <div class="dropdown">
+                <button class="btn btn-chip dropdown-toggle" type="button" id="ip-status-dd" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="material-symbols-rounded">filter_list</i> <span id="ip-status-label">Todos los estados</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="ip-status-dd">
+                  <li><a class="dropdown-item ip-status-option active" data-value="">Todos</a></li>
+                  <li><a class="dropdown-item ip-status-option" data-value="1">Activo</a></li>
+                  <li><a class="dropdown-item ip-status-option" data-value="0">Inactivo</a></li>
+                </ul>
+              </div>
+              <div class="dropdown">
+                <button class="btn btn-chip dropdown-toggle" type="button" id="ip-year-dd" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="material-symbols-rounded">event</i> <span id="ip-year-label">Todos los años</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" id="ip-year-menu" aria-labelledby="ip-year-dd">
+                  <li><a class="dropdown-item ip-year-option active" data-value="">Todos</a></li>
+                </ul>
+              </div>
+              <div class="dropdown">
+                <button class="btn btn-chip dropdown-toggle" type="button" id="ip-sort-dd" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="material-symbols-rounded">sort</i> <span id="ip-sort-label">Más recientes</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="ip-sort-dd">
+                  <li><a class="dropdown-item ip-sort-option active" data-value="recientes">Más recientes</a></li>
+                  <li><a class="dropdown-item ip-sort-option" data-value="antiguos">Más antiguos</a></li>
+                </ul>
+              </div>
+              <button class="btn btn-new" data-bs-toggle="modal" data-bs-target="#modalCrearAcademico">
+                <i class="material-symbols-rounded">add</i> Nuevo periodo
+              </button>
             </div>
+            <div class="pl-grid" id="pl-grid">
+              {% for p in periodos %}
+              <div class="pl-cardx" data-id="{{ p.id }}" data-ciclo="{{ p.ciclo }}" data-anio="{{ p.año }}" data-inicio="{{ p.fecha_inicio|date:'Y-m-d' }}" data-fin="{{ p.fecha_fin|date:'Y-m-d' }}" data-inicio-vac="{{ p.inicio_vacaciones|date:'Y-m-d' }}" data-fin-vac="{{ p.fin_vacaciones|date:'Y-m-d' }}" data-activo="{% if p.activo %}1{% else %}0{% endif %}" data-ins="{% if p.inscripcion_habilitada %}1{% else %}0{% endif %}" data-reins="{% if p.reinscripcion_habilitada %}1{% else %}0{% endif %}" data-term="{{ p.ciclo }} {{ p.año }} {{ p.fecha_inicio|date:'d/m/Y' }} {{ p.fecha_fin|date:'d/m/Y' }} {{ p.id }} {{ p.activo|yesno:'Activo,Inactivo' }} {{ p.inscripcion_habilitada|yesno:'Inscripción habilitada,Inscripción deshabilitada' }} {{ p.reinscripcion_habilitada|yesno:'Reinscripción habilitada,Reinscripción deshabilitada' }}">
+                <div class="pl-card-body">
+                  <div class="pl-status">
+                    {% if p.activo %}
+                      <span class="pl-badge pl-badge--ok"><i class="material-symbols-rounded" style="font-size:18px;">check_circle</i>Activo</span>
+                    {% else %}
+                      <span class="pl-badge pl-badge--off"><i class="material-symbols-rounded" style="font-size:18px;">block</i>Inactivo</span>
+                    {% endif %}
+                  </div>
+                  <div class="pl-card-head">
+                    <div class="icon-chip head"><i class="material-symbols-rounded">calendar_month</i></div>
+                    <div>
+                      <h6 class="title-text">{{ p.ciclo }} {{ p.año }}</h6>
+                      <div class="sub">ID: {{ p.id }}</div>
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-between small mb-2">
+                    <span>Inicio: <strong>{{ p.fecha_inicio|date:"d/m/Y" }}</strong></span>
+                    <span>Fin: <strong>{{ p.fecha_fin|date:"d/m/Y" }}</strong></span>
+                  </div>
+                  <div class="d-flex flex-wrap gap-2 mb-2">
+                    {% if p.inscripcion_habilitada %}
+                      <span class="pl-badge pl-badge--ok"><i class="material-symbols-rounded" style="font-size:18px;">how_to_reg</i>Inscripción habilitada</span>
+                    {% else %}
+                      <span class="pl-badge pl-badge--off"><i class="material-symbols-rounded" style="font-size:18px;">block</i>Inscripción deshabilitada</span>
+                    {% endif %}
+                    {% if p.reinscripcion_habilitada %}
+                      <span class="pl-badge pl-badge--ok"><i class="material-symbols-rounded" style="font-size:18px;">autorenew</i>Reinscripción habilitada</span>
+                    {% else %}
+                      <span class="pl-badge pl-badge--off"><i class="material-symbols-rounded" style="font-size:18px;">block</i>Reinscripción deshabilitada</span>
+                    {% endif %}
+                  </div>
+                  <div class="d-flex gap-2 pl-actions-lg mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary flex-fill btn-editar-acad" title="Editar"
+                            data-bs-toggle="modal" data-bs-target="#modalEditarAcademico"
+                            data-edit-url="{% url 'datos_academicos:periodo_editar' p.id %}">
+                      <i class="material-symbols-rounded me-1">edit</i>Editar
+                    </button>
+                    <a href="{% url 'datos_academicos:periodo_toggle_activo' p.id %}" class="btn btn-sm btn-outline-secondary" title="Cambiar estado">
+                      <i class="material-symbols-rounded" style="font-size:24px;">{% if p.activo %}toggle_on{% else %}toggle_off{% endif %}</i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              {% empty %}
+              <div class="text-center text-muted py-5 w-100">
+                <i class="material-symbols-rounded" style="font-size: 3rem;">calendar_month</i>
+                <p class="mb-0">No hay periodos registrados</p>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Lista móvil -->
+            <ul class="pl-list" id="pl-list">
+              {% for p in periodos %}
+              <li class="pl-card" data-id="{{ p.id }}" data-ciclo="{{ p.ciclo }}" data-anio="{{ p.año }}" data-inicio="{{ p.fecha_inicio|date:'Y-m-d' }}" data-fin="{{ p.fecha_fin|date:'Y-m-d' }}" data-inicio-vac="{{ p.inicio_vacaciones|date:'Y-m-d' }}" data-fin-vac="{{ p.fin_vacaciones|date:'Y-m-d' }}" data-activo="{% if p.activo %}1{% else %}0{% endif %}" data-ins="{% if p.inscripcion_habilitada %}1{% else %}0{% endif %}" data-reins="{% if p.reinscripcion_habilitada %}1{% else %}0{% endif %}" data-term="{{ p.ciclo }} {{ p.año }} {{ p.fecha_inicio|date:'d/m/Y' }} {{ p.fecha_fin|date:'d/m/Y' }} {{ p.id }} {{ p.activo|yesno:'Activo,Inactivo' }} {{ p.inscripcion_habilitada|yesno:'Inscripción habilitada,Inscripción deshabilitada' }} {{ p.reinscripcion_habilitada|yesno:'Reinscripción habilitada,Reinscripción deshabilitada' }}">
+                <div class="mb-1" style="background:#252328; color:#fff; border-radius:10px; padding:8px 10px;">
+                  <h6 class="mb-0 d-flex align-items-center gap-2" style="font-weight:700;">{{ p.ciclo }} {{ p.año }}</h6>
+                  <div class="small">ID: {{ p.id }}</div>
+                </div>
+                <div class="pl-dates">{{ p.fecha_inicio|date:"d/m/Y" }} — {{ p.fecha_fin|date:"d/m/Y" }}</div>
+                <div class="mt-2 d-flex flex-wrap gap-2">
+                  {% if p.activo %}
+                    <span class="pl-badge pl-badge--ok"><i class="material-symbols-rounded" style="font-size:16px;">check_circle</i>Activo</span>
+                  {% else %}
+                    <span class="pl-badge pl-badge--off"><i class="material-symbols-rounded" style="font-size:16px;">block</i>Inactivo</span>
+                  {% endif %}
+                  {% if p.inscripcion_habilitada %}
+                    <span class="pl-badge pl-badge--ok"><i class="material-symbols-rounded" style="font-size:16px;">how_to_reg</i>Inscripción</span>
+                  {% else %}
+                    <span class="pl-badge pl-badge--off"><i class="material-symbols-rounded" style="font-size:16px;">block</i>Inscripción</span>
+                  {% endif %}
+                  {% if p.reinscripcion_habilitada %}
+                    <span class="pl-badge pl-badge--ok"><i class="material-symbols-rounded" style="font-size:16px;">autorenew</i>Reinscripción</span>
+                  {% else %}
+                    <span class="pl-badge pl-badge--off"><i class="material-symbols-rounded" style="font-size:16px;">block</i>Reinscripción</span>
+                  {% endif %}
+                </div>
+                <div class="pl-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary me-1 btn-editar-acad" title="Editar"
+                          data-bs-toggle="modal" data-bs-target="#modalEditarAcademico"
+                          data-edit-url="{% url 'datos_academicos:periodo_editar' p.id %}">
+                    <i class="material-symbols-rounded" style="font-size:18px;">edit</i>
+                  </button>
+                  <a href="{% url 'datos_academicos:periodo_toggle_activo' p.id %}" class="btn btn-sm btn-outline-secondary" title="Cambiar estado">
+                    <i class="material-symbols-rounded" style="font-size:22px;">{% if p.activo %}toggle_on{% else %}toggle_off{% endif %}</i>
+                  </a>
+                </div>
+              </li>
+              {% empty %}
+              <li class="text-center text-muted py-5 w-100">
+                <i class="material-symbols-rounded" style="font-size: 3rem;">calendar_month</i>
+                <p class="mb-0">No hay periodos registrados</p>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
         </div>
+      </div>
+
+      {% if active_tab == 'admision' %}
+      <!-- Contenido: Admisión -->
+      <div class="tab-pane fade show active" id="pane-admision" role="tabpanel" aria-labelledby="tab-adm">
+        <div class="row">
+          <div class="col-12">
+            <div class="ip-toolbar" data-listing-root="admision">
+              <div class="ip-search flex-grow-1">
+                <i class="material-symbols-rounded">search</i>
+                <input id="ip-search-adm" type="search" placeholder="Buscar por nombre, año o fecha..." class="form-control border-0 bg-transparent" />
+              </div>
+              <div class="dropdown">
+                <button class="btn btn-chip dropdown-toggle" type="button" id="ip-status-dd-adm" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="material-symbols-rounded">filter_list</i> <span id="ip-status-label-adm">Todos los estados</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="ip-status-dd-adm">
+                  <li><a class="dropdown-item ip-status-option-adm active" data-value="">Todos</a></li>
+                  <li><a class="dropdown-item ip-status-option-adm" data-value="1">Activo</a></li>
+                  <li><a class="dropdown-item ip-status-option-adm" data-value="0">Inactivo</a></li>
+                </ul>
+              </div>
+              <div class="dropdown">
+                <button class="btn btn-chip dropdown-toggle" type="button" id="ip-year-dd-adm" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="material-symbols-rounded">event</i> <span id="ip-year-label-adm">Todos los años</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" id="ip-year-menu-adm" aria-labelledby="ip-year-dd-adm">
+                  <li><a class="dropdown-item ip-year-option-adm active" data-value="">Todos</a></li>
+                </ul>
+              </div>
+              <div class="dropdown">
+                <button class="btn btn-chip dropdown-toggle" type="button" id="ip-sort-dd-adm" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="material-symbols-rounded">sort</i> <span id="ip-sort-label-adm">Más recientes</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="ip-sort-dd-adm">
+                  <li><a class="dropdown-item ip-sort-option-adm active" data-value="recientes">Más recientes</a></li>
+                  <li><a class="dropdown-item ip-sort-option-adm" data-value="antiguos">Más antiguos</a></li>
+                </ul>
+              </div>
+              <button class="btn btn-new" data-bs-toggle="modal" data-bs-target="#modalCrearAdmision">
+                <i class="material-symbols-rounded">add</i> Nuevo periodo
+              </button>
+            </div>
+
+            <div class="pl-grid" id="pl-grid-adm">
+              {% for p in periodos_admision %}
+              <div class="pl-cardx" data-id="{{ p.id }}" data-nombre="{{ p.nombre }}" data-anio="{{ p.año }}" data-inicio="{{ p.fecha_inicio|date:'Y-m-d\\TH:i' }}" data-fin="{{ p.fecha_fin|date:'Y-m-d\\TH:i' }}" data-activo="{% if p.activo %}1{% else %}0{% endif %}" data-term="{{ p.nombre }} {{ p.año }} {{ p.fecha_inicio|date:'d/m/Y H:i' }} {{ p.fecha_fin|date:'d/m/Y H:i' }} {{ p.id }} {{ p.activo|yesno:'Activo,Inactivo' }}">
+                <div class="pl-card-body">
+                  <div class="pl-status">
+                    {% if p.activo %}
+                      <span class="pl-badge pl-badge--ok"><i class="material-symbols-rounded" style="font-size:18px;">check_circle</i>Activo</span>
+                    {% else %}
+                      <span class="pl-badge pl-badge--off"><i class="material-symbols-rounded" style="font-size:18px;">block</i>Inactivo</span>
+                    {% endif %}
+                    {% if p.esta_abierto %}
+                      <span class="pl-badge pl-badge--info"><i class="material-symbols-rounded" style="font-size:18px;">hourglass_top</i>Abierto</span>
+                    {% else %}
+                      <span class="pl-badge pl-badge--danger"><i class="material-symbols-rounded" style="font-size:18px;">hourglass_disabled</i>Cerrado</span>
+                    {% endif %}
+                  </div>
+                  <div class="pl-card-head">
+                    <div class="icon-chip head"><i class="material-symbols-rounded">group</i></div>
+                    <div>
+                      <h6 class="title-text">{{ p.nombre }} · {{ p.año }}</h6>
+                      <div class="sub">ID: {{ p.id }}</div>
+                    </div>
+                  </div>
+                  <div class="small mb-2 d-flex justify-content-between">
+                    <span>Inicio: <strong>{{ p.fecha_inicio|date:"d/m/Y H:i" }}</strong></span>
+                    <span>Fin: <strong>{{ p.fecha_fin|date:"d/m/Y H:i" }}</strong></span>
+                  </div>
+                  <div class="d-flex gap-2 pl-actions-lg mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary flex-fill btn-editar-adm" title="Editar"
+                            data-bs-toggle="modal" data-bs-target="#modalEditarAdmision"
+                            data-edit-url="{% url 'admision:periodo_admision_editar' p.id %}">
+                      <i class="material-symbols-rounded me-1">edit</i>Editar
+                    </button>
+                    <a href="{% url 'admision:periodo_toggle_activo' p.id %}" class="btn btn-sm btn-outline-secondary" title="Cambiar estado">
+                      <i class="material-symbols-rounded" style="font-size:24px;">{% if p.activo %}toggle_on{% else %}toggle_off{% endif %}</i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              {% empty %}
+              <div class="text-center text-muted py-5 w-100">
+                <i class="material-symbols-rounded" style="font-size: 3rem;">group_add</i>
+                <p class="mb-0">No hay periodos de admisión</p>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Lista móvil -->
+            <ul class="pl-list" id="pl-list-adm">
+              {% for p in periodos_admision %}
+              <li class="pl-card" data-id="{{ p.id }}" data-nombre="{{ p.nombre }}" data-anio="{{ p.año }}" data-inicio="{{ p.fecha_inicio|date:'Y-m-d\\TH:i' }}" data-fin="{{ p.fecha_fin|date:'Y-m-d\\TH:i' }}" data-activo="{% if p.activo %}1{% else %}0{% endif %}" data-term="{{ p.nombre }} {{ p.año }} {{ p.fecha_inicio|date:'d/m/Y H:i' }} {{ p.fecha_fin|date:'d/m/Y H:i' }} {{ p.id }} {{ p.activo|yesno:'Activo,Inactivo' }}">
+                <div class="mb-1" style="background:#252328; color:#fff; border-radius:10px; padding:8px 10px;">
+                  <h6 class="mb-0 d-flex align-items-center gap-2" style="font-weight:700;">{{ p.nombre }} · {{ p.año }}</h6>
+                  <div class="small">ID: {{ p.id }}</div>
+                </div>
+                <div class="pl-dates">{{ p.fecha_inicio|date:"d/m/Y H:i" }} — {{ p.fecha_fin|date:"d/m/Y H:i" }}</div>
+                <div class="mt-2 d-flex flex-wrap gap-2">
+                  {% if p.activo %}
+                    <span class="pl-badge pl-badge--ok"><i class="material-symbols-rounded" style="font-size:16px;">check_circle</i>Activo</span>
+                  {% else %}
+                    <span class="pl-badge pl-badge--off"><i class="material-symbols-rounded" style="font-size:16px;">block</i>Inactivo</span>
+                  {% endif %}
+                  {% if p.esta_abierto %}
+                    <span class="pl-badge pl-badge--info"><i class="material-symbols-rounded" style="font-size:16px;">hourglass_top</i>Abierto</span>
+                  {% else %}
+                    <span class="pl-badge pl-badge--danger"><i class="material-symbols-rounded" style="font-size:16px;">hourglass_disabled</i>Cerrado</span>
+                  {% endif %}
+                </div>
+                <div class="pl-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary me-1 btn-editar-adm" title="Editar"
+                          data-bs-toggle="modal" data-bs-target="#modalEditarAdmision"
+                          data-edit-url="{% url 'admision:periodo_admision_editar' p.id %}">
+                    <i class="material-symbols-rounded" style="font-size:18px;">edit</i>
+                  </button>
+                  <a href="{% url 'admision:periodo_toggle_activo' p.id %}" class="btn btn-sm btn-outline-secondary" title="Cambiar estado">
+                    <i class="material-symbols-rounded" style="font-size:22px;">{% if p.activo %}toggle_on{% else %}toggle_off{% endif %}</i>
+                  </a>
+                </div>
+              </li>
+              {% empty %}
+              <li class="text-center text-muted py-5 w-100">
+                <i class="material-symbols-rounded" style="font-size: 3rem;">group_add</i>
+                <p class="mb-0">No hay periodos de admisión</p>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Modal: Editar Académico -->
+      <div class="modal fade" id="modalEditarAcademico" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Editar periodo académico</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" id="formEditarAcademico">
+              {% csrf_token %}
+              <div class="modal-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Ciclo Escolar</label>
+                    <select class="form-select" name="ciclo" id="edit_ciclo" required>
+                      <option value="Enero-Junio">Enero-Junio</option>
+                      <option value="Agosto-Diciembre">Agosto-Diciembre</option>
+                      <option value="Anual">Anual</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Año</label>
+                    <input type="number" class="form-control" name="año" id="edit_anio" min="2020" max="2035" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Fecha de Inicio</label>
+                    <input type="date" class="form-control" name="fecha_inicio" id="edit_inicio" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Fecha de Fin</label>
+                    <input type="date" class="form-control" name="fecha_fin" id="edit_fin" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Inicio de Vacaciones</label>
+                    <input type="date" class="form-control" name="inicio_vacaciones" id="edit_inicio_vac">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Fin de Vacaciones</label>
+                    <input type="date" class="form-control" name="fin_vacaciones" id="edit_fin_vac">
+                  </div>
+                  <div class="col-12">
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" name="activo" id="edit_activo">
+                      <label class="form-check-label" for="edit_activo">Marcar como periodo activo</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class="material-symbols-rounded me-1">save</i>Guardar cambios</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Crear Académico -->
+      <div class="modal fade" id="modalCrearAcademico" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Crear periodo académico</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="_scope" value="academicos">
+              <div class="modal-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Ciclo Escolar</label>
+                    <select class="form-select" name="ciclo" required>
+                      <option value="">Seleccionar ciclo</option>
+                      <option value="Enero-Junio">Enero-Junio</option>
+                      <option value="Agosto-Diciembre">Agosto-Diciembre</option>
+                      <option value="Anual">Anual</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Año</label>
+                    <input type="number" class="form-control" name="año" min="2020" max="2035" value="{{ current_year }}" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Fecha de Inicio</label>
+                    <input type="date" class="form-control" name="fecha_inicio" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Fecha de Fin</label>
+                    <input type="date" class="form-control" name="fecha_fin" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Inicio de Vacaciones</label>
+                    <input type="date" class="form-control" name="inicio_vacaciones">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Fin de Vacaciones</label>
+                    <input type="date" class="form-control" name="fin_vacaciones">
+                  </div>
+                  <div class="col-12">
+                    <div class="form-check form-switch">
+                      <input class="form-check-input" type="checkbox" name="activo" id="crearActivo">
+                      <label class="form-check-label" for="crearActivo">Marcar como periodo activo</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class="material-symbols-rounded me-1">save</i>Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {% include 'admision/periodos/_modal_editar.html' %}
+
+      {% include 'admision/periodos/_modal_crear.html' %}
     </div>
 
     <!-- Bloque de ayuda -->
@@ -129,3 +536,170 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+  (function(){
+    var pane = document.getElementById('pane-lista') || document;
+    var input = pane.querySelector('#ip-search');
+    var yearMenu = pane.querySelector('#ip-year-menu');
+    var yearLabel = pane.querySelector('#ip-year-label');
+    var list = pane.querySelector('#pl-list');
+    var grid = pane.querySelector('#pl-grid');
+    var sortLabel = pane.querySelector('#ip-sort-label');
+    var statusLabel = pane.querySelector('#ip-status-label');
+    var yearValue = '', statusValue = '', sortValue = 'recientes';
+    function norm(s){ return (s||'').toString().toLowerCase(); }
+
+    // Poblar menú de años
+    (function populateYears(){
+      if (!yearMenu) return;
+      var years = new Set();
+      pane.querySelectorAll('[data-anio]').forEach(function(el){ var y = el.getAttribute('data-anio'); if (y) years.add(y); });
+      Array.from(years).sort(function(a,b){ return b.localeCompare(a); }).forEach(function(y){
+        var li = document.createElement('li');
+        li.innerHTML = '<a class="dropdown-item ip-year-option" data-value="'+y+'">'+y+'</a>';
+        yearMenu.appendChild(li);
+      });
+    })();
+
+    function applyFilters(){
+      var q = norm(input ? input.value : '');
+      var match = function(el){
+        var hitText = norm(el.getAttribute('data-term')).includes(q);
+        var hitYear = !yearValue || (el.getAttribute('data-anio') === yearValue);
+        var hitStatus = !statusValue || (el.getAttribute('data-activo') === statusValue);
+        return hitText && hitYear && hitStatus;
+      };
+      if (grid){ grid.querySelectorAll('.pl-cardx').forEach(function(card){ card.style.display = match(card) ? '' : 'none'; }); }
+      if (list){ list.querySelectorAll('.pl-card').forEach(function(it){ it.style.display = match(it) ? '' : 'none'; }); }
+    }
+
+    // Eventos
+    if (input) input.addEventListener('input', applyFilters);
+    document.addEventListener('click', function(e){
+      var a = e.target.closest && e.target.closest('.ip-year-option');
+      if (a){ e.preventDefault(); document.querySelectorAll('.ip-year-option').forEach(function(o){o.classList.remove('active')}); a.classList.add('active'); yearValue = a.getAttribute('data-value')||''; if (yearLabel){ yearLabel.textContent = yearValue ? ('Año: '+a.textContent.trim()) : 'Todos los años'; } applyFilters(); return; }
+      var s = e.target.closest && e.target.closest('.ip-status-option');
+      if (s){ e.preventDefault(); document.querySelectorAll('.ip-status-option').forEach(function(o){o.classList.remove('active')}); s.classList.add('active'); statusValue = s.getAttribute('data-value')||''; if (statusLabel){ statusLabel.textContent = statusValue ? ('Estado: '+s.textContent.trim()) : 'Todos los estados'; } applyFilters(); return; }
+      var o = e.target.closest && e.target.closest('.ip-sort-option');
+      if (o){ e.preventDefault(); document.querySelectorAll('.ip-sort-option').forEach(function(x){x.classList.remove('active')}); o.classList.add('active'); sortValue = o.getAttribute('data-value')||'recientes'; if (sortLabel){ sortLabel.textContent = o.textContent.trim(); }
+        var dir = sortValue==='recientes'?'desc':'asc';
+        var cmp = function(a,b){ var av=a.getAttribute('data-inicio')||''; var bv=b.getAttribute('data-inicio')||''; return dir==='asc'? av.localeCompare(bv): bv.localeCompare(av); };
+        if (grid){ Array.from(grid.querySelectorAll('.pl-cardx')).sort(cmp).forEach(function(n){ grid.appendChild(n); }); }
+        if (list){ Array.from(list.querySelectorAll('.pl-card')).sort(cmp).forEach(function(n){ list.appendChild(n); }); }
+        return;
+      }
+    });
+    applyFilters();
+
+    // Modal de edición (Académicos)
+    var editButtons = document.querySelectorAll('.btn-editar-acad');
+    var formEdit = document.getElementById('formEditarAcademico');
+    function findDataContainer(el){
+      while (el && el !== document && !el.getAttribute('data-id')) el = el.parentElement;
+      return el && el.getAttribute && el.getAttribute('data-id') ? el : null;
+    }
+    function setOpt(selectEl, value){ if(!selectEl) return; for (var i=0;i<selectEl.options.length;i++){ if(selectEl.options[i].value===(value||'')){ selectEl.selectedIndex=i; break; } } }
+    editButtons.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var card = findDataContainer(this.closest('.pl-cardx')) || findDataContainer(this.closest('.pl-card')) || null;
+        if (!card) return;
+        var action = this.getAttribute('data-edit-url');
+        if (formEdit && action) formEdit.setAttribute('action', action);
+        var ciclo = card.getAttribute('data-ciclo')||'';
+        var anio = card.getAttribute('data-anio')||'';
+        var ini = card.getAttribute('data-inicio')||'';
+        var fin = card.getAttribute('data-fin')||'';
+        var inv = card.getAttribute('data-inicio-vac')||'';
+        var fav = card.getAttribute('data-fin-vac')||'';
+        var activo = card.getAttribute('data-activo')==='1';
+        setOpt(document.getElementById('edit_ciclo'), ciclo);
+        var eanio = document.getElementById('edit_anio'); if (eanio) eanio.value = anio;
+        var eini = document.getElementById('edit_inicio'); if (eini) eini.value = ini;
+        var efin = document.getElementById('edit_fin'); if (efin) efin.value = fin;
+        var einv = document.getElementById('edit_inicio_vac'); if (einv) einv.value = inv || '';
+        var efav = document.getElementById('edit_fin_vac'); if (efav) efav.value = fav || '';
+        var eact = document.getElementById('edit_activo'); if (eact) eact.checked = activo;
+      });
+    });
+  })();
+
+  // --- Admisión: búsqueda, filtros y orden ---
+  (function(){
+    var pane = document.getElementById('pane-admision') || document;
+    var input = pane.querySelector('#ip-search-adm');
+    var yearMenu = pane.querySelector('#ip-year-menu-adm');
+    var yearLabel = pane.querySelector('#ip-year-label-adm');
+    var list = pane.querySelector('#pl-list-adm');
+    var grid = pane.querySelector('#pl-grid-adm');
+    var sortLabel = pane.querySelector('#ip-sort-label-adm');
+    var statusLabel = pane.querySelector('#ip-status-label-adm');
+    var yearValue = '', statusValue = '', sortValue = 'recientes';
+    function norm(s){ return (s||'').toString().toLowerCase(); }
+
+    (function populateYears(){
+      if (!yearMenu) return;
+      var years = new Set();
+      pane.querySelectorAll('[data-anio]').forEach(function(el){ var y = el.getAttribute('data-anio'); if (y) years.add(y); });
+      Array.from(years).sort(function(a,b){ return b.localeCompare(a); }).forEach(function(y){
+        var li = document.createElement('li');
+        li.innerHTML = '<a class="dropdown-item ip-year-option-adm" data-value="'+y+'">'+y+'</a>';
+        yearMenu.appendChild(li);
+      });
+    })();
+
+    function applyFilters(){
+      var q = norm(input ? input.value : '');
+      var match = function(el){
+        var hitText = norm(el.getAttribute('data-term')).includes(q);
+        var hitYear = !yearValue || (el.getAttribute('data-anio') === yearValue);
+        var hitStatus = !statusValue || (el.getAttribute('data-activo') === statusValue);
+        return hitText && hitYear && hitStatus;
+      };
+      if (grid){ grid.querySelectorAll('.pl-cardx').forEach(function(card){ card.style.display = match(card) ? '' : 'none'; }); }
+      if (list){ list.querySelectorAll('.pl-card').forEach(function(it){ it.style.display = match(it) ? '' : 'none'; }); }
+    }
+
+    if (input) input.addEventListener('input', applyFilters);
+    document.addEventListener('click', function(e){
+      var a = e.target.closest && e.target.closest('.ip-year-option-adm');
+      if (a){ e.preventDefault(); document.querySelectorAll('.ip-year-option-adm').forEach(function(o){o.classList.remove('active')}); a.classList.add('active'); yearValue = a.getAttribute('data-value')||''; if (yearLabel){ yearLabel.textContent = yearValue ? ('Año: '+a.textContent.trim()) : 'Todos los años'; } applyFilters(); return; }
+      var s = e.target.closest && e.target.closest('.ip-status-option-adm');
+      if (s){ e.preventDefault(); document.querySelectorAll('.ip-status-option-adm').forEach(function(o){o.classList.remove('active')}); s.classList.add('active'); statusValue = s.getAttribute('data-value')||''; if (statusLabel){ statusLabel.textContent = statusValue ? ('Estado: '+s.textContent.trim()) : 'Todos los estados'; } applyFilters(); return; }
+      var o = e.target.closest && e.target.closest('.ip-sort-option-adm');
+      if (o){ e.preventDefault(); document.querySelectorAll('.ip-sort-option-adm').forEach(function(x){x.classList.remove('active')}); o.classList.add('active'); sortValue = o.getAttribute('data-value')||'recientes'; if (sortLabel){ sortLabel.textContent = o.textContent.trim(); }
+        var dir = sortValue==='recientes'?'desc':'asc';
+        var cmp = function(a,b){ var av=a.getAttribute('data-inicio')||''; var bv=b.getAttribute('data-inicio')||''; return dir==='asc'? av.localeCompare(bv): bv.localeCompare(av); };
+        if (grid){ Array.from(grid.querySelectorAll('.pl-cardx')).sort(cmp).forEach(function(n){ grid.appendChild(n); }); }
+        if (list){ Array.from(list.querySelectorAll('.pl-card')).sort(cmp).forEach(function(n){ list.appendChild(n); }); }
+        return;
+      }
+    });
+    applyFilters();
+
+    // Modal de edición (Admisión)
+    var editButtons = document.querySelectorAll('.btn-editar-adm');
+    var formEdit = document.getElementById('formEditarAdmision');
+    function findDataContainer(el){ while (el && el !== document && !el.getAttribute('data-id')) el = el.parentElement; return el && el.getAttribute && el.getAttribute('data-id') ? el : null; }
+    editButtons.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var card = findDataContainer(this.closest('.pl-cardx')) || findDataContainer(this.closest('.pl-card')) || null;
+        if (!card) return;
+        var action = this.getAttribute('data-edit-url');
+        if (formEdit && action) formEdit.setAttribute('action', action);
+        var nombre = card.getAttribute('data-nombre')||'';
+        var anio = card.getAttribute('data-anio')||'';
+        var ini = card.getAttribute('data-inicio')||'';
+        var fin = card.getAttribute('data-fin')||'';
+        var activo = card.getAttribute('data-activo')==='1';
+        var eNombre = document.getElementById('edit_nombre_adm'); if (eNombre) eNombre.value = nombre;
+        var eanio = document.getElementById('edit_anio_adm'); if (eanio) eanio.value = anio;
+        var eini = document.getElementById('edit_inicio_adm'); if (eini) eini.value = ini;
+        var efin = document.getElementById('edit_fin_adm'); if (efin) efin.value = fin;
+        var eact = document.getElementById('edit_activo_adm'); if (eact) eact.checked = activo;
+      });
+    });
+  })();
+</script>
+  {% endblock extra_js %}

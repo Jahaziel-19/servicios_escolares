@@ -73,6 +73,11 @@ urlpatterns = [
     
     # AJAX
     path('ajax/buscar-alumno/', views.buscar_alumno_ajax, name='buscar_alumno_ajax'),
+    # APIs para tabs de gestión de alumnos
+    path('ajax/alumnos/', views.api_alumnos_list, name='api_alumnos_list'),
+    path('ajax/alumnos/<int:pk>/', views.api_alumno_detail, name='api_alumno_detail'),
+    path('ajax/alumnos/<int:pk>/update/', views.api_alumno_update, name='api_alumno_update'),
+    path('ajax/periodos/', views.api_periodos_list, name='api_periodos_list'),
     path('alumnos/', views.AlumnoListView.as_view(), name='alumno_list'),
     path('alumnos/nuevo/', views.AlumnoCreateView.as_view(), name='alumno_nuevo'),
     path('alumnos/<int:pk>/', views.AlumnoDetailView.as_view(), name='alumno_detalle'),
@@ -82,6 +87,8 @@ urlpatterns = [
     # Gestión de calificaciones
     path('calificaciones/', views.gestion_calificaciones, name='gestion_calificaciones'),
     path('calificaciones/lista/', views.CalificacionListView.as_view(), name='calificacion_list'),
+    path('ajax/calificaciones/', views.api_calificaciones_list, name='api_calificaciones_list'),
+    path('ajax/calificaciones/nueva/', views.api_calificacion_create, name='api_calificacion_create'),
     path('calificaciones/nueva/', views.calificacion_create, name='calificacion_create'),
     path('calificaciones/<int:pk>/', views.calificacion_detail, name='calificacion_detail'),
     path('calificaciones/<int:pk>/editar/', views.calificacion_edit, name='calificacion_edit'),
@@ -100,11 +107,13 @@ urlpatterns = [
     path('planes/<int:pk>/editar/', views.plan_estudio_edit, name='plan_estudio_edit'),
 
     # Periodos
-    path('periodos/', views_periodos.periodos_panel, name='periodos_panel'),
+    path('periodos/', views_periodos.periodos_panel, name='periodos_listar'),
     path('periodos/lista/', views_periodos.periodos_listar, name='periodos_listar'),
     path('periodos/editar/', views_periodos.periodo_editar, name='periodo_editar'),
     path('periodos/<int:periodo_id>/editar/', views_periodos.periodo_editar, name='periodo_editar'),
     path('periodos/<int:periodo_id>/toggle-activo/', views_periodos.periodo_toggle_activo, name='periodo_toggle_activo'),
+    path('periodos/<int:periodo_id>/toggle-inscripcion/', views_periodos.periodo_toggle_inscripcion, name='periodo_toggle_inscripcion'),
+    path('periodos/<int:periodo_id>/toggle-reinscripcion/', views_periodos.periodo_toggle_reinscripcion, name='periodo_toggle_reinscripcion'),
     path('periodos/transicion/aplicar/', views_periodos.periodo_aplicar_transicion, name='periodo_aplicar_transicion'),
     
     
@@ -119,6 +128,8 @@ urlpatterns = [
 
     # ========== AUTENTICACIÓN SERVICIOS ESCOLARES ==========
     path('servicios/login/', views_auth.servicios_login_view, name='servicios_login'),
- 
+    path('servicios/perfil/', views_auth.servicios_perfil_view, name='servicios_perfil'),
+    path('servicios/logout/', views_auth.servicios_logout_view, name='servicios_logout'),
+  
 ]
 

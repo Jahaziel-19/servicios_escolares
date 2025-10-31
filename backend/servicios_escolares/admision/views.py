@@ -1,20 +1,32 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse, HttpResponse, Http404
+from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
+from django.urls import reverse
+from datetime import datetime
 from .models import (
     PeriodoAdmision, FormularioAdmision, SolicitudAdmision, 
     FichaAdmision, ConfiguracionAdmision
 )
 from .forms import FormularioDinamicoAdmision, SolicitudAdmisionForm
+from audit.models import AuditLog
 import re
 import json
+
+
+# Permisos: Servicios Escolares (staff/superuser o grupo específico)
+def _es_servicios_escolares(user):
+    return user.is_authenticated and (
+        user.is_staff or user.is_superuser or user.groups.filter(name__in=["ServiciosEscolares", "Servicios Escolares"]).exists()
+    )
 
 
 def solicitud_admision(request):
@@ -179,7 +191,8 @@ def editar_solicitud(request, folio):
     })
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_visualizar_formulario(request, formulario_id):
     """Vista moderna para visualizar un formulario con interfaz mejorada"""
     from formbuilder.models import Formulario
@@ -223,7 +236,8 @@ def admin_visualizar_formulario(request, formulario_id):
     return render(request, 'admision/admin/visualizar_formulario.html', context)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_dashboard(request):
     """Dashboard administrativo para el sistema de admisión"""
     # Estadísticas generales
@@ -263,7 +277,8 @@ def admin_dashboard(request):
     })
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_solicitudes(request):
     """Vista para administrar todas las solicitudes"""
     # Filtros
@@ -311,7 +326,8 @@ def admin_solicitudes(request):
     })
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_ver_solicitud(request, solicitud_id):
     """Vista detallada de una solicitud específica"""
     solicitud = get_object_or_404(SolicitudAdmision, id=solicitud_id)
@@ -319,14 +335,23 @@ def admin_ver_solicitud(request, solicitud_id):
     # Obtener la estructura del formulario para mostrar las respuestas
     formulario_config = solicitud.periodo.formulario_base
     
+    # Logs de auditoría asociados a esta Solicitud
+    try:
+        ct = ContentType.objects.get_for_model(SolicitudAdmision)
+        audit_logs = AuditLog.objects.filter(content_type=ct, object_id=str(solicitud.pk)).order_by('-created_at')[:200]
+    except Exception:
+        audit_logs = []
+    
     return render(request, 'admision/admin/ver_solicitud.html', {
         'solicitud': solicitud,
         'formulario_config': formulario_config,
-        'estados': SolicitudAdmision.ESTADOS
+        'estados': SolicitudAdmision.ESTADOS,
+        'audit_logs': audit_logs,
     })
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_cambiar_estado_solicitud(request, solicitud_id):
     """Cambiar el estado de una solicitud"""
     if request.method != 'POST':
@@ -356,7 +381,8 @@ def admin_cambiar_estado_solicitud(request, solicitud_id):
     return redirect('admision:admin_ver_solicitud', solicitud_id=solicitud_id)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_generar_ficha(request, solicitud_id):
     """Generar ficha de admisión para una solicitud"""
     from .utils import generar_ficha_admision_pdf
@@ -394,7 +420,8 @@ def admin_generar_ficha(request, solicitud_id):
     return redirect('admision:admin_ver_solicitud', solicitud_id=solicitud.id)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_descargar_ficha(request, ficha_id):
     """Descargar ficha de admisión en PDF"""
     from .utils import crear_respuesta_pdf_ficha
@@ -412,7 +439,8 @@ def admin_descargar_ficha(request, ficha_id):
         return redirect('admision:admin_ver_solicitud', solicitud_id=ficha.solicitud.id)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_enviar_ficha_email(request, solicitud_id):
     """Enviar ficha de admisión por email desde el panel admin (con adjuntos opcionales)"""
     solicitud = get_object_or_404(SolicitudAdmision, id=solicitud_id)
@@ -445,6 +473,142 @@ def _get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
+def periodos_admision_panel(request):
+    """Lista y crea períodos de admisión usando la plantilla unificada con tabs.
+    - GET: lista tarjetas de períodos de admisión
+    - POST: crea un nuevo período de admisión
+    """
+    if request.method == 'POST' and request.POST.get('_scope') == 'admision':
+        import json
+        nombre = (request.POST.get('nombre') or '').strip()
+        try:
+            anio = int(request.POST.get('año') or request.POST.get('anio') or 0)
+        except ValueError:
+            anio = 0
+        fi_raw = request.POST.get('fecha_inicio') or ''  # formato HTML datetime-local: YYYY-MM-DDTHH:MM
+        ff_raw = request.POST.get('fecha_fin') or ''
+        activo = request.POST.get('activo') == 'on'
+        descripcion = request.POST.get('descripcion') or ''
+        fb_json_text = (request.POST.get('formulario_base_json') or '').strip()
+        fb_json = None
+        try:
+            fi = datetime.fromisoformat(fi_raw) if fi_raw else None
+            ff = datetime.fromisoformat(ff_raw) if ff_raw else None
+            if fi and timezone.is_naive(fi):
+                fi = timezone.make_aware(fi, timezone.get_current_timezone())
+            if ff and timezone.is_naive(ff):
+                ff = timezone.make_aware(ff, timezone.get_current_timezone())
+            if not nombre or not anio or not fi or not ff:
+                raise ValueError('Campos incompletos')
+            # Validar JSON opcional de formulario base, si viene del dashboard
+            if fb_json_text:
+                try:
+                    parsed = json.loads(fb_json_text)
+                    if not isinstance(parsed, dict):
+                        raise ValueError('El JSON del formulario debe ser un objeto')
+                    # Validación mínima: debe contener lista de "campos" si está presente
+                    campos = parsed.get('campos', [])
+                    if campos and not isinstance(campos, list):
+                        raise ValueError('La clave "campos" debe ser una lista')
+                    fb_json = parsed
+                except json.JSONDecodeError:
+                    raise ValueError('El JSON del formulario no es válido')
+            with transaction.atomic():
+                if activo:
+                    PeriodoAdmision.objects.filter(activo=True).update(activo=False)
+                PeriodoAdmision.objects.create(
+                    nombre=nombre,
+                    año=anio,
+                    fecha_inicio=fi,
+                    fecha_fin=ff,
+                    activo=activo,
+                    descripcion=descripcion,
+                    formulario_base=fb_json if fb_json else None,
+                )
+            messages.success(request, 'Periodo de admisión creado correctamente.')
+        except Exception as e:
+            messages.error(request, f'No se pudo crear el periodo de admisión: {e}')
+        # Redireccionar al panel correspondiente, permitiendo "next" para volver al dashboard público
+        next_url = request.GET.get('next') or request.POST.get('next')
+        return redirect(next_url or reverse('admision:periodos_panel'))
+
+    periodos_admision = PeriodoAdmision.objects.all().order_by('-año', '-fecha_inicio')
+    context = {
+        'periodos_admision': periodos_admision,
+        'active_tab': 'admision',
+    }
+    return render(request, 'datos_academicos/periodos/lista.html', context)
+
+
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
+def periodo_toggle_activo(request, periodo_id: int):
+    """Alterna el estado activo de un período de admisión asegurando unicidad."""
+    periodo = get_object_or_404(PeriodoAdmision, id=periodo_id)
+    try:
+        with transaction.atomic():
+            nuevo_estado = not periodo.activo
+            if nuevo_estado:
+                PeriodoAdmision.objects.exclude(id=periodo.id).update(activo=False)
+            periodo.activo = nuevo_estado
+            periodo.save(update_fields=['activo'])
+        messages.success(request, f'Periodo "{periodo.nombre}" marcado como {"activo" if periodo.activo else "inactivo"}.')
+    except Exception as e:
+        messages.error(request, f'No se pudo cambiar el estado: {e}')
+    # Permitir regresar al dashboard público si se pasa "next"
+    next_url = request.GET.get('next') or request.POST.get('next')
+    return redirect(next_url or reverse('admision:periodos_panel'))
+
+
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
+def periodo_admision_editar(request, periodo_id: int):
+    """Editar un período de admisión desde el panel (modal)."""
+    periodo = get_object_or_404(PeriodoAdmision, id=periodo_id)
+    if request.method == 'POST':
+        nombre = (request.POST.get('nombre') or '').strip()
+        try:
+            anio = int(request.POST.get('año') or request.POST.get('anio') or periodo.año)
+        except ValueError:
+            anio = periodo.año
+        fi_raw = request.POST.get('fecha_inicio') or ''  # datetime-local: YYYY-MM-DDTHH:MM
+        ff_raw = request.POST.get('fecha_fin') or ''
+        activo = request.POST.get('activo') == 'on'
+        descripcion = request.POST.get('descripcion') or periodo.descripcion
+
+        try:
+            fi = datetime.fromisoformat(fi_raw) if fi_raw else periodo.fecha_inicio
+            ff = datetime.fromisoformat(ff_raw) if ff_raw else periodo.fecha_fin
+            if fi and timezone.is_naive(fi):
+                fi = timezone.make_aware(fi, timezone.get_current_timezone())
+            if ff and timezone.is_naive(ff):
+                ff = timezone.make_aware(ff, timezone.get_current_timezone())
+            if not nombre:
+                raise ValueError('El nombre es obligatorio')
+
+            with transaction.atomic():
+                periodo.nombre = nombre
+                periodo.año = anio
+                periodo.fecha_inicio = fi
+                periodo.fecha_fin = ff
+                periodo.activo = activo
+                periodo.descripcion = descripcion
+                periodo.save()
+
+            messages.success(request, 'Período de admisión actualizado correctamente.')
+        except Exception as e:
+            messages.error(request, f'No se pudo actualizar el período: {e}')
+        # Permitir regresar al dashboard público si se pasa "next"
+        next_url = request.GET.get('next') or request.POST.get('next')
+        return redirect(next_url or reverse('admision:periodos_panel'))
+
+    # Si fuese GET, redirigir al panel (o next si se proporcionó)
+    next_url = request.GET.get('next') or request.POST.get('next')
+    return redirect(next_url or reverse('admision:periodos_panel'))
 
 
 # API Views para funcionalidades AJAX
@@ -499,7 +663,8 @@ def api_estadisticas_periodo(request, periodo_id):
 
 # Vistas para gestión de formularios
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_formularios(request):
     """Vista para listar todos los períodos de admisión con su formulario único"""
     
@@ -565,7 +730,8 @@ def admin_formularios(request):
     return render(request, 'admision/admin/formularios.html', context)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_crear_formulario(request):
     """Vista para crear/editar el formulario base de un período de admisión"""
     import json
@@ -622,7 +788,8 @@ def admin_crear_formulario(request):
     return render(request, 'admision/admin/crear_formulario.html', context)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_editar_formulario(request, periodo_id):
     """Vista para editar el formulario base de un período específico"""
     import json
@@ -665,7 +832,8 @@ def admin_editar_formulario(request, periodo_id):
     return render(request, 'admision/admin/editar_formulario.html', context)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_ver_formulario(request, periodo_id):
     """Vista para ver el formulario base de un período específico"""
     import json
@@ -687,7 +855,8 @@ def admin_ver_formulario(request, periodo_id):
     return render(request, 'admision/admin/ver_formulario.html', context)
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_preview_formulario(request, periodo_id):
     """Vista para previsualizar el formulario base de un período"""
     import json
@@ -712,7 +881,8 @@ def admin_preview_formulario(request, periodo_id):
 # Fin de las vistas de gestión de formularios
 
 
-@login_required
+@login_required(login_url='/datos_academicos/servicios/login/')
+@user_passes_test(_es_servicios_escolares, login_url='/datos_academicos/servicios/login/')
 def admin_toggle_formulario_status(request, formulario_id):
     """Vista para activar/desactivar un formulario"""
     from formbuilder.models import Formulario

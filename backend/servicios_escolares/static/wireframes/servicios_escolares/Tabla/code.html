@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Student Records - Tlaxco Superior Technological Institute</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#1a396b",
+            "background-light": "#f6f7f8",
+            "background-dark": "#13181f",
+          },
+          fontFamily: {
+            "display": ["Inter", "sans-serif"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .group:hover .group-hover-visible {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    .group-hover-visible {
+        opacity: 0;
+        transform: translateX(10px);
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 dark:border-gray-700 px-6 sm:px-10 py-3 bg-white dark:bg-background-dark">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-primary dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Tlaxco Superior Technological Institute</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center gap-9">
+<a class="text-gray-800 dark:text-gray-300 text-sm font-medium leading-normal" href="#">Dashboard</a>
+<a class="text-primary dark:text-white text-sm font-bold leading-normal border-b-2 border-primary pb-1" href="#">Student Records</a>
+<a class="text-gray-800 dark:text-gray-300 text-sm font-medium leading-normal" href="#">Courses</a>
+<a class="text-gray-800 dark:text-gray-300 text-sm font-medium leading-normal" href="#">Directory</a>
+</div>
+<div class="flex gap-2 items-center">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
+<span class="material-symbols-outlined text-lg">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDIA34HXlbu8JMiqLJgWbhBCa0wxCl6uMPGudJDHoFce7R2cpWyyEDvtpOQ_8ua7ZIs9gu-NaAq5l5JAroDcTN1uFf0rRgX19E8Canqeh4LJmtU9CLVfgAWPYPtn6eL0ATW_FxYusc6Gy2Vwu0gUrebEFqMZTkYkR5Rpdk5qwRvFRzcxVH3Y-rWe23ECYJF4fSy6H4c-z8eLS8x0nCV5XI16dd3NHb4GtGcIirFHixB9-TFu-uBF9xC60Jtp9UhsxikQwqqY6GJ7Qw");'></div>
+</div>
+</div>
+</header>
+<main class="flex-1 px-4 sm:px-6 lg:px-8 py-8">
+<div class="mx-auto max-w-7xl">
+<div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+<div class="flex flex-col gap-1">
+<p class="text-gray-900 dark:text-white text-3xl sm:text-4xl font-black leading-tight tracking-[-0.033em]">Student Records</p>
+<p class="text-gray-500 dark:text-gray-400 text-base font-normal leading-normal">Manage and view all student records in the system.</p>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2 shadow-sm hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-lg">add</span>
+<span class="truncate">Add New Record</span>
+</button>
+</div>
+<div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4 bg-white dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+<div class="w-full sm:max-w-xs">
+<label class="flex flex-col min-w-40 h-11 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-gray-500 flex bg-gray-100 dark:bg-gray-900 dark:text-gray-400 items-center justify-center pl-3.5 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border-none bg-gray-100 dark:bg-gray-900 h-full placeholder:text-gray-500 dark:placeholder:text-gray-400 px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal" placeholder="Search by name or ID..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-gray-100 dark:bg-gray-700 px-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 text-lg">filter_list</span>
+<p class="text-gray-800 dark:text-gray-200 text-sm font-medium leading-normal">Filter by Status</p>
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 text-lg">expand_more</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-gray-100 dark:bg-gray-700 px-3 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 text-lg">sort</span>
+<p class="text-gray-800 dark:text-gray-200 text-sm font-medium leading-normal">Sort</p>
+</button>
+</div>
+</div>
+<div class="space-y-4">
+<div class="hidden lg:grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-6 py-3 bg-gradient-to-b from-primary to-[#1b396a] text-white rounded-lg">
+<h3 class="font-bold text-sm">Student Name</h3>
+<h3 class="font-bold text-sm">ID</h3>
+<h3 class="font-bold text-sm">Status</h3>
+<h3 class="font-bold text-sm text-right">Actions</h3>
+</div>
+<!-- Student Record Card 1 -->
+<div class="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 dark:border-gray-700">
+<div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4">
+<div class="flex items-center gap-4">
+<img class="h-12 w-12 rounded-full object-cover" data-alt="Profile picture of Alejandro Hernandez" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6gC9NF0XZ29pA5bf9dQdzA1p0GcF47SkAn8BLsLIvZjsaCemHngvSYh_QrEitUjM01KVhWNMqZcw-ksAMZamATenmgnjYrpbHkeggiwldjQ3DvDShKKrMWxO2rM4Ey4DCzPn121D5fxTwawku0N6aqQsc69Re6slbNjl3svA5M6tW0_fJQqxcHPbKzY34ItA0fQwsnG-vzKEiWWcImDZ7sKL2gb7Gy7MHUDagf4umg_7fuVDvtcLVZnxl7bYS7Ff0w1jBXc3a8tg"/>
+<div>
+<p class="font-bold text-gray-900 dark:text-white">Alejandro Hernandez</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Computer Science</p>
+</div>
+</div>
+<div>
+<p class="text-sm font-semibold text-gray-500 dark:text-gray-400 lg:hidden mb-1">ID</p>
+<p class="text-gray-800 dark:text-gray-200">#2024001</p>
+</div>
+<div>
+<p class="text-sm font-semibold text-gray-500 dark:text-gray-400 lg:hidden mb-1">Status</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">Active</span>
+</div>
+<div class="flex justify-end items-center gap-2">
+<div class="group-hover-visible flex gap-2">
+<button class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+<button class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Student Record Card 2 -->
+<div class="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 dark:border-gray-700">
+<div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4">
+<div class="flex items-center gap-4">
+<img class="h-12 w-12 rounded-full object-cover" data-alt="Profile picture of Sofia Garcia" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpJbO_raR7lyOtvFKDF-R8LLxaGTnqjww3gwPbZxW_IhLvn_IYXmbl8lNK2ThdjQ4Qbxp9xrpcgRV34Pg3oGN6MgNXyxHAOU5RGGihz3TioDhD1LDkOX1oG4pvP4SZGocyps72sAe6GMlLwY7i4lqfFggd86apR8kJ8_ap1Jgny5c6n0xZ4wLCJqSCCNhiZsDzYwkGriABYEF9FY9dDG1Hyj5azUjOBPKLuBwmO8I-3nmDhJgZx5EjNa6JJMgAO90pArSGLahXkXg"/>
+<div>
+<p class="font-bold text-gray-900 dark:text-white">Sofia Garcia</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Industrial Engineering</p>
+</div>
+</div>
+<div>
+<p class="text-sm font-semibold text-gray-500 dark:text-gray-400 lg:hidden mb-1">ID</p>
+<p class="text-gray-800 dark:text-gray-200">#2024002</p>
+</div>
+<div>
+<p class="text-sm font-semibold text-gray-500 dark:text-gray-400 lg:hidden mb-1">Status</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300">Pending</span>
+</div>
+<div class="flex justify-end items-center gap-2">
+<div class="group-hover-visible flex gap-2">
+<button class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+<button class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Student Record Card 3 -->
+<div class="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 dark:border-gray-700">
+<div class="grid grid-cols-1 lg:grid-cols-[2fr_1fr_1fr_1fr] items-center gap-4 px-6 py-4">
+<div class="flex items-center gap-4">
+<img class="h-12 w-12 rounded-full object-cover" data-alt="Profile picture of Miguel Rodriguez" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzEjs3YEjsaD73ysOfCkGlIU7ztt3ynSoQf943uESoS5ujCdu2cluSBJOAoWbLk1Dw9eZZ0nLU7wR6HD2ISXRHjFOSf5YoMJoBR50NJxol2rdm-gBtSQXt8E1tPpQQXWMvMehC5aHzwHNPvDI8JZlq9FJ0o2gJPpHQjmFy1J513PwKcP_uzH_Yguj94fDQFfjRDehON7SaXO_CKEUz2-8hFLKgz4WQVZGsBjMpJDEtZbnoRXJl8d9BzltQBk_7oISHOVCB71GKMbM"/>
+<div>
+<p class="font-bold text-gray-900 dark:text-white">Miguel Rodriguez</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Mechatronics</p>
+</div>
+</div>
+<div>
+<p class="text-sm font-semibold text-gray-500 dark:text-gray-400 lg:hidden mb-1">ID</p>
+<p class="text-gray-800 dark:text-gray-200">#2024003</p>
+</div>
+<div>
+<p class="text-sm font-semibold text-gray-500 dark:text-gray-400 lg:hidden mb-1">Status</p>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300">Inactive</span>
+</div>
+<div class="flex justify-end items-center gap-2">
+<div class="group-hover-visible flex gap-2">
+<button class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+<button class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+<p class="text-sm text-gray-600 dark:text-gray-400">Showing <span class="font-bold">1</span>-<span class="font-bold">3</span> of <span class="font-bold">150</span> entries</p>
+<nav class="flex items-center gap-1">
+<button class="flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="flex items-center justify-center h-9 w-9 rounded-lg bg-primary text-white font-bold text-sm">1</button>
+<button class="flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold text-sm transition-colors">2</button>
+<button class="flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold text-sm transition-colors">3</button>
+<span class="text-gray-500 dark:text-gray-400">...</span>
+<button class="flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold text-sm transition-colors">15</button>
+<button class="flex items-center justify-center h-9 w-9 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</nav>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

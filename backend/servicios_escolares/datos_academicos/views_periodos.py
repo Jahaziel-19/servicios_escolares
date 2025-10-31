@@ -23,7 +23,60 @@ servicios_escolares_required = user_passes_test(
 @servicios_escolares_required
 def periodos_listar(request):
     periodos = PeriodoEscolar.objects.all().order_by('-fecha_inicio')
-    return render(request, 'datos_academicos/periodos/lista.html', {'periodos': periodos})
+    periodos_admision = PeriodoAdmision.objects.all().order_by('-fecha_inicio')
+
+    # Creación desde modales (unificada)
+    if request.method == 'POST':
+        scope = request.POST.get('_scope')
+        # Crear periodo académico
+        if scope == 'academicos':
+            form = PeriodoEscolarForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Periodo académico creado correctamente.')
+                return redirect('datos_academicos:periodos_listar')
+            else:
+                messages.error(request, 'Error al crear el periodo académico. Revisa los datos.')
+        # Crear periodo de admisión
+        elif scope == 'admision':
+            nombre = (request.POST.get('nombre') or '').strip()
+            try:
+                anio = int(request.POST.get('año') or request.POST.get('anio') or 0)
+            except ValueError:
+                anio = 0
+            fi_raw = request.POST.get('fecha_inicio') or ''  # YYYY-MM-DDTHH:MM
+            ff_raw = request.POST.get('fecha_fin') or ''
+            activo = request.POST.get('activo') == 'on'
+            try:
+                fi = datetime.fromisoformat(fi_raw) if fi_raw else None
+                ff = datetime.fromisoformat(ff_raw) if ff_raw else None
+                if fi and timezone.is_naive(fi):
+                    fi = timezone.make_aware(fi, timezone.get_current_timezone())
+                if ff and timezone.is_naive(ff):
+                    ff = timezone.make_aware(ff, timezone.get_current_timezone())
+                if not nombre or not anio or not fi or not ff:
+                    raise ValueError('Campos incompletos')
+                if activo:
+                    PeriodoAdmision.objects.filter(activo=True).update(activo=False)
+                PeriodoAdmision.objects.create(
+                    nombre=nombre,
+                    año=anio,
+                    fecha_inicio=fi,
+                    fecha_fin=ff,
+                    activo=activo,
+                )
+                messages.success(request, 'Periodo de admisión creado correctamente.')
+                return redirect('/datos_academicos/periodos/lista/?tab=admision')
+            except Exception as e:
+                messages.error(request, f'No se pudo crear el periodo de admisión: {e}')
+
+    active_tab = request.GET.get('tab') or ''
+    context = {
+        'periodos': periodos,
+        'periodos_admision': periodos_admision,
+        'active_tab': active_tab,
+    }
+    return render(request, 'datos_academicos/periodos/lista.html', context)
 
 @servicios_escolares_required
 def periodo_editar(request, periodo_id=None):
@@ -48,6 +101,24 @@ def periodo_toggle_activo(request, periodo_id):
     periodo.activo = not periodo.activo
     periodo.save()
     messages.info(request, f'Periodo {"activado" if periodo.activo else "desactivado"}.')
+    return redirect('datos_academicos:periodos_listar')
+
+@servicios_escolares_required
+def periodo_toggle_inscripcion(request, periodo_id):
+    periodo = get_object_or_404(PeriodoEscolar, id=periodo_id)
+    periodo.inscripcion_habilitada = not periodo.inscripcion_habilitada
+    periodo.save(update_fields=['inscripcion_habilitada'])
+    estado = 'habilitada' if periodo.inscripcion_habilitada else 'deshabilitada'
+    messages.info(request, f'Inscripción {estado} para el periodo.')
+    return redirect('datos_academicos:periodos_listar')
+
+@servicios_escolares_required
+def periodo_toggle_reinscripcion(request, periodo_id):
+    periodo = get_object_or_404(PeriodoEscolar, id=periodo_id)
+    periodo.reinscripcion_habilitada = not periodo.reinscripcion_habilitada
+    periodo.save(update_fields=['reinscripcion_habilitada'])
+    estado = 'habilitada' if periodo.reinscripcion_habilitada else 'deshabilitada'
+    messages.info(request, f'Reinscripción {estado} para el periodo.')
     return redirect('datos_academicos:periodos_listar')
 
 @servicios_escolares_required

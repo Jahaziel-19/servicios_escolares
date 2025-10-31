@@ -82,12 +82,37 @@ def importar_modelo(request, pk):
 
                     mapeo_form = MapeoCamposForm(campos_modelo, encabezados)
 
+                    # Asegurar que lo guardado en sesión sea JSON-serializable
+                    from datetime import datetime, date
+                    from decimal import Decimal
+
+                    def _json_safe(v):
+                        if isinstance(v, (datetime, date)):
+                            return v.isoformat()
+                        if isinstance(v, Decimal):
+                            try:
+                                return float(v)
+                            except Exception:
+                                return str(v)
+                        if isinstance(v, bytes):
+                            try:
+                                return v.decode('utf-8', errors='ignore')
+                            except Exception:
+                                return str(v)
+                        return v
+
+                    def _safe_row(row):
+                        return [_json_safe(x) for x in row]
+
+                    filas_seguras = [_safe_row(r) for r in filas]
+                    encabezados_seg = [_json_safe(h) for h in encabezados]
+
                     request.session['datos_importacion'] = {
                         'ruta': ruta,
                         'hoja': hoja,
                         'rango': rango,
-                        'encabezados': encabezados,
-                        'filas': filas,
+                        'encabezados': encabezados_seg,
+                        'filas': filas_seguras,
                         'modelo_pk': pk,
                     }
 

@@ -23,6 +23,13 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ===========================================
+# CONFIGURACIÓN DE SESIONES
+# ===========================================
+
+# Usar un serializador JSON basado en DjangoJSONEncoder para soportar datetime
+SESSION_SERIALIZER = 'servicios_escolares.session_serializers.DjangoJSONEncoderSerializer'
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -33,7 +40,7 @@ SECRET_KEY = 'django-insecure-kld!coqo9v+vepbuw5l--3lvcn+9)($qr9v&$lopy$s(88@+jv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -56,6 +63,7 @@ INSTALLED_APPS = [
     'excel_importer',
     'procedimientos',
     'admision',
+    'audit',
     'theme',
 ]
 
@@ -68,6 +76,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'audit.middleware.AuditRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'servicios_escolares.urls'

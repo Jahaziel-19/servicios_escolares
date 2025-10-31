@@ -3,44 +3,60 @@
 
 {% block title %}Gestión de Alumnos{% endblock %}
 
+{% block extra_css %}
+<style>
+  .ag-container { --ag-primary:#1B396A; --ag-dark:#252328; --ag-muted:#6b7280; background: linear-gradient(180deg, rgba(27,57,106,0.06), rgba(37,35,40,0.04)); padding-bottom: 24px; }
+  .ag-shell { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+  .ag-header { display:flex; align-items:center; justify-content:center; gap:12px; text-align:center; }
+  /* Colores y estilos consistentes con #1B396A */
+  .ag-chip { width:44px; height:44px; display:grid; place-items:center; border-radius:50%; background:#1B396A; color:#fff; box-shadow:0 6px 18px rgba(27,57,106,.18); }
+  .se-table thead tr { background:#1B396A !important; color:#fff; }
+  .bg-primary { background-color:#1B396A !important; }
+  .text-primary { color:#1B396A !important; }
+  .btn-primary { background-color:#1B396A !important; border-color:#1B396A !important; }
+  .btn-outline-primary { color:#1B396A !important; border-color:#1B396A !important; }
+  .badge.bg-primary { background-color:#1B396A !important; }
+  .nav-pills .nav-link.active { background-color:#1B396A !important; }
+  .ag-avatar { width:54px; height:54px; border-radius:50%; object-fit:cover; background:#e5e7eb; display:grid; place-items:center; overflow:hidden; }
+  .ag-toolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; background: rgba(255,255,255,0.6); border: 1px solid rgba(2,14,45,0.08); border-radius: 14px; padding: 10px 12px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .ag-toolbar .form-control, .ag-toolbar .form-select { border-radius: 12px; }
+  .stats-card { border-radius: 16px; box-shadow: 0 12px 26px rgba(2,14,45,.08); border:1px solid rgba(2,14,45,.08); overflow:hidden; }
+  .stats-card .card-header { background:#252328; color:#fff; padding:8px 14px; }
+  .progress-wrapper .progress { height:10px; border-radius:999px; }
+  .se-table th { font-weight:700; font-size:.75rem; color:#6b7280; }
+  h4 { font-size:1.5rem; font-weight:700; color: #fff;}
+  .moving-tab .nav-link.active { background: #1B396A !important; }
+  #alumno-detail-panel { width:700px !important; }
+  .btn-close {color:#252328}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-3">
+<div class="container-fluid py-4 fade-in ag-container">
+  <div class="ag-shell">
   <div class="row">
     <!-- Encabezado -->
     <div class="row gy-2 align-items-center mb-3">
-      <div class="col-12 col-md-8 d-flex align-items-center gap-3">
-        <img src="{% static 'img/icons/alumno.png' %}" alt="Alumnos" class="img-fluid" style="max-width: 60px;">
-        <div>
-          <h1 class="mb-0 fw-bold">Gestión de Alumnos</h1>
-          <p class="text-muted mb-0">Administra alumnos, procesos de inscripción y reinscripción del sistema educativo.</p>
-        </div>
-      </div>
-      <div class="col-12 col-md-4 text-md-end">
-        <div class="btn-group">
-          <button type="button" class="btn btn-outline-success btn-sm" onclick="generarReporteAlumnos()">
-            <i class="material-symbols-rounded me-1">assessment</i>Reportes
-          </button>
-          <button type="button" class="btn btn-outline-warning btn-sm" onclick="mostrarImportadorAlumnos()">
-            <i class="material-symbols-rounded me-1">upload</i>Importar
-          </button>
-          <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportarDatosAlumnos()">
-            <i class="material-symbols-rounded me-1">download</i>Exportar
-          </button>
-          <button type="button" class="btn btn-outline-info btn-sm" onclick="actualizarDatosAlumnos()">
-            <i class="material-symbols-rounded me-1">refresh</i>Actualizar
-          </button>
+      <div class="col-12">
+        <div class="ag-header">
+          <span class="ag-chip"><i class="material-symbols-rounded">school</i></span>
+          <div>
+            <h2 class="mb-0">Gestión de Alumnos</h2>
+            <p class="text-muted mb-0">Administra información de alumnos</p>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- KPIs -->
+    <!-- Total alumnos -->
     <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-      <div class="card">
+      <div class="card stats-card">
         <div class="card-header p-2 ps-3">
           <div class="d-flex justify-content-between">
             <div>
               <p class="text-sm mb-0 text-capitalize">Total Alumnos</p>
-              <h4 class="mb-0">{{ total_alumnos }}</h4>
+              <h4 class=" mb-0">{{ total_alumnos }}</h4>
             </div>
             <div class="icon icon-md icon-shape bg-gradient-primary shadow text-center border-radius-lg">
               <i class="material-symbols-rounded opacity-10">school</i>
@@ -56,8 +72,9 @@
         </div>
       </div>
     </div>
+    <!-- Alumnos Inscritos -->
     <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-      <div class="card">
+      <div class="card stats-card">
         <div class="card-header p-2 ps-3">
           <div class="d-flex justify-content-between">
             <div>
@@ -78,54 +95,405 @@
         </div>
       </div>
     </div>
-    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-      <div class="card">
-        <div class="card-header p-2 ps-3">
-          <div class="d-flex justify-content-between">
-            <div>
-              <p class="text-sm mb-0 text-capitalize">Nuevos Ingresos</p>
-              <h4 class="mb-0">{{ nuevos_ingresos }}</h4>
-            </div>
-            <div class="icon icon-md icon-shape bg-gradient-warning shadow text-center border-radius-lg">
-              <i class="material-symbols-rounded opacity-10">person_add</i>
-            </div>
-          </div>
-        </div>
-        <hr class="dark horizontal my-0">
-        <div class="card-footer p-2 ps-3">
-          <p class="mb-0 text-sm">
-            <span class="text-warning font-weight-bolder">{{ reingresos|default:0 }} <i class="material-symbols-rounded">refresh</i></span>
-            reingresos
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="col-xl-3 col-sm-6">
-      <div class="card">
-        <div class="card-header p-2 ps-3">
-          <div class="d-flex justify-content-between">
-            <div>
-              <p class="text-sm mb-0 text-capitalize">Promedio General</p>
-              <h4 class="mb-0">{{ promedio_general|floatformat:2 }}</h4>
-            </div>
-            <div class="icon icon-md icon-shape bg-gradient-info shadow text-center border-radius-lg">
-              <i class="material-symbols-rounded opacity-10">analytics</i>
-            </div>
-          </div>
-        </div>
-        <hr class="dark horizontal my-0">
-        <div class="card-footer p-2 ps-3">
-          <p class="mb-0 text-sm">
-            <span class="text-info font-weight-bolder">{{ total_creditos_aprobados|default:0 }} <i class="material-symbols-rounded">star</i></span>
-            créditos aprobados
-          </p>
-        </div>
-      </div>
-    </div>
+ 
+
   </div>
 
-  <!-- Gráficos Principales -->
-  <div class="row mt-4">
+  <!-- Tabs navegación -->
+   <ul class="nav nav-tabs mt-4 mb-3" id="ip-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-alumnos-btn" data-bs-toggle="pill" data-bs-target="#tab-alumnos" type="button" role="tab">
+          <i class="material-symbols-rounded me-1">school</i>
+          Alumnos
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-calificaciones-btn" data-bs-toggle="pill" data-bs-target="#tab-calificaciones" type="button" role="tab">
+          <i class="material-symbols-rounded me-1">grade</i>
+          Calificaciones
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-estadistica-btn" data-bs-toggle="pill" data-bs-target="#tab-estadistica" type="button" role="tab">
+          <i class="material-symbols-rounded me-1">monitoring</i>
+          Estadística
+        </button>
+      </li>
+    </ul>
+  
+
+  <div class="tab-content mt-3" id="ag-tabs-content">
+    <!-- Tab: Alumnos -->
+    <div class="tab-pane fade show active" id="tab-alumnos" role="tabpanel">
+      <div class="ag-toolbar mb-3">
+        <div class="flex-grow-1">
+          <input type="search" id="alumnos-search" class="form-control" placeholder="Buscar alumnos por nombre, matrícula o carrera">
+        </div>
+        <div>
+          <select id="alumnos-carrera" class="form-select">
+            <option value="">Todas las carreras</option>
+            {% for c in carreras %}
+              <option value="{{ c.id }}">{{ c.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <select id="alumnos-estatus" class="form-select">
+            <option value="">Todos los estatus</option>
+            <option value="Inscrito">Inscrito</option>
+            <option value="No Inscrito">No Inscrito</option>
+            <option value="Titulado">Titulado</option>
+            <option value="Baja definitiva">Baja definitiva</option>
+            <option value="Baja temporal">Baja temporal</option>
+          </select>
+        </div>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <div class="btn-group btn-group-sm" role="group" aria-label="Vista">
+            <button class="btn btn-outline-primary active" id="vista-cards">Cards</button>
+            <button class="btn btn-outline-secondary" id="vista-tabla">Tabla</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid de alumnos estilo "contactos" -->
+      <div id="alumnos-cards" class="row g-3">
+        <!-- Render dinámico -->
+      </div>
+
+      <!-- Tabla en bloques (similar a inscripciones/panel) -->
+      <div id="alumnos-table" class="card" style="display:none;">
+        <div class="table-responsive">
+          <table class="table align-items-center mb-0 se-table">
+            <thead>
+              <tr class="bg-primary text-white">
+                <th style="width:32px"></th>
+                <th>Nombre</th>
+                <th>Carrera</th>
+                <th>Estatus</th>
+              </tr>
+            </thead>
+            <tbody id="alumnos-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="d-flex justify-content-between align-items-center mt-3" id="alumnos-pagination">
+        <small class="text-muted" id="alumnos-count"></small>
+        <div class="btn-group btn-group-sm" id="alumnos-pager"></div>
+      </div>
+
+      <!-- Panel lateral de detalles -->
+      <div id="alumno-detail-panel" class="offcanvas offcanvas-end" tabindex="-1">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title">Detalle del Alumno</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close">x</button>
+        </div>
+        <div class="offcanvas-body">
+          <div id="alumno-detail-content">
+            <div class="text-center text-muted">Selecciona un alumno para ver detalles</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Editar Alumno -->
+    <div class="modal fade" id="alumno-edit-modal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Editar datos personales y contacto</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label">Nombre</label>
+                  <input type="text" name="nombre" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Apellido Paterno</label>
+                  <input type="text" name="apellido_paterno" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Apellido Materno</label>
+                  <input type="text" name="apellido_materno" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">CURP</label>
+                  <input type="text" name="curp" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Fecha de nacimiento</label>
+                  <input type="date" name="fecha_nacimiento" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Sexo</label>
+                  <select name="sexo" class="form-select">
+                    <option value="">Seleccione...</option>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Estado civil</label>
+                  <input type="text" name="estado_civil" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Teléfono</label>
+                  <input type="tel" name="telefono" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Email</label>
+                  <input type="email" name="email" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">RFC</label>
+                  <input type="text" name="rfc" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">NSS</label>
+                  <input type="text" name="nss" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Calle</label>
+                  <input type="text" name="calle" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">No. exterior</label>
+                  <input type="text" name="numero_exterior" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">No. interior</label>
+                  <input type="text" name="numero_interior" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Colonia</label>
+                  <input type="text" name="colonia" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Municipio</label>
+                  <input type="text" name="municipio" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Estado</label>
+                  <input type="text" name="estado" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Código postal</label>
+                  <input type="text" name="codigo_postal" class="form-control" />
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary"><span class="material-symbols-rounded me-1">save</span>Guardar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Calificaciones -->
+    <div class="tab-pane fade" id="tab-calificaciones" role="tabpanel">
+      <div class="ag-toolbar mb-3 align-items-center d-flex gap-2">
+        <div>
+          <select id="calif-periodo" class="form-select">
+            <option value="">Todos los períodos</option>
+          </select>
+        </div>
+        <div>
+          <select id="calif-order" class="form-select">
+            <option value="recientes">Recientes</option>
+            <option value="antiguas">Antiguas</option>
+          </select>
+        </div>
+        <div class="ms-auto"></div>
+        <div class="btn-group" role="group" aria-label="Vista">
+          <button id="view-table" type="button" class="btn btn-outline-primary active">Tabla</button>
+          <button id="view-cards" type="button" class="btn btn-outline-primary">Cards</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table align-items-center mb-0 se-table">
+            <thead>
+              <tr class="bg-primary text-white">
+                <th>Alumno</th>
+                <th>Materia</th>
+                <th>Período</th>
+                <th>Calificación</th>
+              </tr>
+            </thead>
+            <tbody id="calif-tbody"></tbody>
+          </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-2">
+          <small class="text-muted" id="calif-count"></small>
+          <div class="btn-group btn-group-sm" id="calif-pager"></div>
+        </div>
+      </div>
+
+      <div id="calif-cards" class="row g-3 d-none"></div>
+
+      <style>
+        .glass-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.35);backdrop-filter:blur(10px);z-index:1055}
+        .detail-panel{max-width:720px;width:100%;border-radius:12px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);box-shadow:0 10px 30px rgba(0,0,0,0.25)}
+        .detail-panel .card-body{backdrop-filter:blur(6px)}
+      </style>
+
+      <div id="calif-detail-overlay" class="glass-overlay d-none">
+        <div class="detail-panel card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <strong>Detalle de calificación</strong>
+            <button type="button" id="calif-detail-close" class="btn btn-sm btn-light">Cerrar</button>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-8">
+                <div><strong id="det-alumno"></strong> <small class="text-muted" id="det-matricula"></small></div>
+                <div class="mt-2"><strong>Materia:</strong> <span id="det-materia"></span> <small class="text-muted" id="det-materia-clave"></small></div>
+                <div class="mt-2"><strong>Período:</strong> <span id="det-periodo"></span></div>
+              </div>
+              <div class="col-md-4">
+                <div class="display-6" id="det-calificacion"></div>
+                <div class="text-muted">Créditos: <span id="det-creditos"></span></div>
+              </div>
+              <div class="col-12">
+                <div><strong>Acreditación:</strong> <span id="det-acreditacion"></span></div>
+              </div>
+              <div class="col-12">
+                <div><strong>Registrado:</strong> <span id="det-fecha"></span></div>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Observaciones</label>
+                <div id="det-observaciones" class="form-control" style="min-height:70px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Estadística (envolvemos secciones existentes más abajo) -->
+    <div class="tab-pane fade" id="tab-estadistica" role="tabpanel">
+      <!-- El contenido de gráficos y tablas queda justo después de esta sección -->
+    </div>
+
+    <!-- Modal: Nueva Calificación -->
+    <div class="modal fade" id="modalNuevaCalificacion" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Registrar nueva calificación</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <form id="nc-form" method="post">
+            {% csrf_token %}
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Alumno</label>
+                  <input type="text" id="nc-alumno-search" class="form-control" placeholder="Buscar alumno por nombre o matrícula">
+                  <input type="hidden" id="nc-alumno-id" name="alumno_id">
+                  <div id="nc-alumno-list" class="list-group mt-2"></div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Materia</label>
+                  <input type="text" id="nc-materia-search" class="form-control" placeholder="Buscar materia">
+                  <input type="hidden" id="nc-materia-id" name="materia_id">
+                  <div id="nc-materia-list" class="list-group mt-2"></div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Período escolar</label>
+                  <select id="nc-periodo" name="periodo_escolar_id" class="form-select"></select>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Calificación</label>
+                  <input type="number" name="calificacion" class="form-control" min="0" max="100" step="1" placeholder="0-100">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Acreditación</label>
+                  <select name="acreditacion" class="form-select">
+                    <option value="Ordinario">Ordinario</option>
+                    <option value="Convalidación">Convalidación</option>
+                    <option value="Equivalencia">Equivalencia</option>
+                    <option value="Traslado">Traslado</option>
+                    <option value="Extraordinario">Extraordinario</option>
+                  </select>
+                </div>
+                <div class="col-md-12">
+                  <label class="form-label">Observaciones</label>
+                  <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-success"><span class="material-symbols-rounded me-1">check_circle</span>Registrar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Éxito genérico -->
+    <div class="modal fade" id="modalExito" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title"><span class="material-symbols-rounded me-1">task_alt</span><span id="exitoTitulo">Operación exitosa</span></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <p id="exitoMensaje">Los cambios se guardaron correctamente.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-bs-dismiss="modal">Aceptar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Error genérico -->
+    <div class="modal fade" id="modalError" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title"><span class="material-symbols-rounded me-1">error</span><span id="errorTitulo">Ocurrió un error</span></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <p id="errorMensaje">No fue posible completar la operación.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function mostrarModalExito(titulo, mensaje) {
+        document.getElementById('exitoTitulo').textContent = titulo || 'Operación exitosa';
+        document.getElementById('exitoMensaje').textContent = mensaje || 'Los cambios se guardaron correctamente.';
+        const m = new bootstrap.Modal(document.getElementById('modalExito'));
+        m.show();
+      }
+      function mostrarModalError(titulo, mensaje) {
+        document.getElementById('errorTitulo').textContent = titulo || 'Ocurrió un error';
+        document.getElementById('errorMensaje').textContent = mensaje || 'No fue posible completar la operación.';
+        const m = new bootstrap.Modal(document.getElementById('modalError'));
+        m.show();
+      }
+    </script>
+  </div>
+
+  <!-- Bloque Estadística: se mostrará dentro del tab Estadística -->
+  <div id="estadistica-block" class="row mt-4" style="display:none;">
     <div class="col-lg-8 mb-lg-0 mb-4">
       <div class="card">
         <div class="card-body p-3">
@@ -178,7 +546,7 @@
   </div>
 
   <!-- Tablas de información -->
-  <div class="row mt-4">
+  <div class="row mt-4" id="estadistica-extra" style="display:none;">
     <div class="col-lg-8 mb-lg-0 mb-4">
       <div class="card">
         <div class="card-header pb-0 p-3">
@@ -245,94 +613,12 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-4">
-      <div class="card">
-        <div class="card-header pb-0 p-3">
-          <h6 class="mb-0">Acciones Principales</h6>
-        </div>
-        <div class="card-body p-3">
-          <ul class="list-group">
-            <li class="list-group-item border-0 d-flex justify-content-between ps-0 mb-2 border-radius-lg">
-              <div class="d-flex align-items-center">
-                <div class="icon icon-shape icon-sm me-3 bg-gradient-primary shadow text-center">
-                  <i class="material-symbols-outlined text-white opacity-10">
-                    assignment
-                  </i>
-                </div>
-                <div class="d-flex flex-column">
-                  <a href="{% url 'datos_academicos:alumno_list' %}">
-                    <h6 class="mb-1 text-dark text-sm">Ver Alumnos</h6>
-                    <span class="text-xs">Lista completa de alumnos</span>
-                  </a>
-                </div>
-              </div>
-              <div class="d-flex">
-                <button class="btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto">
-                  <i class="ni ni-bold-right" aria-hidden="true"></i>
-                </button>
-              </div>
-            </li>
-                    <div class="col-md-6 mb-3">
-                        <button type="button" class="btn btn-success btn-lg w-100 shadow-sm" onclick="mostrarFormularioInscripcion()">
-                            <i class="fas fa-user-plus me-2"></i>
-                            <div>
-                                <strong>Nueva Inscripción</strong>
-                                <small class="d-block">Registrar nuevo alumno</small>
-                            </div>
-                        </button>
-                    </div>
-                    
-            <li class="list-group-item border-0 d-flex justify-content-between ps-0 border-radius-lg">
-              <div class="d-flex align-items-center">
-                <div class="icon icon-shape icon-sm me-3 bg-gradient-info shadow text-center">
-                  <i class="material-symbols-outlined text-white opacity-10">
-                    description
-                  </i>
-                </div>
-                <div class="d-flex flex-column">
-                  <a href="#" onclick="generarReporteAlumnos()">
-                    <h6 class="mb-1 text-dark text-sm">Generar Reportes</h6>
-                    <span class="text-xs">Reportes y estadísticas</span>
-                  </a>
-                </div>
-              </div>
-              <div class="d-flex">
-                <button class="btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto">
-                  <i class="ni ni-bold-right" aria-hidden="true"></i>
-                </button>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    
   </div>
+  </div>
+  </div> <!-- cierre bloque estadística -->
 </div>
 
-<!-- Modal para Inscripción -->
-<div class="modal fade" id="inscripcionModal" tabindex="-1" aria-labelledby="inscripcionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="inscripcionModalLabel">
-                    <i class="fas fa-user-plus me-2"></i>Nueva Inscripción
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="inscripcionFormContainer">
-                    <!-- El formulario se cargará aquí dinámicamente -->
-                    <div class="text-center">
-                        <div class="spinner-border text-success" role="status">
-                            <span class="visually-hidden">Cargando...</span>
-                        </div>
-                        <p class="mt-2">Cargando formulario de inscripción...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -481,136 +767,509 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     };
+    
 
-    // Funciones para modales y acciones
-    window.mostrarFormularioInscripcion = function() {
-        const modal = new bootstrap.Modal(document.getElementById('inscripcionModal'));
-        const container = document.getElementById('inscripcionFormContainer');
-        
-        // Mostrar loading
-        container.innerHTML = `
-            <div class="text-center">
-                <div class="spinner-border text-success" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mt-2">Cargando formulario de inscripción...</p>
+  window.ordenarTablaAlumnos = function(criterio) {
+      alert('Función de ordenamiento por ' + criterio + ' en desarrollo');
+  };
+  
+  // --- Tabs behavior: mostrar/ocultar bloques ---
+  const estadisticaBlock = document.getElementById('estadistica-block');
+  const alumnosTab = document.getElementById('tab-alumnos');
+  const califTab = document.getElementById('tab-calificaciones');
+  const estadisticaTab = document.getElementById('tab-estadistica');
+  
+  document.getElementById('tab-estadistica-btn').addEventListener('shown.bs.tab', () => {
+    estadisticaBlock.style.display = '';
+  });
+  document.getElementById('tab-alumnos-btn').addEventListener('shown.bs.tab', () => {
+    estadisticaBlock.style.display = 'none';
+  });
+  document.getElementById('tab-calificaciones-btn').addEventListener('shown.bs.tab', () => {
+    estadisticaBlock.style.display = 'none';
+  });
+
+  // --- Listado de alumnos (cards + tabla) ---
+  const searchInput = document.getElementById('alumnos-search');
+  const carreraSelect = document.getElementById('alumnos-carrera');
+  const estatusSelect = document.getElementById('alumnos-estatus');
+  const cardsGrid = document.getElementById('alumnos-cards');
+  const tableWrap = document.getElementById('alumnos-table');
+  const tableBody = document.getElementById('alumnos-table-body');
+  const btnCards = document.getElementById('vista-cards');
+  const btnTabla = document.getElementById('vista-tabla');
+  const countLabel = document.getElementById('alumnos-count');
+  const pager = document.getElementById('alumnos-pager');
+  // Paginación compacta para evitar listas muy largas
+  function renderPagerCompact(container, current, total, onChange) {
+    let pages = [];
+    const windowSize = 2;
+    pages.push(1);
+    for (let i = Math.max(2, current - windowSize); i <= Math.min(total - 1, current + windowSize); i++) pages.push(i);
+    if (total > 1) pages.push(total);
+    pages = [...new Set(pages)].sort((a,b)=>a-b);
+    let html = `<button class="btn btn-outline-primary" ${current===1?'disabled':''} data-page="${current-1}">«</button>`;
+    for (let i=0;i<pages.length;i++) {
+      const p = pages[i];
+      const prev = pages[i-1];
+      if (prev && p - prev > 1) html += `<button class="btn btn-outline-primary" disabled>…</button>`;
+      html += `<button class="btn ${p===current?'btn-primary':'btn-outline-primary'}" data-page="${p}">${p}</button>`;
+    }
+    html += `<button class="btn btn-outline-primary" ${current===total?'disabled':''} data-page="${current+1}">»</button>`;
+    container.innerHTML = html;
+    container.querySelectorAll('button[data-page]').forEach(btn => {
+      btn.addEventListener('click', () => onChange(parseInt(btn.getAttribute('data-page'))));
+    });
+  }
+  
+  let alumnosState = { page: 1, totalPages: 1, total: 0, pageSize: 24 };
+  
+  function estadoBadge(estatus) {
+    const map = {
+      'Inscrito': 'badge bg-success',
+      'No Inscrito': 'badge bg-danger',
+      'Titulado': 'badge bg-primary',
+      'Baja definitiva': 'badge bg-warning',
+      'Baja temporal': 'badge bg-secondary'
+    };
+    return map[estatus] || 'badge bg-light text-dark';
+  }
+  
+  function renderCards(items) {
+    cardsGrid.innerHTML = items.map(it => `
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm" data-id="${it.id}" style="cursor:pointer;">
+          <div class="card-body d-flex align-items-center gap-3">
+            <div class="ag-avatar"><span class="material-symbols-rounded text-muted">person</span></div>
+            <div class="flex-grow-1">
+              <div class="fw-bold">${it.nombre_completo}</div>
+              <div class="text-muted small">${it.carrera} • ${it.matricula}</div>
+              <span class="${estadoBadge(it.estatus)}">${it.estatus}</span>
             </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    // Click para abrir detalle
+    cardsGrid.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('click', () => abrirDetalleAlumno(card.getAttribute('data-id')));
+    });
+  }
+  
+  function renderTable(items) {
+    tableBody.innerHTML = items.map(it => `
+      <tr>
+        <td><input type="checkbox"></td>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            <div class="ag-avatar" style="width:32px;height:32px;">
+              <span class="material-symbols-rounded text-muted" style="font-size:18px;">person</span>
+            </div>
+            <div>
+              <a href="javascript:void(0)" data-id="${it.id}" class="fw-bold alumno-link">${it.nombre_completo}</a>
+              <div class="text-muted small">${it.matricula}</div>
+            </div>
+          </div>
+        </td>
+        <td>${it.carrera}</td>
+        <td><span class="${estadoBadge(it.estatus)}">${it.estatus}</span></td>
+      </tr>
+    `).join('');
+    tableBody.querySelectorAll('.alumno-link').forEach(a => {
+      a.addEventListener('click', () => abrirDetalleAlumno(a.getAttribute('data-id')));
+    });
+  }
+  
+  function renderPager() {
+    const { page, totalPages } = alumnosState;
+    renderPagerCompact(pager, page, totalPages, (p)=>{ alumnosState.page = p; cargarAlumnos(); });
+  }
+  
+  function cargarAlumnos() {
+    const q = searchInput.value.trim();
+    const carrera = carreraSelect.value;
+    const estatus = estatusSelect.value;
+    const params = new URLSearchParams({ q, carrera, estatus, page: alumnosState.page, page_size: alumnosState.pageSize });
+    fetch(`/datos_academicos/ajax/alumnos/?${params.toString()}`)
+      .then(r => r.json())
+      .then(data => {
+        alumnosState.page = data.page;
+        alumnosState.totalPages = data.total_pages;
+        alumnosState.total = data.total;
+        countLabel.textContent = `${data.total} alumnos`;
+        if (tableWrap.style.display === 'none') {
+          renderCards(data.results);
+        } else {
+          renderTable(data.results);
+        }
+        renderPager();
+      });
+  }
+  
+  btnCards.addEventListener('click', () => {
+    btnCards.classList.add('active');
+    btnTabla.classList.remove('active');
+    tableWrap.style.display = 'none';
+    cardsGrid.style.display = '';
+    cargarAlumnos();
+  });
+  btnTabla.addEventListener('click', () => {
+    btnTabla.classList.add('active');
+    btnCards.classList.remove('active');
+    tableWrap.style.display = '';
+    cardsGrid.style.display = 'none';
+    cargarAlumnos();
+  });
+  [searchInput, carreraSelect, estatusSelect].forEach(el => el.addEventListener('input', () => { alumnosState.page = 1; cargarAlumnos(); }));
+  // sin botón de actualizar: se recarga automáticamente con los filtros
+  
+  // Abrir panel lateral con detalle
+  const offcanvasEl = document.getElementById('alumno-detail-panel');
+  const offcanvas = new bootstrap.Offcanvas(offcanvasEl);
+  function abrirDetalleAlumno(id) {
+    document.getElementById('alumno-detail-content').innerHTML = '<div class="text-center text-muted"><div class="spinner-border" role="status"></div><p class="mt-2">Cargando detalles...</p></div>';
+    offcanvas.show();
+    fetch(`/datos_academicos/ajax/alumnos/${id}/`)
+      .then(r => r.json())
+      .then(d => {
+        document.getElementById('alumno-detail-content').innerHTML = `
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="ag-avatar" style="width:64px;height:64px;">
+                  <span class="material-symbols-rounded text-muted">person</span>
+                </div>
+                <div>
+                  <div class="h5 mb-0">${d.nombre} ${d.apellido_paterno || ''} ${d.apellido_materno || ''}</div>
+                  <div class="text-muted">${d.matricula}</div>
+                  <div class="text-muted">${d.carrera}</div>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mb-3">
+                <button class="btn btn-primary btn-sm" id="btn-edit-alumno"><span class="material-symbols-rounded me-1">edit</span>Editar</button>
+                <a class="btn btn-outline-primary btn-sm d-inline-flex align-items-center" id="btn-constancia" target="_blank"><span class="material-symbols-rounded me-1">contract_edit</span>Constancia</a>
+                <a class="btn btn-outline-primary btn-sm d-inline-flex align-items-center" id="btn-kardex" target="_blank"><span class="material-symbols-rounded me-1">school</span>Kardex</a>
+                <a class="btn btn-outline-primary btn-sm d-inline-flex align-items-center" id="btn-boleta" target="_blank"><span class="material-symbols-rounded me-1">assignment</span>Boleta</a>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="small text-muted">Estatus</div>
+                  <div><span class="${estadoBadge(d.estatus)}">${d.estatus}</span></div>
+                </div>
+                <div class="col-md-6">
+                  <div class="small text-muted">Semestre</div>
+                  <div>${d.semestre}</div>
+                </div>
+                <div class="col-md-6">
+                  <div class="small text-muted">Promedio</div>
+                  <div>${d.promedio.toFixed ? d.promedio.toFixed(2) : d.promedio}</div>
+                </div>
+                <div class="col-md-6">
+                  <div class="small text-muted">Créditos</div>
+                  <div>${d.creditos_aprobados}/${d.creditos_totales}</div>
+                </div>
+                <div class="col-md-12">
+                  <div class="small text-muted">Modalidad</div>
+                  <div>${d.modalidad ?? ''}</div>
+                </div>
+              </div>
+            </div>
+          </div>
         `;
-        
-        modal.show();
-        
-        // Cargar formulario dinámicamente
-        fetch('/datos_academicos/inscripcion/nueva/')
-            .then(response => response.text())
-            .then(html => {
-                container.innerHTML = html;
-            })
-            .catch(error => {
-                container.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Error al cargar el formulario de inscripción. Por favor, intente nuevamente.
-                    </div>
-                `;
-                console.error('Error:', error);
-            });
-    }
-    
-    
-    // Función para procesar formulario de inscripción
-    function procesarInscripcion(form) {
-        const formData = new FormData(form);
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        
-        // Mostrar loading en botón
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
-        submitBtn.disabled = true;
-        
-        fetch('/datos_academicos/inscripcion/crear/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Mostrar mensaje de éxito
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Inscripción Exitosa!',
-                    html: `
-                        <p>Folio: <strong>${data.folio}</strong></p>
-                        <p>La inscripción ha sido registrada correctamente.</p>
-                        <div class="mt-3">
-                            <a href="/datos_academicos/inscripcion/${data.inscripcion_id}/documento/" 
-                               class="btn btn-primary btn-sm" target="_blank">
-                                <i class="fas fa-download me-2"></i>Descargar Formato
-                            </a>
-                        </div>
-                    `,
-                    confirmButtonText: 'Cerrar'
-                }).then(() => {
-                    // Cerrar modal y recargar datos
-                    bootstrap.Modal.getInstance(document.getElementById('inscripcionModal')).hide();
-                    location.reload();
-                });
-            } else {
-                // Mostrar errores
-                let errorMsg = 'Por favor, corrija los siguientes errores:\n';
-                for (let field in data.errors) {
-                    errorMsg += `- ${data.errors[field].join(', ')}\n`;
+        // enlaces de trámites
+        document.getElementById('btn-constancia').href = `/procedimientos/constancia/${d.matricula}/`;
+        document.getElementById('btn-kardex').href = `/procedimientos/kardex/${d.matricula}/`;
+        document.getElementById('btn-boleta').href = `/procedimientos/boleta/${d.matricula}/`;
+        // abrir modal editar
+        const editBtn = document.getElementById('btn-edit-alumno');
+        editBtn.addEventListener('click', ()=>{
+          const modalEl = document.getElementById('alumno-edit-modal');
+          modalEl.querySelector('[name="nombre"]').value = d.nombre || '';
+          modalEl.querySelector('[name="apellido_paterno"]').value = d.apellido_paterno || '';
+          modalEl.querySelector('[name="apellido_materno"]').value = d.apellido_materno || '';
+          modalEl.querySelector('[name="curp"]').value = d.curp || '';
+          modalEl.querySelector('[name="fecha_nacimiento"]').value = d.fecha_nacimiento ? d.fecha_nacimiento.substring(0,10) : '';
+          if (modalEl.querySelector('[name="sexo"]')) modalEl.querySelector('[name="sexo"]').value = d.sexo || '';
+          modalEl.querySelector('[name="estado_civil"]').value = d.estado_civil || '';
+          modalEl.querySelector('[name="telefono"]').value = d.telefono || '';
+          modalEl.querySelector('[name="email"]').value = d.email || '';
+          modalEl.querySelector('[name="rfc"]').value = d.rfc || '';
+          modalEl.querySelector('[name="nss"]').value = d.nss || '';
+          modalEl.querySelector('[name="calle"]').value = d.calle || '';
+          modalEl.querySelector('[name="numero_exterior"]').value = d.numero_exterior || '';
+          modalEl.querySelector('[name="numero_interior"]').value = d.numero_interior || '';
+          modalEl.querySelector('[name="colonia"]').value = d.colonia || '';
+          modalEl.querySelector('[name="municipio"]').value = d.municipio || '';
+          modalEl.querySelector('[name="estado"]').value = d.estado || '';
+          modalEl.querySelector('[name="codigo_postal"]').value = d.codigo_postal || '';
+          const bsModal = new bootstrap.Modal(modalEl);
+          bsModal.show();
+          const form = modalEl.querySelector('form');
+          form.onsubmit = (ev)=>{
+            ev.preventDefault();
+            const fd = new FormData(form);
+            fetch(`/datos_academicos/ajax/alumnos/${id}/update/`, { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': (document.querySelector('input[name="csrfmiddlewaretoken"]').value) }, body:fd })
+              .then(r=> r.json())
+              .then(resp=>{
+                if (resp && resp.success) {
+                  bsModal.hide();
+                  abrirDetalleAlumno(id);
+                  mostrarModalExito('Datos guardados', 'Los datos personales se actualizaron correctamente.');
                 }
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error en la Inscripción',
-                    text: errorMsg,
-                    confirmButtonText: 'Aceptar'
-                });
-            }
-        })
-        .catch(error => {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error del Sistema',
-                text: 'Ocurrió un error al procesar la inscripción. Por favor, intente nuevamente.',
-                confirmButtonText: 'Aceptar'
-            });
-            console.error('Error:', error);
-        })
-        .finally(() => {
-            // Restaurar botón
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
+              });
+          };
         });
-        
-        return false; // Prevenir envío normal del formulario
+      });
+  }
+  
+  // --- Calificaciones tab ---
+  const calPeriodo = document.getElementById('calif-periodo');
+  const calOrder = document.getElementById('calif-order');
+  const calTbody = document.getElementById('calif-tbody');
+  const calPager = document.getElementById('calif-pager');
+  const calCards = document.getElementById('calif-cards');
+  const viewTableBtn = document.getElementById('view-table');
+  const viewCardsBtn = document.getElementById('view-cards');
+  // Botón Nueva calificación
+  const nuevaCalBtnContainer = document.querySelector('#tab-calificaciones .ag-toolbar .ms-auto');
+  if (nuevaCalBtnContainer) {
+    nuevaCalBtnContainer.innerHTML = '<button id="btn-nueva-calif" class="btn btn-success"><span class="material-symbols-rounded me-1">add</span>Nueva calificación</button>';
+    const btnNuevaCalif = document.getElementById('btn-nueva-calif');
+    btnNuevaCalif.addEventListener('click', ()=>{
+      const modal = new bootstrap.Modal(document.getElementById('modalNuevaCalificacion'));
+      cargarPeriodosSelect();
+      document.getElementById('nc-form').reset();
+      document.getElementById('nc-alumno-id').value = '';
+      document.getElementById('nc-materia-id').value = '';
+      document.getElementById('nc-alumno-list').innerHTML = '';
+      document.getElementById('nc-materia-list').innerHTML = '';
+      modal.show();
+    });
+  }
+
+  function bindAutocomplete(inputId, listId, hiddenId, url, formatItem) {
+    const input = document.getElementById(inputId);
+    const list = document.getElementById(listId);
+    const hidden = document.getElementById(hiddenId);
+    input.addEventListener('input', ()=>{
+      const q = input.value.trim();
+      list.innerHTML = '';
+      hidden.value = '';
+      if (q.length < 2) return;
+      fetch(url + '?q=' + encodeURIComponent(q))
+        .then(r=> r.json())
+        .then(items => {
+          list.innerHTML = '';
+          (items.results || items).forEach(it => {
+            const li = document.createElement('button');
+            li.type = 'button';
+            li.className = 'list-group-item list-group-item-action';
+            const labelDefault = it.nombre_completo ? `${it.nombre_completo} (${it.matricula || ''})` : (it.nombre ? `${it.nombre}` : (it.clave ? `${it.nombre} (${it.clave})` : it.nombre));
+            const label = typeof formatItem === 'function' ? formatItem(it) : labelDefault;
+            li.textContent = label;
+            li.addEventListener('click', ()=>{
+              input.value = label;
+              hidden.value = it.id;
+              list.innerHTML = '';
+            });
+            list.appendChild(li);
+          });
+        });
+    });
+  }
+
+  const formatAlumno = (it) => {
+    const nombre = it.nombre || '';
+    const ap = it.apellido_paterno || '';
+    const am = it.apellido_materno || '';
+    const matricula = it.matricula || '';
+    const full = [nombre, ap, am].filter(Boolean).join(' ').trim();
+    return `${full}${matricula ? ` (${matricula})` : ''}`;
+  };
+  const formatMateria = (it) => {
+    const nombre = it.nombre || '';
+    const clave = it.clave || '';
+    return `${nombre}${clave ? ` (${clave})` : ''}`;
+  };
+
+  bindAutocomplete('nc-alumno-search', 'nc-alumno-list', 'nc-alumno-id', '/datos_academicos/api/alumnos/', formatAlumno);
+  bindAutocomplete('nc-materia-search', 'nc-materia-list', 'nc-materia-id', '/datos_academicos/api/materias/', formatMateria);
+
+  function cargarPeriodosSelect() {
+    const sel = document.getElementById('nc-periodo');
+    fetch('/datos_academicos/ajax/periodos/')
+      .then(r=> r.json())
+      .then(items => {
+        sel.innerHTML = '<option value="">Seleccione...</option>';
+        let activeId = null;
+        items.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = `${p.ciclo} ${p.año}${p.activo ? ' (activo)' : ''}`;
+          if (p.activo) activeId = p.id;
+          sel.appendChild(opt);
+        });
+        if (activeId) {
+          sel.value = String(activeId);
+        } else if (items.length > 0) {
+          sel.value = String(items[0].id);
+        } else {
+          sel.innerHTML = '<option value="">Sin períodos</option>';
+        }
+      })
+      .catch(err => {
+        console.error('Error cargando períodos', err);
+        sel.innerHTML = '<option value="">Error cargando períodos</option>';
+      });
+  }
+
+  // Cargar períodos para toolbar de calificaciones
+  function cargarPeriodosToolbar() {
+    const sel = document.getElementById('calif-periodo');
+    fetch('/datos_academicos/ajax/periodos/')
+      .then(r=> r.json())
+      .then(items => {
+        sel.innerHTML = '<option value="">Todos los períodos</option>';
+        let activeId = null;
+        items.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.textContent = `${p.ciclo} ${p.año}${p.activo ? ' (activo)' : ''}`;
+          if (p.activo) activeId = p.id;
+          sel.appendChild(opt);
+        });
+        sel.value = activeId ? String(activeId) : '';
+      })
+      .catch(()=>{
+        sel.innerHTML = '<option value="">Error cargando períodos</option>';
+      });
+  }
+
+  const ncForm = document.getElementById('nc-form');
+  if (ncForm) {
+    ncForm.addEventListener('submit', (ev)=>{
+      ev.preventDefault();
+      const fd = new FormData(ncForm);
+      fetch('/datos_academicos/ajax/calificaciones/nueva/', { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest', 'X-CSRFToken': (document.querySelector('input[name="csrfmiddlewaretoken"]').value) }, body:fd })
+        .then(r=> r.json())
+        .then(resp => {
+          if (resp && resp.success) {
+            bootstrap.Modal.getInstance(document.getElementById('modalNuevaCalificacion')).hide();
+            mostrarModalExito('Calificación registrada', resp.message || 'Se registró la calificación correctamente.');
+            cargarCalificaciones();
+          } else {
+            const msg = (resp && resp.message) ? resp.message : 'No fue posible registrar la calificación.';
+            mostrarModalError('No se pudo registrar', msg);
+          }
+        })
+        .catch(err => {
+          console.error('Error guardando calificación', err);
+          mostrarModalError('Error del servidor', 'Intente de nuevo más tarde.');
+        });
+    });
+  }
+  const calCount = document.getElementById('calif-count');
+  let calState = { page: 1, totalPages: 1, total: 0, pageSize: 25 };
+  let calLastResults = [];
+  
+  function cargarCalificaciones() {
+    const params = new URLSearchParams({
+      periodo: calPeriodo.value,
+      order: calOrder.value,
+      page: calState.page,
+      page_size: calState.pageSize
+    });
+    fetch(`/datos_academicos/ajax/calificaciones/?${params.toString()}`)
+      .then(r => r.json())
+      .then(d => {
+        calState.page = d.page; calState.totalPages = d.total_pages; calState.total = d.total;
+        calCount.textContent = `${d.total} registros`;
+        calLastResults = d.results || [];
+        calTbody.innerHTML = calLastResults.map(r => `
+          <tr class="cal-row" data-id="${r.id}">
+            <td>
+              <div class="fw-semibold">${r.alumno_nombre || r.alumno}</div>
+              <div class="text-muted small">${r.alumno_matricula || ''}</div>
+            </td>
+            <td>${r.materia}</td>
+            <td>${r.periodo}</td>
+            <td>${r.calificacion ?? '-'}</td>
+          </tr>
+        `).join('');
+        calCards.innerHTML = calLastResults.map(r => `
+          <div class="col-md-6 col-lg-4">
+            <div class="card se-card h-100 cal-card" data-id="${r.id}" role="button">
+              <div class="card-body">
+                <h5 class="card-title mb-0">${r.alumno_nombre || r.alumno}</h5>
+                <div class="text-muted">${r.alumno_matricula || ''}</div>
+                <div class="mt-3">
+                  <div><strong>Materia:</strong> ${r.materia}</div>
+                  <div><strong>Período:</strong> ${r.periodo}</div>
+                  <div><strong>Calificación:</strong> ${r.calificacion ?? '-'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+        document.querySelectorAll('.cal-row').forEach(row => {
+          row.addEventListener('click', ()=>{
+            const id = Number(row.getAttribute('data-id'));
+            const item = calLastResults.find(x=> x.id === id);
+            if (item) openCalificacionDetail(item);
+          });
+        });
+        document.querySelectorAll('.cal-card').forEach(card => {
+          card.addEventListener('click', ()=>{
+            const id = Number(card.getAttribute('data-id'));
+            const item = calLastResults.find(x=> x.id === id);
+            if (item) openCalificacionDetail(item);
+          });
+        });
+        renderPagerCompact(calPager, d.page, d.total_pages, (p)=>{ calState.page = p; cargarCalificaciones(); });
+      });
+  }
+  [calPeriodo, calOrder].forEach(el => el.addEventListener('change', () => { calState.page = 1; cargarCalificaciones(); }));
+
+  function toggleCalView(toCards){
+    if (toCards){
+      document.querySelector('#tab-calificaciones .card').classList.add('d-none');
+      calCards.classList.remove('d-none');
+      viewCardsBtn.classList.add('active');
+      viewTableBtn.classList.remove('active');
+    } else {
+      document.querySelector('#tab-calificaciones .card').classList.remove('d-none');
+      calCards.classList.add('d-none');
+      viewTableBtn.classList.add('active');
+      viewCardsBtn.classList.remove('active');
     }
-    
+  }
+  viewTableBtn.addEventListener('click', ()=> toggleCalView(false));
+  viewCardsBtn.addEventListener('click', ()=> toggleCalView(true));
 
-    // Funciones de utilidad
-    window.generarReporteAlumnos = function() {
-        alert('Función de reportes de alumnos en desarrollo');
-    };
+  function openCalificacionDetail(r){
+    const overlay = document.getElementById('calif-detail-overlay');
+    overlay.classList.remove('d-none');
+    document.getElementById('det-alumno').textContent = r.alumno_nombre || r.alumno;
+    document.getElementById('det-matricula').textContent = r.alumno_matricula || '';
+    document.getElementById('det-materia').textContent = r.materia || '';
+    document.getElementById('det-materia-clave').textContent = r.materia_clave ? `(${r.materia_clave})` : '';
+    document.getElementById('det-periodo').textContent = r.periodo || '';
+    document.getElementById('det-calificacion').textContent = r.calificacion ?? '-';
+    document.getElementById('det-creditos').textContent = (r.creditos ?? '')
+    document.getElementById('det-acreditacion').textContent = r.acreditacion || '';
+    document.getElementById('det-fecha').textContent = r.fecha_registro ? new Date(r.fecha_registro).toLocaleString() : '';
+    document.getElementById('det-observaciones').textContent = r.observaciones || '';
+  }
+  document.getElementById('calif-detail-close').addEventListener('click', ()=>{
+    document.getElementById('calif-detail-overlay').classList.add('d-none');
+  });
 
-    window.mostrarImportadorAlumnos = function() {
-        alert('Función de importación de alumnos en desarrollo');
-    };
-
-    window.exportarDatosAlumnos = function() {
-        alert('Función de exportación de alumnos en desarrollo');
-    };
-
-    window.actualizarDatosAlumnos = function() {
-        location.reload();
-    };
-
-    window.ordenarTablaAlumnos = function(criterio) {
-        alert('Función de ordenamiento por ' + criterio + ' en desarrollo');
-    };
+  cargarPeriodosToolbar();
+  cargarCalificaciones();
+  
+  // Inicializaciones
+  cargarAlumnos();
+  cargarCalificaciones();
 });
 </script>
 {% endblock %}

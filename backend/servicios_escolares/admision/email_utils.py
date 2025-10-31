@@ -158,9 +158,15 @@ def enviar_notificacion_estado_solicitud(solicitud, estado_anterior, usuario_que
         return False, str(e)
 
 
-def enviar_notificacion_cambio_estado(solicitud, estado_anterior):
+def enviar_notificacion_cambio_estado(solicitud, estado_anterior, adjuntos=None, log=None):
     """
-    Envía notificación cuando cambia el estado de una solicitud
+    Envía notificación cuando cambia el estado de una solicitud.
+    Adjunta archivos si se proporcionan o si existen asociados al log del cambio.
+    Args:
+        solicitud: SolicitudAdmision
+        estado_anterior: str
+        adjuntos: lista de archivos (UploadedFile) o lista de objetos con FileField (opcional)
+        log: instancia del log de cambio (para buscar adjuntos persistidos) (opcional)
     """
     try:
         # Solo enviar para ciertos cambios de estado
@@ -184,6 +190,11 @@ def enviar_notificacion_cambio_estado(solicitud, estado_anterior):
             'contacto_email': getattr(settings, 'CONTACTO_EMAIL', 'contacto@institucion.edu'),
             'contacto_telefono': getattr(settings, 'CONTACTO_TELEFONO', 'N/A'),
         }
+        # Incluir comentario del cambio si existe en el log
+        try:
+            context['comentario_cambio'] = (log.comentario if log and getattr(log, 'comentario', None) else '')
+        except Exception:
+            context['comentario_cambio'] = ''
         
         # Renderizar templates por separado con fallback y logging
         try:
@@ -238,6 +249,57 @@ def enviar_notificacion_cambio_estado(solicitud, estado_anterior):
             to=to_email
         )
         email.attach_alternative(html_content, "text/html")
+        # Adjuntar archivos si se proporcionan o están asociados al log
+        try:
+            archivos_para_adjuntar = []
+            if adjuntos:
+                for f in adjuntos:
+                    try:
+                        if hasattr(f, 'read') and hasattr(f, 'name'):
+                            content = f.read()
+                            nombre = getattr(f, 'name', 'archivo')
+                            mime = getattr(getattr(f, 'content_type', None), 'strip', lambda: None)() or 'application/octet-stream'
+                            archivos_para_adjuntar.append((nombre, content, mime))
+                        elif hasattr(f, 'archivo'):
+                            # objeto de modelo con FileField
+                            try:
+                                f.archivo.open('rb')
+                                content = f.archivo.read()
+                                nombre = getattr(f, 'nombre', None) or (f.archivo.name.split('/')[-1])
+                                archivos_para_adjuntar.append((nombre, content, 'application/octet-stream'))
+                            finally:
+                                try:
+                                    f.archivo.close()
+                                except Exception:
+                                    pass
+                    except Exception:
+                        continue
+            elif log is not None:
+                # Buscar adjuntos guardados ligados al log
+                try:
+                    from .models import SolicitudAdjunto
+                    for a in SolicitudAdjunto.objects.filter(solicitud=solicitud, log=log).order_by('-fecha_subida'):
+                        try:
+                            a.archivo.open('rb')
+                            content = a.archivo.read()
+                            nombre = a.nombre or (a.archivo.name.split('/')[-1])
+                            archivos_para_adjuntar.append((nombre, content, 'application/octet-stream'))
+                        finally:
+                            try:
+                                a.archivo.close()
+                            except Exception:
+                                pass
+                except Exception:
+                    pass
+
+            for nombre, content, mime in archivos_para_adjuntar:
+                try:
+                    email.attach(nombre, content, mime)
+                except Exception:
+                    continue
+        except Exception:
+            # No bloquear el envío si falla preparación de adjuntos
+            pass
         
         # Enviar email
         if not send_email_safe(email):

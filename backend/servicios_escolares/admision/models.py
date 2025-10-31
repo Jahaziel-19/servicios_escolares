@@ -18,10 +18,12 @@ class PeriodoAdmision(models.Model):
     activo = models.BooleanField(default=False, help_text="Solo puede haber un período activo")
     descripcion = models.TextField(blank=True, null=True)
     
-    # Formulario base precargado para este proceso de admisión
+    # Formulario base precargado para este proceso de admisión (opcional)
     formulario_base = models.JSONField(
-        default=dict,
-        help_text="Estructura base del formulario específico para este proceso de admisión"
+        null=True,
+        blank=True,
+        default=None,
+        help_text="(Opcional) Estructura base del formulario específico para este proceso de admisión"
     )
     
     class Meta:
@@ -37,15 +39,10 @@ class PeriodoAdmision(models.Model):
             raise ValidationError("La fecha de inicio debe ser anterior a la fecha de fin.")
     
     def save(self, *args, **kwargs):
+        # Validar modelo y asegurar unicidad de período activo
         self.full_clean()
-        # Si se marca como activo, desactivar otros períodos
         if self.activo:
             PeriodoAdmision.objects.filter(activo=True).exclude(pk=self.pk).update(activo=False)
-        
-        # Asegurar que siempre tenga un formulario base (nuevo o existente)
-        if not self.formulario_base:
-            self.formulario_base = self.get_formulario_base_default()
-            
         super().save(*args, **kwargs)
     
     def get_formulario_base_default(self):
@@ -331,6 +328,45 @@ class FichaAdmision(models.Model):
         año = self.solicitud.periodo.año
         # Usar el folio de la solicitud como base
         return f"FICHA{año}{self.solicitud.folio[-6:]}"
+
+
+class SolicitudEstadoLog(models.Model):
+    """Registro de cambios de estado de una solicitud de admisión"""
+    solicitud = models.ForeignKey('SolicitudAdmision', on_delete=models.CASCADE, related_name='estado_logs')
+    estado_anterior = models.CharField(max_length=20, choices=SolicitudAdmision.ESTADOS)
+    nuevo_estado = models.CharField(max_length=20, choices=SolicitudAdmision.ESTADOS)
+    comentario = models.TextField(blank=True)
+    notificacion_enviada = models.BooleanField(default=False)
+    resultado_notificacion = models.TextField(blank=True)
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Log de Estado de Solicitud"
+        verbose_name_plural = "Logs de Estado de Solicitud"
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.solicitud.folio}: {self.estado_anterior} -> {self.nuevo_estado} ({self.fecha:%Y-%m-%d %H:%M})"
+
+
+class SolicitudAdjunto(models.Model):
+    """Adjuntos opcionales asociados a una solicitud (p.ej. ordenes de pago)"""
+    solicitud = models.ForeignKey('SolicitudAdmision', on_delete=models.CASCADE, related_name='adjuntos')
+    log = models.ForeignKey(SolicitudEstadoLog, on_delete=models.SET_NULL, null=True, blank=True, related_name='adjuntos')
+    archivo = models.FileField(upload_to='admision_adjuntos/')
+    nombre = models.CharField(max_length=255, blank=True)
+    descripcion = models.TextField(blank=True)
+    subido_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Adjunto de Solicitud"
+        verbose_name_plural = "Adjuntos de Solicitud"
+        ordering = ['-fecha_subida']
+
+    def __str__(self):
+        return f"Adjunto {self.id} de {self.solicitud.folio}"
 
 
 class ConfiguracionAdmision(models.Model):

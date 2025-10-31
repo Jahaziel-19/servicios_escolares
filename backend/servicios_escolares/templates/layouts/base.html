@@ -5,6 +5,7 @@
 
 <head>
     {% include "includes/head.html" %}
+    <link rel="stylesheet" href="{% static 'servicios_escolares/css/se-ui.css' %}">
     {% block extrastyle %}{% endblock extrastyle %}
     {% block extra_css %}{% endblock extra_css %}
     {% block extrahead %}{% endblock extrahead %}
@@ -181,6 +182,7 @@
     {% endblock sidebar %}
 
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+        
         {% block navigation %}
             {% include "includes/navigation.html" %}
         {% endblock navigation %}

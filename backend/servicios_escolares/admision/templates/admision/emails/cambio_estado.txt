@@ -17,6 +17,12 @@ CAMBIO DE ESTADO
 Estado Anterior: {{ estado_anterior }}
 Estado Actual: {{ estado_actual }}
 
+{% if comentario_cambio %}
+COMENTARIO DEL ÁREA
+===================
+{{ comentario_cambio }}
+{% endif %}
+
 {% if solicitud.estado == 'aceptada' %}
 ¡FELICITACIONES! PRÓXIMOS PASOS
 ===============================

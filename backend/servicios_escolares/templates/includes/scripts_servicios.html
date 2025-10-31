@@ -19,8 +19,8 @@
       try { progressModal.remove(); } catch (e) { console.warn('No se pudo remover progressModal:', e); }
     }
 
-    // 1) Activación explícita de tabs Bootstrap (garantiza navegación)
-    const tabTriggers = document.querySelectorAll('#periodosTabs [data-bs-toggle="tab"]');
+    // 1) Activación explícita de tabs Bootstrap (garantiza navegación en cualquier vista)
+    const tabTriggers = document.querySelectorAll('a[data-bs-toggle="tab"], button[data-bs-toggle="tab"]');
     tabTriggers.forEach((triggerEl) => {
       triggerEl.addEventListener('click', function(e) {
         e.preventDefault();
@@ -33,6 +33,12 @@
         }
       });
     });
+
+    // Asegurar que si hay un tab activo marcado por SSR, se inicialice correctamente
+    const activeTabLink = document.querySelector('.nav-tabs .nav-link.active');
+    if (activeTabLink) {
+      try { new bootstrap.Tab(activeTabLink).show(); } catch (err) {}
+    }
 
     // 2) Sidebar responsive con overlay en pantallas pequeñas
     const body = document.body;

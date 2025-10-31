@@ -6,135 +6,776 @@
 {% block page_title %}Panel de Inscripciones{% endblock %}
 {% block breadcrumb %}Inscripciones{% endblock %}
 
+{% block extrahead %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
-    .stats-card {
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s;
-    }
-    .stats-card:hover { transform: translateY(-2px); }
-    .stats-icon { font-size: 2.5rem; opacity: 0.85; }
-    .quick-actions .btn { margin: 5px; }
-    .section-title { color: #667eea; }
-    .list-card { border-left: 4px solid #dee2e6; transition: transform 0.2s; }
-    .list-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    .status-badge { font-size: 0.8rem; }
+  /* Tokens y contenedor */
+  .ip-container { --ip-primary:#1B396A; --ip-dark:#252328; --ip-muted:#6b7280; background: linear-gradient(180deg, rgba(27,57,106,0.06), rgba(37,35,40,0.04)); padding-bottom: 40px; }
+  .ip-shell { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+  /* Header centrado */
+  .ip-header { display:flex; align-items:center; justify-content:center; text-align:center; gap:12px; }
+  .ip-chip { width:44px; height:44px; display:grid; place-items:center; border-radius:12px; background:#1B396A; color:#fff; box-shadow:0 6px 18px rgba(27,57,106,.18); }
+
+  /* Stats mejoradas */
+  .stats-card { border-radius: 16px; box-shadow: 0 12px 26px rgba(2,14,45,.08); border:1px solid rgba(2,14,45,.08); overflow:hidden; }
+  .stats-card .card-body { padding: 16px 18px; }
+  .stats-head { background:#252328; color:#fff; padding:8px 14px; font-weight:700; }
+  .stats-icon { font-size: 2.25rem; color: var(--ip-primary); opacity:.95; }
+  .stats-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:8px; }
+  .stats-pill { background:#f3f6fb; border:1px solid rgba(2,14,45,.08); border-radius:12px; padding:8px 10px; }
+  .stats-pill strong { font-weight:700; }
+
+  /* Toolbar filtros */
+  .ip-toolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; background: rgba(255,255,255,0.6); border:1px solid rgba(2,14,45,.08); border-radius:14px; padding:10px 12px; backdrop-filter: blur(6px); }
+  .ip-search { flex:1; display:flex; align-items:center; gap:8px; background:#fff; border:1px solid rgba(2,14,45,.08); border-radius:12px; padding:6px 10px; }
+  .ip-search input { width:100%; border:0; outline:0; }
+  .ip-toolbar .form-select { min-width:200px; border-radius:12px; }
+  .btn-new { display:inline-flex; align-items:center; gap:6px; background: linear-gradient(180deg,#1b396a,#123056); color:#fff; border:0; box-shadow:0 6px 14px rgba(27,57,106,.25); }
+
+  /* Cards grid glass */
+  .ip-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap:18px; }
+  .ip-card { background: rgba(255,255,255,0.6); border:1px solid rgba(2,14,45,.08); border-radius:16px; box-shadow:0 12px 26px rgba(2,14,45,.08); backdrop-filter: saturate(120%) blur(8px); transition: transform .2s; }
+  .ip-card:hover { transform: translateY(-2px); }
+  .ip-card-body { padding:18px; position:relative; }
+  .ip-head { background:#252328; color:#fff; border-radius:12px; padding:10px 12px; display:flex; align-items:center; gap:12px; margin:-2px -2px 12px -2px; }
+  .ip-head h6 { margin:0; font-weight:700; }
+  .ip-chip-sm { width:36px; height:36px; border-radius:10px; display:grid; place-items:center; background:#1B396A; color:#fff; }
+  .ip-status { position:absolute; top:12px; right:12px; }
+  .ip-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-weight:600; font-size:12px; }
+  .ip-ok { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+  .ip-off { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+
+  /* Lista móvil - solo visible en pantallas pequeñas */
+.ip-list { 
+  display: none; 
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* En móvil: ocultar grid y tabla, mostrar solo lista */
+@media (max-width: 768px) { 
+  .ip-grid { 
+    display: none !important; 
+  } 
+  .ip-table-wrap, #ip-table-wrap { 
+    display: none !important; 
+  }
+  .ip-list { 
+    display: grid !important; 
+  }
+  
+  /* Ocultar botones de cambio de vista en móvil */
+  #btn-view-cards,
+  #btn-view-table {
+    display: none;
+  }
+}
+
+/* En desktop: mostrar grid o tabla según selección, ocultar lista móvil */
+@media (min-width: 769px) {
+  .ip-list {
+    display: none !important;
+  }
+}
+
+  /* Modal glass */
+  .modal-backdrop.show { background: rgba(12,17,28,0.35); backdrop-filter: blur(6px); }
+  .modal-content { background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.78)); border: 1px solid rgba(255,255,255,0.45); box-shadow: 0 24px 60px rgba(2,14,45,0.25); backdrop-filter: blur(10px) saturate(120%); border-radius: 16px; }
+  .modal-header { background: linear-gradient(180deg,#1B396A,#123056); color:#fff; border-top-left-radius:16px; border-top-right-radius:16px; }
+  .modal-header .btn-close{ filter: invert(1) grayscale(1); opacity:.9; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 ip-container fade-in">
     <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-3">
-                    <span class="icon-chip"><i class="material-symbols-rounded">group_add</i></span>
-                    <div>
-                        <h2 class="mb-0">Panel de Inscripciones</h2>
-                        <p class="text-muted mb-0">Administración de inscripciones</p>
-                    </div>
-                </div>
-                <div class="quick-actions">
-                    <a href="{% url 'datos_academicos:inscripciones_publicas_listar' %}" class="btn btn-gradient-primary btn-icon">
-                        <i class="material-symbols-rounded">groups</i> Ver Inscripciones públicas
-                    </a>
-                </div>
-            </div>
+    <div class="row mb-3">
+      <div class="col-12">
+        <div class="ip-header">
+          <span class="ip-chip"><i class="material-symbols-rounded">group_add</i></span>
+          <div>
+            <h2 class="mb-0">Panel de Inscripciones</h2>
+            <p class="text-muted mb-0">Administración de inscripciones</p>
+          </div>
         </div>
+      </div>
     </div>
+
+    <div class="ip-shell">
+    <span id="ip-total-initial" data-total="{{ stats_nueva.total|default:0 }}" hidden></span>
 
     {% if periodo_activo %}
     <div class="alert alert-light border">
-        <i class="fas fa-calendar-alt me-2"></i>
-        Período escolar activo: <strong>{{ periodo_activo.nombre }}</strong>
+        <i class="material-symbols-rounded me-2">calendar_month</i>
+        Período escolar activo:
+        <strong>
+          {% if periodo_activo.ciclo %}{{ periodo_activo.ciclo }}{% endif %}
+          {% if periodo_activo.año %} {{ periodo_activo.año }}{% endif %}
+          {% if not periodo_activo.ciclo and not periodo_activo.año %}{{ periodo_activo.nombre|default:"—" }}{% endif %}
+        </strong>
     </div>
     {% endif %}
 
-    <!-- Estadísticas rápidas -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card stats-card animate-card">
-                <div class="card-body d-flex align-items-center">
-                    <div class="me-3 text-primary"><i class="fas fa-user-friends stats-icon"></i></div>
-                    <div>
-                        <h6 class="mb-1">Inscripción Pública</h6>
-                        <div class="small text-muted">Total: {{ stats_nueva.total }}</div>
-                        <div class="small">Borrador: <strong>{{ stats_nueva.borrador }}</strong></div>
-                        <div class="small">Enviadas: <strong>{{ stats_nueva.enviadas }}</strong></div>
-                        <div class="small">En Revisión: <strong>{{ stats_nueva.revision }}</strong></div>
-                        <div class="small">Aprobadas: <strong>{{ stats_nueva.aprobadas }}</strong></div>
-                        <div class="small">Rechazadas: <strong>{{ stats_nueva.rechazadas }}</strong></div>
-                        <div class="small">Completadas: <strong>{{ stats_nueva.completadas }}</strong></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Estadísticas rápidas removidas: ahora en Tab "Estadística" -->
 
-    <!-- Listados recientes -->
-    <div class="row g-3">
-        <div class="col-md-6">
-            <div class="card list-card animate-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-user-friends me-2"></i>Inscripciones públicas recientes</h5>
-                    <span class="badge bg-primary">{{ stats_nueva.total }} total</span>
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="ip-tabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-lista" data-bs-toggle="tab" data-bs-target="#pane-lista" type="button" role="tab">
+          <i class="material-symbols-rounded me-1">view_list</i> Lista de inscripciones
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-stats" data-bs-toggle="tab" data-bs-target="#pane-stats" type="button" role="tab">
+          <i class="material-symbols-rounded me-1">monitoring</i> Estadística
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="ip-tabs-content">
+      <div class="tab-pane fade show active" id="pane-lista" role="tabpanel" aria-labelledby="tab-lista">
+        <div class="d-flex align-items-center gap-2 flex-wrap ip-toolbar">
+          <div class="ip-search flex-grow-1">
+            <i class="material-symbols-rounded">search</i>
+            <input id="ip-search" type="search" placeholder="Buscar por folio, nombre, carrera..." class="form-control border-0 bg-transparent" />
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-chip dropdown-toggle" type="button" id="ip-status-dd" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="material-symbols-rounded">filter_list</i> <span id="ip-status-label">Todos los estados</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="ip-status-dd">
+              <li><a class="dropdown-item ip-status-option active" data-value="">Todos</a></li>
+              {% for value,label in estados_nueva_choices %}
+                <li><a class="dropdown-item ip-status-option" data-value="{{ value }}">{{ label }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-chip dropdown-toggle" type="button" id="ip-year-dd" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="material-symbols-rounded">event</i> <span id="ip-year-label">Todos los años</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" id="ip-year-menu" aria-labelledby="ip-year-dd">
+              <li><a class="dropdown-item ip-year-option active" data-value="">Todos</a></li>
+              <!-- años se poblarán por JS -->
+            </ul>
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-chip dropdown-toggle" type="button" id="ip-sort-dd" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="material-symbols-rounded">sort</i> <span id="ip-sort-label">Más recientes</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="ip-sort-dd">
+              <li><a class="dropdown-item ip-sort-option active" data-value="recientes">Más recientes</a></li>
+              <li><a class="dropdown-item ip-sort-option" data-value="antiguos">Más antiguos</a></li>
+            </ul>
+          </div>
+          <div class="btn-group" role="group">
+            <button id="btn-view-cards" class="btn btn-outline-secondary btn-sm"><i class="material-symbols-rounded me-1">grid_view</i>Cards</button>
+            <button id="btn-view-table" class="btn btn-outline-secondary btn-sm"><i class="material-symbols-rounded me-1">table</i>Tabla</button>
+          </div>
+        </div>
+
+        <div class="ip-grid" id="ip-grid" style="display:grid;">
+          {% for n in recientes_nueva %}
+          <div class="ip-card" data-term="{{ n.folio }} {{ n.nombre }} {{ n.apellido_paterno }} {{ n.apellido_materno }} {{ n.carrera_solicitada.nombre|default:'' }} {{ n.periodo_escolar.nombre|default:'' }} {{ n.estado }}" data-anio="{{ n.periodo_escolar.año|default:'' }}" data-fecha="{{ n.creado_en|date:'Y-m-d' }}" data-estado="{{ n.estado }}">
+            <div class="ip-card-body">
+              <div class="ip-status">
+                {% if n.estado == 'Aprobada' or n.estado == 'Completada' %}
+                  <span class="ip-badge ip-ok"><i class="material-symbols-rounded" style="font-size:18px;">check_circle</i>{{ n.estado }}</span>
+                {% else %}
+                  <span class="ip-badge ip-off"><i class="material-symbols-rounded" style="font-size:18px;">schedule</i>{{ n.estado }}</span>
+                {% endif %}
+              </div>
+              <div class="ip-head">
+                <div class="ip-chip-sm"><i class="material-symbols-rounded">group_add</i></div>
+                <div>
+                  <h6>{{ n.folio }} · {{ n.nombre }} {{ n.apellido_paterno }}</h6>
+                  <div class="sub">{{ n.carrera_solicitada.nombre|default:"—" }} · {{ n.periodo_escolar.nombre|default:"—" }}</div>
                 </div>
-                <div class="card-body">
-                    {% if recientes_nueva %}
-                    <ul class="list-group">
-                        {% for n in recientes_nueva %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ n.folio }}</strong> - {{ n.nombre }} {{ n.apellido_paterno }} {{ n.apellido_materno }}
-                                <div class="small text-muted">{{ n.carrera_solicitada.nombre|default:"—" }} · {{ n.periodo_escolar.nombre|default:"—" }}</div>
-                            </div>
-                            <span class="badge bg-light text-dark status-badge">{{ n.estado }}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
+              </div>
+              <div class="d-flex justify-content-between small">
+                <span>Estado: <strong>{{ n.estado }}</strong></span>
+                <span>Creado: <strong>{{ n.creado_en|date:"d/m/Y" }}</strong></span>
+              </div>
+              <div class="d-flex gap-2 mt-2">
+                <a class="btn btn-sm btn-outline-primary flex-fill btn-detalle" href="{% url 'datos_academicos:inscripcion_publica_detalle' n.pk %}" data-detail-url="{% url 'datos_academicos:inscripcion_publica_detalle' n.pk %}"><i class="material-symbols-rounded me-1">open_in_new</i>Detalle</a>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-muted">Sin registros para mostrar.</div>
+          {% endfor %}
+        </div>
+
+        <!-- Tabla (vista alternativa) -->
+        <div class="se-table-wrap" id="ip-table-wrap" style="display:none;">
+          <div class="table-responsive">
+            <table class="table se-table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>FOLIO</th>
+                  <th>NOMBRE</th>
+                  <th>CARRERA</th>
+                  <th>PERIODO</th>
+                  <th>ESTADO</th>
+                  <th>CREADO</th>
+                  <th>ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for n in recientes_nueva %}
+                <tr data-term="{{ n.folio }} {{ n.nombre }} {{ n.apellido_paterno }} {{ n.apellido_materno }} {{ n.carrera_solicitada.nombre|default:'' }} {{ n.periodo_escolar.nombre|default:'' }} {{ n.estado }}" data-anio="{{ n.periodo_escolar.año|default:'' }}" data-fecha="{{ n.creado_en|date:'Y-m-d' }}" data-estado="{{ n.estado }}">
+                  <td data-label="Folio">{{ n.folio }}</td>
+                  <td data-label="Nombre">{{ n.nombre }} {{ n.apellido_paterno }} {{ n.apellido_materno }}</td>
+                  <td data-label="Carrera">{{ n.carrera_solicitada.nombre|default:"—" }}</td>
+                  <td data-label="Periodo">{{ n.periodo_escolar.nombre|default:"—" }}</td>
+                  <td data-label="Estado">
+                    {% if n.estado == 'Aprobada' or n.estado == 'Completada' %}
+                      <span class="se-badge se-badge--ok">{{ n.estado }}</span>
                     {% else %}
-                    <div class="text-muted">Sin registros recientes.</div>
+                      <span class="se-badge se-badge--off">{{ n.estado }}</span>
                     {% endif %}
-                    <div class="mt-3">
-                        <a class="btn btn-sm btn-gradient-primary btn-icon" href="{% url 'datos_academicos:inscripciones_publicas_listar' %}">
-                            <i class="material-symbols-rounded">list_alt</i> Ver listado
-                        </a>
-                    </div>
-                </div>
+                  </td>
+                  <td data-label="Creado">{{ n.creado_en|date:"d/m/Y" }}</td>
+                  <td data-label="Acciones">
+                    <a href="{% url 'datos_academicos:inscripcion_publica_detalle' n.pk %}" class="btn btn-primary btn-detail btn-detalle" data-detail-url="{% url 'datos_academicos:inscripcion_publica_detalle' n.pk %}"><i class="material-symbols-rounded">open_in_new</i><span class="ms-1">Detalle</span></a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <!-- Pager -->
+          <div class="se-pager" id="ip-pager">
+            <div class="pager-info" id="ip-pager-info">Mostrando 0–0 de 0</div>
+            <div class="d-flex align-items-center gap-2">
+              <label class="me-1 small text-muted" for="ip-page-size">Por página</label>
+              <select id="ip-page-size" class="form-select form-select-sm">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              <button id="ip-prev" class="btn btn-outline-secondary btn-sm" type="button">Anterior</button>
+              <button id="ip-next" class="btn btn-outline-secondary btn-sm" type="button">Siguiente</button>
             </div>
+          </div>
         </div>
-    </div>
 
-    <!-- Ayuda / contacto -->
-    <div class="row mt-4">
-      <div class="col-12">
-        <div class="card help-card animate-card">
-          <div class="card-body">
-            <div class="row align-items-center">
-              <div class="col-md-3">
-                <div class="d-flex align-items-center gap-2">
-                  <span class="icon-chip"><i class="material-symbols-rounded">help</i></span>
-                  <h6 class="mb-0">¿Necesitas ayuda?</h6>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <small class="text-muted d-block">Teléfono</small>
-                <div class="d-flex align-items-center gap-2"><i class="material-symbols-rounded">call</i> (555) 123-4567</div>
-              </div>
-              <div class="col-md-3">
-                <small class="text-muted d-block">Email</small>
-                <div class="d-flex align-items-center gap-2"><i class="material-symbols-rounded">mail</i> servicios.escolares@tecnm.mx</div>
-              </div>
-              <div class="col-md-3">
-                <small class="text-muted d-block">Horario</small>
-                <div class="d-flex align-items-center gap-2"><i class="material-symbols-rounded">schedule</i> Lun–Vie 8:00–16:00</div>
-              </div>
+        <!-- Lista móvil -->
+        <ul class="ip-list" id="ip-list">
+          {% for n in recientes_nueva %}
+          <li class="list-group-item" data-term="{{ n.folio }} {{ n.nombre }} {{ n.apellido_paterno }} {{ n.apellido_materno }} {{ n.carrera_solicitada.nombre|default:'' }} {{ n.periodo_escolar.nombre|default:'' }} {{ n.estado }}" data-anio="{{ n.periodo_escolar.año|default:'' }}" data-fecha="{{ n.creado_en|date:'Y-m-d' }}" data-estado="{{ n.estado }}">
+            <div class="mb-1" style="background:#252328; color:#fff; border-radius:10px; padding:8px 10px;">
+              <strong>{{ n.folio }} · {{ n.nombre }} {{ n.apellido_paterno }}</strong>
+              <div class="small">{{ n.carrera_solicitada.nombre|default:"—" }} · {{ n.periodo_escolar.nombre|default:"—" }}</div>
+            </div>
+            <div class="d-flex justify-content-between small mb-1">
+              <span>Estado: <strong>{{ n.estado }}</strong></span>
+              <span>Creado: <strong>{{ n.creado_en|date:"d/m/Y" }}</strong></span>
+            </div>
+            <div>
+              {% if n.estado == 'Aprobada' or n.estado == 'Completada' %}
+                <span class="ip-badge ip-ok">{{ n.estado }}</span>
+              {% else %}
+                <span class="ip-badge ip-off">{{ n.estado }}</span>
+              {% endif %}
+            </div>
+            <div class="mt-2">
+              <a class="btn btn-sm btn-outline-primary btn-detalle" href="{% url 'datos_academicos:inscripcion_publica_detalle' n.pk %}" data-detail-url="{% url 'datos_academicos:inscripcion_publica_detalle' n.pk %}">Detalle</a>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <!-- Pane Estadística -->
+      <div class="tab-pane fade" id="pane-stats" role="tabpanel" aria-labelledby="tab-stats">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header" style="background:#252328;color:#fff;font-weight:700;">Distribución por estado</div>
+              <div class="card-body"><canvas id="chartEstados"></canvas></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header" style="background:#252328;color:#fff;font-weight:700;">Inscripciones por mes</div>
+              <div class="card-body"><canvas id="chartMeses"></canvas></div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    </div><!-- /ip-shell -->
+
+    <!-- Ayuda / contacto -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2"><i class="material-symbols-rounded">help</i> ¿Necesitas ayuda? Contacta a servicios escolares.</div>
+            <a class="btn btn-outline-info btn-sm" href="{% url 'datos_academicos:inscripciones_publicas_listar' %}"><i class="material-symbols-rounded me-1">support</i>Documentación</a>
+          </div>
+        </div>
+      </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  var pane = document.getElementById('pane-lista') || document;
+  var input = pane.querySelector('#ip-search');
+  var list = pane.querySelector('#ip-list');
+  var grid = pane.querySelector('#ip-grid');
+  var tableWrap = pane.querySelector('#ip-table-wrap');
+  var tbody = tableWrap ? tableWrap.querySelector('tbody') : null;
+  var pager = document.getElementById('ip-pager');
+  var pagerInfo = document.getElementById('ip-pager-info');
+  var pageSizeSel = document.getElementById('ip-page-size');
+  var btnPrev = document.getElementById('ip-prev');
+  var btnNext = document.getElementById('ip-next');
+  var pageState = { index: 0, size: (pageSizeSel ? parseInt(pageSizeSel.value,10) : 10) };
+  var btnCards = document.getElementById('btn-view-cards');
+  var btnTable = document.getElementById('btn-view-table');
+  var sortSel = null;
+  var statusLabel = document.getElementById('ip-status-label');
+  var statusValue = '';
+  var yearLabel = document.getElementById('ip-year-label');
+  var yearMenu = document.getElementById('ip-year-menu');
+  var yearValue = '';
+  var sortLabel = document.getElementById('ip-sort-label');
+  var sortValue = 'recientes';
+  function norm(s){ return (s||'').toString().toLowerCase(); }
+
+  // Poblar años
+  (function(){
+    if (!yearMenu) return;
+    var years = new Set();
+    pane.querySelectorAll('[data-anio]').forEach(function(el){ var y = el.getAttribute('data-anio'); if (y) years.add(y); });
+    Array.from(years).sort(function(a,b){ return b.localeCompare(a); }).forEach(function(y){
+      var li = document.createElement('li');
+      li.innerHTML = '<a class="dropdown-item ip-year-option" data-value="'+y+'">'+y+'</a>';
+      yearMenu.appendChild(li);
+    });
+
+  // Decorar lista de documentos como se-attach
+  function decorateAttachments(scope){
+    try{
+      var cards = Array.from(scope.querySelectorAll('.card'));
+      var docCard = cards.find(function(c){ return /Documentos cargados/i.test(c.textContent||''); });
+      if (!docCard) return;
+      var items = docCard.querySelectorAll('.row .col-md-4 > .border');
+      if (!items.length) return;
+      var listFrag = document.createDocumentFragment();
+      Array.from(items).forEach(function(b){
+        var title = (b.querySelector('strong')||{}).textContent || 'Documento';
+        var meta = (b.querySelector('.small, .text-muted')||{}).textContent || '';
+        var link = b.querySelector('a');
+        var wrap = document.createElement('div');
+        wrap.className = 'se-attach';
+        wrap.innerHTML = '<div class="se-attach-icon"><i class="material-symbols-rounded">description</i></div>'+
+                         '<div class="se-attach-body"><div class="se-attach-title">'+title+'</div><div class="se-attach-meta">'+meta+'</div></div>'+
+                         '<div class="se-attach-actions"></div>';
+        var actions = wrap.querySelector('.se-attach-actions');
+        if (link){
+          var a = document.createElement('a');
+          a.className = 'btn btn-ghost btn-sm'; a.textContent = 'Ver'; a.target = '_blank'; a.href = link.getAttribute('href');
+          actions.appendChild(a);
+        }
+        listFrag.appendChild(wrap);
+      });
+      var body = docCard.querySelector('.card-body');
+      if (body){ body.innerHTML = ''; body.appendChild(listFrag); }
+    }catch(e){ /* no-op */ }
+  }
+  })();
+
+  function applyFilters(){
+    var q = norm(input ? input.value : '');
+    var y = yearValue || '';
+    var match = function(el){
+      var hitText = norm(el.getAttribute('data-term')||'').includes(q);
+      var hitYear = !y || (el.getAttribute('data-anio') === y);
+      var hitEstado = !statusValue || (el.getAttribute('data-estado') === statusValue);
+      return hitText && hitYear && hitEstado;
+    };
+    if (grid){ grid.querySelectorAll('.ip-card').forEach(function(card){ card.style.display = match(card) ? '' : 'none'; }); }
+    if (list){ list.querySelectorAll('li').forEach(function(li){ li.style.display = match(li) ? '' : 'none'; }); }
+    if (tableWrap){ tableWrap.querySelectorAll('tbody tr').forEach(function(tr){ tr.style.display = match(tr) ? '' : 'none'; }); }
+    applyPagination();
+  // Mostrar Cards por defecto al cargar
+  (function(){ if (grid){ grid.style.display='grid'; } if (tableWrap){ tableWrap.style.display='none'; } })();
+  }
+
+  if (input) input.addEventListener('input', applyFilters);
+  // Dropdown de año
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.ip-year-option');
+    if (!a) return;
+    e.preventDefault();
+    document.querySelectorAll('.ip-year-option').forEach(function(o){ o.classList.remove('active'); });
+    a.classList.add('active');
+    yearValue = a.getAttribute('data-value') || '';
+    if (yearLabel){ yearLabel.textContent = yearValue ? ('Año: ' + a.textContent.trim()) : 'Todos los años'; }
+    applyFilters();
+  });
+  // Dropdown de estado
+  document.querySelectorAll('.ip-status-option').forEach(function(opt){
+    opt.addEventListener('click', function(e){
+      e.preventDefault();
+      document.querySelectorAll('.ip-status-option').forEach(function(o){ o.classList.remove('active'); });
+      opt.classList.add('active');
+      statusValue = opt.getAttribute('data-value') || '';
+      if (statusLabel){ statusLabel.textContent = statusValue ? ('Estado: ' + opt.textContent.trim()) : 'Todos los estados'; }
+      applyFilters();
+    });
+  });
+  applyFilters();
+
+  // Toggle vista Cards/Tabla
+  function showCards(){ if (grid) grid.style.display='grid'; if (tableWrap) tableWrap.style.display='none'; }
+  function showTable(){ if (grid) grid.style.display='none'; if (tableWrap) tableWrap.style.display='block'; }
+  btnCards && btnCards.addEventListener('click', function(e){ e.preventDefault(); showCards(); });
+  btnTable && btnTable.addEventListener('click', function(e){ e.preventDefault(); showTable(); });
+
+  // Ordenamiento por fecha
+  function parseDateAttr(el){ var v = el.getAttribute('data-fecha') || ''; return v; }
+  function applySort(){
+    var order = sortValue || 'recientes';
+    var dir = order === 'recientes' ? 'desc' : 'asc';
+    var cmp = function(a,b){ var av = parseDateAttr(a), bv = parseDateAttr(b); return dir==='asc' ? av.localeCompare(bv) : bv.localeCompare(av); };
+    if (grid){
+      var nodes = Array.from(grid.querySelectorAll('.ip-card'));
+      nodes.sort(cmp).forEach(function(n){ grid.appendChild(n); });
+    }
+    if (list){
+      var lis = Array.from(list.querySelectorAll('li'));
+      lis.sort(cmp).forEach(function(n){ list.appendChild(n); });
+    }
+    if (tableWrap){
+      var tbody = tableWrap.querySelector('tbody');
+      if (tbody){
+        var rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.sort(cmp).forEach(function(r){ tbody.appendChild(r); });
+      }
+    }
+  }
+  // Dropdown de orden
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.ip-sort-option');
+    if (!a) return;
+    e.preventDefault();
+    document.querySelectorAll('.ip-sort-option').forEach(function(o){ o.classList.remove('active'); });
+    a.classList.add('active');
+    sortValue = a.getAttribute('data-value') || 'recientes';
+    if (sortLabel){ sortLabel.textContent = a.textContent.trim(); }
+    applySort();
+  });
+  applySort();
+
+  // Paginación Tabla
+  function visibleRows(){
+    if (!tbody) return [];
+    return Array.from(tbody.querySelectorAll('tr')).filter(function(tr){ return tr.style.display !== 'none'; });
+  }
+  function applyPagination(){
+    if (!tbody || !pager) return;
+    pageState.size = pageSizeSel ? parseInt(pageSizeSel.value,10) : 10;
+    var rows = visibleRows();
+    var total = rows.length;
+    var pages = Math.max(1, Math.ceil(total / pageState.size));
+    if (pageState.index >= pages) pageState.index = pages - 1;
+    var start = pageState.index * pageState.size;
+    var end = Math.min(start + pageState.size, total);
+    rows.forEach(function(tr, i){ tr.style.display = (i >= start && i < end) ? '' : 'none'; });
+    if (pagerInfo){
+      var from = total ? start + 1 : 0;
+      pagerInfo.textContent = 'Mostrando '+from+'–'+end+' de '+total;
+    }
+    if (btnPrev) btnPrev.disabled = pageState.index <= 0;
+    if (btnNext) btnNext.disabled = pageState.index >= pages - 1;
+  }
+  pageSizeSel && pageSizeSel.addEventListener('change', function(){ pageState.index = 0; applyPagination(); });
+  btnPrev && btnPrev.addEventListener('click', function(){ if (pageState.index > 0){ pageState.index--; applyPagination(); } });
+  btnNext && btnNext.addEventListener('click', function(){ pageState.index++; applyPagination(); });
+  applyPagination();
+
+  // Modal Detalle (carga HTML por AJAX)
+  var detailModalEl = document.getElementById('modalDetalleIns');
+  if (!detailModalEl) {
+    var modalHtml = '\n<div class="modal fade" id="modalDetalleIns" tabindex="-1" aria-hidden="true">\n  <div class="modal-dialog modal-xl modal-dialog-centered">\n    <div class="modal-content">\n      <div class="modal-header">\n        <h5 class="modal-title">Detalle de inscripción</h5>\n        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>\n      </div>\n      <div class="modal-body" id="detalle-body" style="max-height:75vh; overflow:auto;"></div>\n    </div>\n  </div>\n</div>';
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    detailModalEl = document.getElementById('modalDetalleIns');
+  }
+  var detailModal = detailModalEl ? new bootstrap.Modal(detailModalEl) : null;
+  function bindDetailForm(container){
+    var form = container.querySelector('form');
+    if (!form) return;
+    form.addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var fd = new FormData(form);
+      var csrf = (form.querySelector('input[name=csrfmiddlewaretoken]')||{}).value || '';
+      fetch(form.action, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf, 'Accept': 'application/json' } })
+        .then(function(r){
+          var ct = (r.headers.get('content-type')||'').toLowerCase();
+          var redirected = r.redirected === true;
+          if (ct.includes('application/json')) return r.json();
+          return r.text().then(function(t){ return { __html: t, ok: r.ok, status: r.status, redirected: redirected }; });
+        })
+        .then(function(payload){
+          // Si es JSON ok, mostrar modal de éxito y redirigir al panel
+          if ((payload && payload.ok && !payload.__html) || (payload && payload.redirected)){
+            showSuccessModal('Cambios guardados', 'Los cambios de la inscripción se han actualizado correctamente.');
+            return;
+          }
+          // Si no es JSON, re-renderizar el contenido devuelto
+          var html = payload && payload.__html ? payload.__html : (payload || '');
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, 'text/html');
+          var main = doc.querySelector('form') || doc.querySelector('.container-fluid') || doc.body;
+          container.innerHTML = main.innerHTML;
+          decorateAttachments(container);
+          bindDetailForm(container);
+        })
+        .catch(function(){ /* opcional: mostrar alerta */ });
+    });
+  }
+
+  // Interceptor global de submit dentro del modal (captura) para evitar navegación por cualquier razón
+  document.addEventListener('submit', function(ev){
+    var target = ev.target;
+    if (!target || !document.getElementById('detalle-body') || !document.getElementById('detalle-body').contains(target)) return;
+    ev.preventDefault();
+    var form = target;
+    var fd = new FormData(form);
+    var csrf = (form.querySelector('input[name=csrfmiddlewaretoken]')||{}).value || '';
+    fetch(form.action, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf, 'Accept': 'application/json' } })
+      .then(function(r){
+        var ct = (r.headers.get('content-type')||'').toLowerCase();
+        var redirected = r.redirected === true;
+        if (ct.includes('application/json')) return r.json();
+        return r.text().then(function(t){ return { __html: t, ok: r.ok, status: r.status, redirected: redirected }; });
+      })
+      .then(function(payload){
+        if ((payload && payload.ok && !payload.__html) || (payload && payload.redirected)){
+          showSuccessModal('Cambios guardados', 'Los cambios de la inscripción se han actualizado correctamente.');
+          return;
+        }
+        var html = payload && payload.__html ? payload.__html : (payload || '');
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var main = doc.querySelector('form') || doc.querySelector('.container-fluid') || doc.body;
+        var body = document.getElementById('detalle-body');
+        if (body){ body.innerHTML = main.innerHTML; decorateAttachments(body); bindDetailForm(body); }
+      })
+      .catch(function(){});
+  }, true);
+  function openDetail(url){
+    var body = document.getElementById('detalle-body');
+    if (!body) return;
+    body.innerHTML = '<div class="p-4 text-center text-muted">Cargando...</div>';
+    fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+      .then(function(r){ return r.text().then(function(t){ return { ok:r.ok, status:r.status, text:t }; }); })
+      .then(function(payload){
+        var html = payload.text || '';
+        try{
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, 'text/html');
+          // Preferir el formulario; luego contenedor central; si no, usar el HTML tal cual
+          var main = doc.querySelector('form') || doc.querySelector('.container-fluid') || null;
+          body.innerHTML = main ? main.innerHTML : html;
+          decorateAttachments(body);
+          bindDetailForm(body);
+          if (!payload.ok){
+            var warn = document.createElement('div');
+            warn.className = 'alert alert-warning mt-2';
+            warn.textContent = 'Aviso: la respuesta fue '+payload.status+'. Se mostró el contenido devuelto para diagnóstico.';
+            body.prepend(warn);
+          }
+        }catch(err){
+          console.error('Detalle parse error', err);
+          // Fallback: inyectar HTML crudo si el parse falla
+          body.innerHTML = html || '<div class="p-4 text-danger">No se pudo interpretar el detalle.</div>';
+        }
+      })
+      .catch(function(err){ console.error('Detalle fetch error', err); body.innerHTML = '<div class="p-4 text-danger">No se pudo cargar el detalle.</div>'; });
+    detailModal && detailModal.show();
+  }
+  // Delegación para capturar clicks aunque cambie el DOM
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('.btn-detalle');
+    if (!a) return;
+    e.preventDefault();
+    var url = a.getAttribute('data-detail-url') || a.getAttribute('href');
+    if (url) openDetail(url);
+  });
+
+  // Modal de éxito con diseño estilo glass/navy y redirección al panel
+  var PANEL_URL = '{% url "datos_academicos:inscripciones_panel_admin" %}';
+  function ensureSuccessModal(){
+    var el = document.getElementById('se-success-modal');
+    if (el) return el;
+    var html = '\n<div class="modal fade" id="se-success-modal" tabindex="-1" aria-hidden="true">\n  <div class="modal-dialog modal-dialog-centered">\n    <div class="modal-content" style="border:0; border-radius:18px; overflow:hidden; box-shadow:0 30px 80px rgba(2,14,45,.35)">\n      <div class="modal-header" style="background:linear-gradient(180deg,#1B396A,#123056); color:#fff;">\n        <h5 class="modal-title" id="se-success-title">Operación exitosa</h5>\n        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>\n      </div>\n      <div class="modal-body">\n        <div class="text-center">\n          <div class="mb-2" style="display:inline-grid; place-items:center; width:54px; height:54px; border-radius:14px; background:#e8eef6; color:#1B396A;"><i class="material-symbols-rounded">check_circle</i></div>\n          <div id="se-success-body" class="mt-2">Se ha completado la acción.</div>\n        </div>\n      </div>\n      <div class="modal-footer d-flex justify-content-end">\n        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>\n        <button type="button" id="se-success-confirm" class="btn btn-primary">Aceptar</button>\n      </div>\n    </div>\n  </div>\n</div>';
+    document.body.insertAdjacentHTML('beforeend', html);
+    return document.getElementById('se-success-modal');
+  }
+  function showSuccessModal(title, msg){
+    var el = ensureSuccessModal();
+    el.querySelector('#se-success-title').textContent = title || 'Operación exitosa';
+    el.querySelector('#se-success-body').textContent = msg || '';
+    var modal = new bootstrap.Modal(el);
+    el.querySelector('#se-success-confirm').onclick = function(){ modal.hide(); if (typeof detailModal!=='undefined' && detailModal){ try{ detailModal.hide(); }catch(_){} } window.location.href = PANEL_URL; };
+    el.addEventListener('hidden.bs.modal', function handler(){ el.removeEventListener('hidden.bs.modal', handler); if (typeof detailModal!=='undefined' && detailModal){ try{ detailModal.hide(); }catch(_){} } });
+    modal.show();
+    // Redirección de seguridad por si el usuario no interactúa
+    setTimeout(function(){ try{ modal.hide(); }catch(_){} if (typeof detailModal!=='undefined' && detailModal){ try{ detailModal.hide(); }catch(_){} } window.location.href = PANEL_URL; }, 2500);
+  }
+
+  // Charts (Estadística)
+  var estadosData = {
+    total: {{ stats_nueva.total|default:0 }},
+    borrador: {{ stats_nueva.borrador|default:0 }},
+    enviadas: {{ stats_nueva.enviadas|default:0 }},
+    revision: {{ stats_nueva.revision|default:0 }},
+    aprobadas: {{ stats_nueva.aprobadas|default:0 }},
+    rechazadas: {{ stats_nueva.rechazadas|default:0 }},
+    completadas: {{ stats_nueva.completadas|default:0 }}
+  };
+  // aproximación por meses con recientes (si deseas, pásame series completas)
+  var monthsMap = {};
+  {% for n in recientes_nueva %}
+    (function(){ var d='{{ n.creado_en|date:"Y-m" }}'; monthsMap[d]=(monthsMap[d]||0)+1; })();
+  {% endfor %}
+  function ensureCharts(){
+    var est = document.getElementById('chartEstados');
+    if (est && !est._chartBuilt){
+      var ctx = est.getContext('2d');
+      est._chartBuilt = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Borrador','Enviadas','Revisión','Aprobadas','Rechazadas','Completadas'],
+          datasets: [{
+            data: [estadosData.borrador, estadosData.enviadas, estadosData.revision, estadosData.aprobadas, estadosData.rechazadas, estadosData.completadas],
+            backgroundColor: ['#9ca3af','#60a5fa','#fbbf24','#22c55e','#ef4444','#14b8a6']
+          }]
+        }, options: { plugins:{ legend:{ position:'bottom' } } }
+      });
+    }
+    var mes = document.getElementById('chartMeses');
+    if (mes && !mes._chartBuilt){
+      var labels = Object.keys(monthsMap).sort();
+      var data = labels.map(function(k){ return monthsMap[k]; });
+      mes._chartBuilt = new Chart(mes.getContext('2d'), {
+        type: 'bar', data: { labels: labels, datasets: [{ label:'Alta por mes', data: data, backgroundColor:'#1B396A' }] },
+        options: { scales:{ y:{ beginAtZero:true } } }
+      });
+    }
+  }
+  // Inicializar al mostrar pestaña Estadística
+  var statsTab = document.getElementById('tab-stats');
+  statsTab && statsTab.addEventListener('shown.bs.tab', function(){ ensureCharts(); });
+  // Si ya está activa por alguna razón (SSR), renderizar
+  if (document.getElementById('pane-stats') && document.getElementById('pane-stats').classList.contains('show')) {
+    ensureCharts();
+  }
+
+  // En pantallas anchas, mostrar Tabla por defecto
+  function isWide(){ return window.innerWidth >= 1200; }
+  if (isWide()) { showCards(); }
+  window.addEventListener('resize', function(){ if (isWide() && tableWrap && tableWrap.style.display !== 'block') { showTable(); } });
+
+  // Bootstrap toast helper
+  function ensureToastContainer(){
+    var c = document.getElementById('se-toast-container');
+    if (!c){
+      document.body.insertAdjacentHTML('beforeend', '<div id="se-toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:2000"></div>');
+      c = document.getElementById('se-toast-container');
+    }
+    return c;
+  }
+  function showToast(title, body){
+    var c = ensureToastContainer();
+    var id = 't'+Date.now();
+    var html = '\n<div id="'+id+'" class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">\n  <div class="d-flex">\n    <div class="toast-body">\n      <strong>'+title+':</strong> '+body+'\n    </div>\n    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>\n  </div>\n</div>';
+    c.insertAdjacentHTML('beforeend', html);
+    var el = document.getElementById(id);
+    var t = new bootstrap.Toast(el, { delay: 5000 });
+    t.show();
+  }
+
+  // Polling simple de nuevas inscripciones (compara total del panel)
+  (function(){
+    var marker = document.getElementById('ip-total-initial');
+    if (!marker) return;
+    var baseUrl = window.location.href.split('#')[0];
+    var currentTotal = parseInt(marker.getAttribute('data-total')||'0', 10) || 0;
+    function poll(){
+      fetch(baseUrl, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+        .then(function(r){ return r.text(); })
+        .then(function(html){
+          var p = new DOMParser().parseFromString(html, 'text/html');
+          var m = p.getElementById('ip-total-initial');
+          if (!m) return;
+          var newTotal = parseInt(m.getAttribute('data-total')||'0', 10) || 0;
+          if (newTotal > currentTotal){
+            var diff = newTotal - currentTotal;
+            currentTotal = newTotal;
+            showToast('Nuevas inscripciones', 'Se detectaron '+diff+' nuevas solicitudes.');
+          }
+        })
+        .catch(function(){});
+    }
+    setInterval(poll, 60000); // cada 60s
+  })();
+})();
+// Función para detectar si es móvil
+function isMobile() { 
+  return window.innerWidth <= 768; 
+}
+
+// Función mejorada para mostrar cards
+function showCards() { 
+  if (isMobile()) {
+    // En móvil, ocultar grid y tabla, mostrar lista
+    if (grid) grid.style.display = 'none';
+    if (tableWrap) tableWrap.style.display = 'none';
+    if (list) list.style.display = 'grid';
+  } else {
+    // En desktop, mostrar grid, ocultar tabla y lista
+    if (grid) grid.style.display = 'grid';
+    if (tableWrap) tableWrap.style.display = 'none';
+    if (list) list.style.display = 'none';
+  }
+}
+
+// Función mejorada para mostrar tabla
+function showTable() { 
+  if (isMobile()) {
+    // En móvil, ignorar y mostrar lista
+    showCards();
+  } else {
+    // En desktop, mostrar tabla, ocultar grid y lista
+    if (grid) grid.style.display = 'none';
+    if (tableWrap) tableWrap.style.display = 'block';
+    if (list) list.style.display = 'none';
+  }
+}
+
+// Inicializar vista por defecto (cards en desktop, lista en móvil)
+showCards();
+
+// Manejar resize
+window.addEventListener('resize', function() {
+  // Si cambia de desktop a móvil o viceversa, ajustar vista
+  showCards();
+});
+</script>
 {% endblock %}

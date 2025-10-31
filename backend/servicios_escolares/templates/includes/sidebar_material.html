@@ -102,6 +102,17 @@
         </a>
       </li>
 
+      <!-- Perfil (Servicios) -->
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'servicios_perfil' %} active bg-gradient-dark text-white {% else %} text-light {% endif %}"
+           href="{% url 'datos_academicos:servicios_perfil' %}">
+          <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+            <i class="material-symbols-rounded opacity-10">account_circle</i>
+          </div>
+          <span class="nav-link-text ms-1">Mi Perfil</span>
+        </a>
+      </li>
+
       <!-- Sección: Procesos -->
       <li class="nav-item mt-3">
         <h6 class="ps-3 text-uppercase text-white text-xs font-weight-bolder opacity-8 navbar-heading">Procesos</h6>

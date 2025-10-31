@@ -1,0 +1,271 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+{% load admision_extras %}
+
+{% block title %}Solicitud {{ solicitud.folio }} - Admisión Público{% endblock %}
+
+{% block breadcrumb %}Admisión Público / Solicitud{% endblock %}
+
+{% block extra_css %}
+<style>
+    .solicitud-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .info-card {
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+    .action-buttons .btn { margin: 0.25rem; }
+    .timeline { position: relative; padding-left: 2rem; }
+    .timeline::before { content: ''; position: absolute; left: 0.5rem; top: 0; bottom: 0; width: 2px; background: #dee2e6; }
+    .timeline-item { position: relative; margin-bottom: 1rem; }
+    .timeline-item::before { content: ''; position: absolute; left: -1.5rem; top: 0.5rem; width: 10px; height: 10px; border-radius: 50%; background: #007bff; }
+    .json-viewer { background: #f8f9fa; border-radius: 5px; padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.9rem; }
+
+    /* Badges unificados */
+    .pl-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; border-radius: 999px; padding: 4px 10px; font-weight: 600; border: 1px solid transparent; }
+    .pl-badge .material-symbols-outlined { font-size: 18px; }
+    .pl-badge--ok { background: #e6f4ea; color: #137333; border-color: #cce9d6; }
+    .pl-badge--off { background: #f1f3f4; color: #5f6368; border-color: #e0e3e7; }
+    .pl-badge--info { background: #e8f0fe; color: #1967d2; border-color: #d2e3fc; }
+    .pl-badge--danger { background: #fce8e6; color: #c5221f; border-color: #fad2cf; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-main">
+    <!-- Header de la solicitud -->
+    <div class="solicitud-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2><i class="fas fa-file-alt me-2"></i>Solicitud {{ solicitud.folio }}</h2>
+                <p class="mb-0">{{ solicitud.curp }} • {{ solicitud.email }}</p>
+                <small>Registrada el {{ solicitud.fecha_registro|date:"d/m/Y \a \l\a\s H:i" }}</small>
+            </div>
+            <div class="col-md-4 text-end">
+                <span class="pl-badge 
+                    {% if solicitud.estado == 'aceptada' %}pl-badge--ok{% elif solicitud.estado == 'rechazada' %}pl-badge--danger{% elif solicitud.estado == 'en_revision' %}pl-badge--info{% else %}pl-badge--off{% endif %}">
+                    <span class="material-symbols-outlined">
+                        {% if solicitud.estado == 'aceptada' %}check_circle{% elif solicitud.estado == 'rechazada' %}block{% elif solicitud.estado == 'en_revision' %}hourglass_top{% else %}help{% endif %}
+                    </span>
+                    {{ solicitud.get_estado_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegación -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'admision:admin_dashboard_publico' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admision:admin_solicitudes_publico' %}">Solicitudes</a></li>
+                    <li class="breadcrumb-item active">{{ solicitud.folio }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información Principal -->
+        <div class="col-lg-8">
+            <!-- Datos Básicos -->
+            <div class="card info-card">
+                <div class="card-header"><h5><i class="fas fa-user me-2"></i>Información Básica</h5></div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Folio:</strong> {{ solicitud.folio }}</p>
+                            <p><strong>CURP:</strong> {{ solicitud.curp }}</p>
+                            <p><strong>Email:</strong> {{ solicitud.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Período:</strong> {{ solicitud.periodo.nombre }}</p>
+                            <p><strong>Estado:</strong> {{ solicitud.get_estado_display }}</p>
+                            <p><strong>IP de registro:</strong> {{ solicitud.ip_registro|default:"N/A" }}</p>
+                            <p><strong>Carrera de Interés:</strong> {{ solicitud.respuestas_json|get_json_value_any:"carrera_primera_opcion,carrera_interes"|default:"No especificada" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Respuestas del Formulario -->
+            <div class="card info-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-clipboard-list me-2"></i>Respuestas del Formulario</h5>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleJsonView()">
+                        <i class="fas fa-code"></i> Ver JSON
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="formatted-responses">
+                        {% if solicitud.respuestas_json %}
+                        {{ solicitud.respuestas_json|parse_json_responses }}
+                        {% else %}
+                        <p class="text-muted">No hay respuestas registradas</p>
+                        {% endif %}
+                    </div>
+                    <div id="json-responses" class="json-viewer" style="display: none;">
+                        <pre>{{ solicitud.respuestas_json|default:"No hay datos JSON" }}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historial de Cambios -->
+            <div class="card info-card">
+                <div class="card-header"><h5><i class="fas fa-history me-2"></i>Historial de Cambios</h5></div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <strong>Solicitud creada</strong><br>
+                            <small class="text-muted">{{ solicitud.fecha_registro|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        {% if solicitud.fecha_actualizacion != solicitud.fecha_registro %}
+                        <div class="timeline-item">
+                            <strong>Última actualización</strong><br>
+                            <small class="text-muted">{{ solicitud.fecha_actualizacion|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        {% endif %}
+                        {% if ficha %}
+                        <div class="timeline-item">
+                            <strong>Ficha generada</strong><br>
+                            <small class="text-muted">{{ ficha.fecha_generacion|date:"d/m/Y H:i" }}{% if ficha.generada_por %} por {{ ficha.generada_por.username }}{% else %} por Sistema{% endif %}</small>
+                        </div>
+                        {% if ficha.email_enviado %}
+                        <div class="timeline-item">
+                            <strong>Email enviado</strong><br>
+                            <small class="text-muted">{{ ficha.fecha_envio_email|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <hr>
+                    <h6 class="mb-2"><i class="fas fa-list me-1"></i>Cambios específicos</h6>
+                    {% if audit_logs %}
+                        <ul class="list-unstyled">
+                        {% for log in audit_logs %}
+                            <li class="mb-3">
+                                <div class="fw-semibold">
+                                    {{ log.action|upper }} • {{ log.created_at|date:"d/m/Y H:i" }} • {{ log.actor_username|default:"sistema" }}
+                                </div>
+                                {% if log.changes %}
+                                    <div class="small ms-1">
+                                        {% for field,chg in log.changes.items %}
+                                            <div>
+                                                <strong>{{ field }}</strong>: <span class="text-muted">{{ chg.old|default:"—" }}</span> → {{ chg.new|default:"—" }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-muted small">Sin cambios de campos ({{ log.action }})</div>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-muted">Sin registros de auditoría</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Acciones -->
+        <div class="col-lg-4">
+            <div class="card info-card">
+                <div class="card-header"><h5><i class="fas fa-tools me-2"></i>Acciones</h5></div>
+                <div class="card-body action-buttons">
+                    <!-- Cambiar Estado -->
+                    <div class="mb-3">
+                        <label class="form-label">Cambiar Estado:</label>
+                        <form method="post" action="{% url 'admision:admin_cambiar_estado_solicitud_publico' solicitud.folio %}" class="d-inline">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <select name="nuevo_estado" class="form-select form-select-sm">
+                                    {% for estado_code, estado_name in estados_choices %}
+                                    <option value="{{ estado_code }}" {% if solicitud.estado == estado_code %}selected{% endif %}>{{ estado_name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-save"></i></button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Generar/Reenviar/Descargar Ficha -->
+                    <div class="mb-3">
+                        {% if ficha %}
+                        <a href="{% url 'admision:admin_descargar_ficha' ficha.id %}" class="btn btn-success w-100">
+                            <i class="fas fa-download me-1"></i>Descargar Ficha PDF
+                        </a>
+                        <div class="mt-2">
+                            {% if ficha.email_enviado %}
+                            <div class="alert alert-success alert-sm mb-0"><i class="fas fa-check-circle me-1"></i> Email enviado el {{ ficha.fecha_envio_email|date:"d/m/Y H:i" }}</div>
+                            {% else %}
+                            <div class="alert alert-warning alert-sm mb-0"><i class="fas fa-exclamation-triangle me-1"></i> Email pendiente de envío</div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <a href="{% url 'admision:admin_generar_ficha_publico' solicitud.folio %}" class="btn btn-primary w-100">
+                            <i class="fas fa-file-pdf me-1"></i>Generar/Reenviar Ficha
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    {% if solicitud.estado == 'borrador' %}
+                    <div class="mb-3">
+                        <a href="{% url 'admision:editar_solicitud' solicitud.folio %}" class="btn btn-warning w-100">
+                            <i class="fas fa-edit me-1"></i>Editar Solicitud
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información del Período -->
+            <div class="card info-card">
+                <div class="card-header"><h5><i class="fas fa-calendar me-2"></i>Período de Admisión</h5></div>
+                <div class="card-body">
+                    <p><strong>Nombre:</strong> {{ solicitud.periodo.nombre }}</p>
+                    <p><strong>Año:</strong> {{ solicitud.periodo.año }}</p>
+                    <p><strong>Inicio:</strong> {{ solicitud.periodo.fecha_inicio|date:"d/m/Y" }}</p>
+                    <p><strong>Fin:</strong> {{ solicitud.periodo.fecha_fin|date:"d/m/Y" }}</p>
+                    <p><strong>Estado:</strong>
+                        <span class="badge bg-{% if solicitud.periodo.activo %}success{% else %}secondary{% endif %}">{% if solicitud.periodo.activo %}Activo{% else %}Inactivo{% endif %}</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleJsonView() {
+    const formatted = document.getElementById('formatted-responses');
+    const json = document.getElementById('json-responses');
+    if (json.style.display === 'none') { formatted.style.display = 'none'; json.style.display = 'block'; }
+    else { formatted.style.display = 'block'; json.style.display = 'none'; }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const estadoSelect = document.querySelector('select[name="nuevo_estado"]');
+    if (!estadoSelect) return;
+    const form = estadoSelect.closest('form');
+    form.addEventListener('submit', function(e) {
+        const nuevoEstado = estadoSelect.value;
+        if (nuevoEstado === 'rechazada') {
+            if (!confirm('¿Está seguro de rechazar esta solicitud? Esta acción es importante.')) {
+                e.preventDefault();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -69,6 +69,7 @@ def inscripciones_panel_admin(request):
         # Se removieron estadísticas y recientes de Reinscripción
         "stats_nueva": stats_nueva,
         "recientes_nueva": recientes_nueva,
+        "estados_nueva_choices": InscripcionNueva.ESTADO_CHOICES,
     }
     return render(request, "datos_academicos/inscripciones/panel_admin.html", context)
 
@@ -241,6 +242,10 @@ def inscripcion_publica_detalle(request, pk):
                         messages.error(request, f"No se pudo crear el alumno: {e}")
 
                 messages.success(request, "Inscripción y pagos actualizados correctamente.")
+                # Si es AJAX, responder JSON compacto para que el cliente cierre modal y recargue
+                if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                    from django.http import JsonResponse
+                    return JsonResponse({"ok": True})
                 return redirect("datos_academicos:inscripcion_publica_detalle", pk=ins.pk)
         except Exception as e:
             messages.error(request, f"Error al guardar cambios: {e}")
@@ -253,4 +258,7 @@ def inscripcion_publica_detalle(request, pk):
         "estados": InscripcionNueva.ESTADO_CHOICES,
         "estados_pagos": PagoInscripcionConcepto.ESTADO_CHOICES,
     }
+    # Si es AJAX, entregar parcial
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return render(request, "datos_academicos/inscripciones/_detalle_form.html", context)
     return render(request, "datos_academicos/inscripcion_publica_detalle.html", context)

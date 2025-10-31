@@ -189,6 +189,33 @@
                         {% endif %}
                         {% endif %}
                     </div>
+
+                    <hr>
+                    <h6 class="mb-2"><i class="fas fa-list me-1"></i>Cambios específicos</h6>
+                    {% if audit_logs %}
+                        <ul class="list-unstyled">
+                        {% for log in audit_logs %}
+                            <li class="mb-3">
+                                <div class="fw-semibold">
+                                    {{ log.get_action_display|default:log.action|upper }} • {{ log.created_at|date:"d/m/Y H:i" }} • {{ log.actor_username|default:"sistema" }}
+                                </div>
+                                {% if log.changes %}
+                                    <div class="small ms-1">
+                                        {% for field,chg in log.changes.items %}
+                                            <div>
+                                                <strong>{{ field }}</strong>: <span class="text-muted">{{ chg.old|default:"—" }}</span> → {{ chg.new|default:"—" }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-muted small">Sin cambios de campos ({{ log.action }})</div>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-muted">Sin registros de auditoría</div>
+                    {% endif %}
                 </div>
             </div>
         </div>

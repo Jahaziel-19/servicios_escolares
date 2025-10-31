@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, PasswordResetForm
+from django.contrib.auth import update_session_auth_hash, logout
+from django.urls import reverse_lazy
 from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -10,6 +12,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 
 from .forms_auth import AlumnoLoginForm, AlumnoPasswordResetForm
+from datos_academicos.forms_servicios import ServiciosPerfilForm
 from .models import Alumno, Calificacion, PeriodoEscolar
 from procedimientos.models import Tramite
 
@@ -26,6 +29,12 @@ def alumno_login_view(request):
     if request.method == 'POST':
         form = AlumnoLoginForm(data=request.POST)
         if form.is_valid():
+            # Limpiar posibles datos en sesión no serializables (p.ej., del importador)
+            try:
+                request.session.pop('datos_importacion', None)
+            except Exception:
+                # Si hay algún problema accediendo a la sesión, continuar sin bloquear el login
+                pass
             user = form.get_user()
             login(request, user)
 
@@ -300,3 +309,78 @@ def servicios_login_view(request):
         'title': 'Acceso Servicios Escolares'
     }
     return render(request, 'datos_academicos/auth/servicios_login.html', context)
+
+
+# ================== PERFIL DE SERVICIOS ESCOLARES ==================
+@login_required(login_url=reverse_lazy('datos_academicos:servicios_login'))
+def servicios_perfil_view(request):
+    """Perfil del usuario de Servicios Escolares: edición de datos y cambio de contraseña."""
+    user = request.user
+    # Guard de permisos de Servicios Escolares
+    if not (user.is_staff or user.is_superuser or user.groups.filter(name__in=['ServiciosEscolares', 'Servicios Escolares']).exists()):
+        messages.error(request, 'Acceso restringido: solo personal de Servicios Escolares.')
+        return redirect('datos_academicos:servicios_login')
+
+    perfil_form = ServiciosPerfilForm(instance=user)
+    pwd_form = PasswordChangeForm(user)
+
+    if request.method == 'POST':
+        scope = request.POST.get('_scope')
+        if scope == 'update_profile':
+            perfil_form = ServiciosPerfilForm(request.POST, instance=user)
+            if perfil_form.is_valid():
+                perfil_form.save()
+                messages.success(request, 'Perfil actualizado correctamente.')
+                return redirect('datos_academicos:servicios_perfil')
+            else:
+                messages.error(request, 'Revisa los datos del perfil.')
+        elif scope == 'change_password':
+            pwd_form = PasswordChangeForm(user, request.POST)
+            if pwd_form.is_valid():
+                pwd_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Contraseña actualizada correctamente.')
+                return redirect('datos_academicos:servicios_perfil')
+            else:
+                messages.error(request, 'No fue posible actualizar la contraseña. Verifica los campos.')
+        elif scope == 'reset_password_email':
+            # Enviar enlace de restablecimiento de contraseña al correo del usuario
+            if not user.email:
+                messages.error(request, 'No se encontró un correo asociado a tu cuenta.')
+            else:
+                form = PasswordResetForm({'email': user.email})
+                if form.is_valid():
+                    form.save(
+                        request=request,
+                        use_https=request.is_secure(),
+                        email_template_name='registration/password_reset_email.html',
+                        subject_template_name='registration/password_reset_subject.txt'
+                    )
+                    messages.success(request, 'Hemos enviado un enlace de restablecimiento a tu correo.')
+                else:
+                    messages.error(request, 'No fue posible enviar el correo de restablecimiento.')
+
+    context = {
+        'title': 'Mi Perfil',
+        'theme_name': 'servicios',
+        'perfil_form': perfil_form,
+        'pwd_form': pwd_form,
+        # Variables del template admin_material adaptadas al usuario
+        'username': user.get_full_name() or user.username,
+        'nombre_completo': user.get_full_name() or '—',
+        'email': user.email or '—',
+        'telefono': getattr(user, 'phone', '—'),
+        'ubicacion': getattr(user, 'location', '—'),
+        'extension': getattr(user, 'extension', '—'),
+        'mensajes_recientes': [],
+        'procesos_destacados': [],
+    }
+    return render(request, 'datos_academicos/servicios/perfil.html', context)
+
+
+@login_required
+def servicios_logout_view(request):
+    """Cierra sesión del personal de Servicios Escolares y redirige al login."""
+    logout(request)
+    messages.success(request, 'Sesión cerrada correctamente.')
+    return redirect('datos_academicos:servicios_login')

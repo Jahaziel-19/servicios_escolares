@@ -8,6 +8,11 @@ urlpatterns = [
     # URLs públicas para aspirantes (nuevo formulario independiente)
     path('publico/', include(('admision.urls_publico', 'admision_publico'), namespace='admision_publico')),
     
+    # Gestión de periodos de admisión (panel unificado)
+    path('periodos/', views.periodos_admision_panel, name='periodos_panel'),
+    path('periodo/<int:periodo_id>/editar/', views.periodo_admision_editar, name='periodo_admision_editar'),
+    path('periodo/<int:periodo_id>/toggle-activo/', views.periodo_toggle_activo, name='periodo_toggle_activo'),
+    
     # URLs públicas para aspirantes (formulario builder existente)
     path('', views.solicitud_admision, name='solicitud_admision'),
     path('exitosa/<str:folio>/', views.solicitud_exitosa, name='solicitud_exitosa'),
@@ -27,6 +32,7 @@ urlpatterns = [
     path('admin/publico/dashboard/', views_admin_publico.admin_dashboard_publico, name='admin_dashboard_publico'),
     path('admin/publico/solicitudes/', views_admin_publico.admin_solicitudes_publico, name='admin_solicitudes_publico'),
     path('admin/publico/solicitud/<str:folio>/', views_admin_publico.admin_ver_solicitud_publico, name='admin_ver_solicitud_publico'),
+    path('admin/publico/solicitud/<str:folio>/detalle.json', views_admin_publico.admin_solicitud_detalle_json, name='admin_solicitud_detalle_json_publico'),
     path('admin/publico/solicitud/<str:folio>/cambiar-estado/', views_admin_publico.admin_cambiar_estado_solicitud, name='admin_cambiar_estado_solicitud_publico'),
     path('admin/publico/solicitud/<str:folio>/generar-ficha/', views_admin_publico.admin_generar_ficha_publico, name='admin_generar_ficha_publico'),
     path('admin/publico/exportar/', views_admin_publico.admin_exportar_solicitudes, name='admin_exportar_solicitudes'),

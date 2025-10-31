@@ -6,361 +6,629 @@
 {% block breadcrumb %}Admisión / Dashboard Público{% endblock %}
 
 {% block extra_css %}
-<style>
-    .stats-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
-    }
-    
-    .stats-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .stats-card.success {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-    }
-    
-    .stats-card.warning {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-    
-    .stats-card.info {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-    
-    .stats-card.danger {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-    
-    .stats-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-    }
-    
-    .stats-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
-    }
-    
-    .chart-container {
-        background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        margin-bottom: 2rem;
-    }
-    
-    .recent-applications {
-        background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    
-    .application-item {
-        border-left: 4px solid #667eea;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        background: #f8f9fa;
-        border-radius: 0 10px 10px 0;
-        transition: all 0.3s ease;
-    }
-    
-    .application-item:hover {
-        background: #e9ecef;
-        transform: translateX(5px);
-    }
-    
-    .status-badge {
-        font-size: 0.8rem;
-        padding: 0.3rem 0.8rem;
-        border-radius: 20px;
-        font-weight: 500;
-    }
-    
-    .status-pendiente {
-        background-color: #fff3cd;
-        color: #856404;
-    }
-    
-    .status-aprobada {
-        background-color: #d1edff;
-        color: #0c5460;
-    }
-    
-    .status-rechazada {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-    
-    .quick-actions {
-        background: white;
-        border-radius: 15px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    
-    .action-btn {
-        display: block;
-        width: 100%;
-        margin-bottom: 0.5rem;
-        padding: 0.8rem;
-        border-radius: 10px;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-    
-    .action-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-</style>
+  <style>
+  /* Estilos mínimos inspirados en Periodos Lista */
+  .ip-container { background: linear-gradient(180deg, rgba(27,57,106,0.06), rgba(37,35,40,0.04)); padding-bottom: 40px; }
+  .ip-shell { max-width: 1400px; margin: 0 auto; padding: 0 16px; }
+  .pl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; padding: 8px 4px; }
+  .pl-cardx { background: rgba(255,255,255,0.6); border: 1px solid rgba(2,14,45,0.08); border-radius: 16px; box-shadow: 0 12px 26px rgba(2,14,45,0.08); transition: transform .2s ease, box-shadow .2s ease; backdrop-filter: saturate(120%) blur(8px); -webkit-backdrop-filter: saturate(120%) blur(8px); }
+  .pl-cardx:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(2,14,45,0.10); }
+  
+  /* Badges unificados y mayor tamaño de íconos */
+  .pl-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid transparent; }
+  .pl-badge .material-symbols-rounded { font-size: 18px; }
+  .pl-badge--ok { background: #e6f4ea; color: #137333; border-color: #cce9d6; }
+  .pl-badge--off { background: #fce8e6; color: #c5221f; border-color: #fad2cf; }
+  .pl-badge--info { background: #e8f0fe; color: #1967d2; border-color: #d2e3fc; }
+  .pl-badge--danger { background: #ffe9e9; color: #7f1d1d; border: 1px solid #fecaca; }
+  .pl-cardx .pl-card-body { padding: 18px; position: relative; }
+  .pl-status { position: absolute; top: 12px; right: 12px; }
+  .pl-card-head { background: #252328; color: #fff; border-radius: 12px; padding: 10px 12px; display:flex; align-items:center; gap:12px; margin: -2px -2px 12px -2px; }
+  .pl-card-head h6 { color:#fff; font-weight:700; margin:0; }
+  .icon-chip.head { width: 36px; height: 36px; border-radius: 10px; display:grid; place-items:center; background:#1B396A; color:#fff; }
+  .pl-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-weight: 600; font-size: 12px; }
+  .pl-badge--ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .pl-badge--off { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .ip-toolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; background: rgba(255,255,255,0.6); border: 1px solid rgba(2,14,45,0.08); border-radius: 14px; padding: 10px 12px; backdrop-filter: blur(6px); width: 100%; }
+  .ip-toolbar .ip-search { flex: 1; display:flex; align-items:center; gap:8px; background:#fff; border: 1px solid rgba(2,14,45,0.08); border-radius: 12px; padding: 6px 10px; }
+  .btn-new { display:inline-flex; align-items:center; gap:6px; background: linear-gradient(180deg,#1b396a,#123056); color:#fff; border: 0; box-shadow: 0 6px 14px rgba(27,57,106,.25); }
+
+  /* Animación de entrada lateral para cards */
+  @keyframes pl-slide-in {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .pl-cardx.pl-slide-in { animation: pl-slide-in 320ms ease; }
+
+  /* Tabla estilo inscripciones */
+  .se-table thead th { background: #1b396a; color: #fff; border-color: #16325a; font-weight: 600; }
+  .se-table tbody tr { background: #fff; border-bottom: 8px solid #f1f3f5; }
+  .se-table td, .se-table th { padding: 12px 16px; }
+  @media (max-width: 768px) {
+    .ip-toolbar { flex-direction: column; }
+    .pl-grid { grid-template-columns: 1fr; }
+    .se-table thead { display: none; }
+    .se-sidebar { width: 100%; }
+  }
+  .ip-matches { font-size: 12px; color: #1b396a; background: #e6f0ff; border: 1px solid #cbd7ff; border-radius: 999px; padding: 2px 8px; }
+  /* Responsive: garantizar visibilidad de cards en pantallas pequeñas */
+  @media (max-width: 576px) {
+    .pl-grid { grid-template-columns: 1fr; gap: 12px; padding: 6px 2px; }
+    .pl-cardx { background: #fff; box-shadow: 0 8px 18px rgba(2,14,45,0.08); border-radius: 14px; }
+  }
+  </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-main">
+<div class="container-fluid py-4 ip-container fade-in">
+    {% if messages %}
+      <div class="row mb-3">
+        <div class="col-12">
+          {% for message in messages %}
+            <div class="alert alert-{% if 'error' in message.tags %}danger{% elif 'success' in message.tags %}success{% elif 'warning' in message.tags %}warning{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+    <!-- Header con gradiente -->
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h3 mb-3">
-                <i class="fas fa-chart-line me-2"></i>
-                Dashboard - Formulario Público de Admisión
-            </h1>
-            <p class="text-muted">Resumen general de las solicitudes de admisión del formulario público</p>
+        <div class="ip-header">
+          <span class="ip-chip"><i class="material-symbols-rounded">how_to_reg</i></span>
+          <div>
+            <h2 class="mb-0">Admisión</h2>
+            <p class="text-muted mb-0">Accede a la información y herramientas necesarias para la admisión de nuevos estudiantes.</p>
+          </div>
+        </div>
+            <!--
+            <div class="glass-container p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-2">
+                            <span class="material-symbols-outlined me-2" style="vertical-align: middle;">dashboard</span>
+                            Dashboard Público
+                        </h2>
+                        <div class="icon-chip mb-3">
+                            <span class="material-symbols-outlined">school</span>
+                            <span>Sistema de Admisión - Instituto Tecnológico Superior de Tlaxco</span>
+                        </div>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="{% url 'admision:admin_solicitudes_publico' %}" class="btn-gradient-primary me-2">
+                            <span class="material-symbols-outlined me-1">list</span>
+                            Ver Solicitudes
+                        </a>
+                        <a href="{% url 'admin:admision_periodoadmision_changelist' %}" class="btn-gradient-secondary">
+                            <span class="material-symbols-outlined me-1">settings</span>
+                            Configurar
+                        </a>
+                    </div>
+                </div>
+            </div>-->
         </div>
     </div>
 
-    <!-- Estadísticas Generales -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number">{{ estadisticas.total_solicitudes }}</div>
-                <div class="stats-label">
-                    <i class="fas fa-file-alt me-1"></i>
-                    Total de Solicitudes
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card success">
-                <div class="stats-number">{{ estadisticas.aprobadas }}</div>
-                <div class="stats-label">
-                    <i class="fas fa-check-circle me-1"></i>
-                    Aprobadas
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card warning">
-                <div class="stats-number">{{ estadisticas.pendientes }}</div>
-                <div class="stats-label">
-                    <i class="fas fa-clock me-1"></i>
-                    Pendientes
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card danger">
-                <div class="stats-number">{{ estadisticas.rechazadas }}</div>
-                <div class="stats-label">
-                    <i class="fas fa-times-circle me-1"></i>
-                    Rechazadas
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Estadísticas por Período -->
-    {% if estadisticas.por_periodo %}
-    <div class="row mb-4">
+    <!-- Tabs principales: Solicitudes y Periodos de Admisión -->
+    <div class="ip-shell">
+      <div class="row">
         <div class="col-12">
-            <div class="chart-container">
-                <h5 class="mb-3">
-                    <i class="fas fa-calendar-alt me-2"></i>
-                    Solicitudes por Período de Admisión
-                </h5>
-                <div class="row">
-                    {% for periodo, datos in estadisticas.por_periodo.items %}
-                    <div class="col-md-4 mb-3">
-                        <div class="card border-0 bg-light">
-                            <div class="card-body text-center">
-                                <h6 class="card-title">{{ periodo }}</h6>
-                                <div class="row">
-                                    <div class="col-4">
-                                        <div class="text-success">
-                                            <strong>{{ datos.aprobadas }}</strong>
-                                            <small class="d-block">Aprobadas</small>
+            <ul class="nav nav-tabs mb-3" id="adm-tabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="tab-solicitudes" data-bs-toggle="tab" data-bs-target="#pane-solicitudes" type="button" role="tab">
+                        <i class="material-symbols-outlined me-1">view_list</i> Ver solicitudes
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-historial" data-bs-toggle="tab" data-bs-target="#pane-historial" type="button" role="tab">
+                        <i class="material-symbols-outlined me-1">history</i> Historial
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-periodos" data-bs-toggle="tab" data-bs-target="#pane-periodos" type="button" role="tab">
+                        <i class="material-symbols-outlined me-1">calendar_month</i> Periodo de admisión
+                    </button>
+                </li>
+            </ul>
+        </div>
+      </div>
+
+    <div class="tab-content" id="adm-tabs-content">
+        <!-- Tab: Ver solicitudes -->
+        <div class="tab-pane fade show active" id="pane-solicitudes" role="tabpanel" aria-labelledby="tab-solicitudes">
+            <!-- Toolbar a todo lo ancho -->
+            <div class="row">
+              <div class="col-12">
+                <div class="ip-toolbar mb-3">
+                            <div class="ip-search">
+                                <i class="material-symbols-rounded">search</i>
+                                <input type="search" id="ip-search" placeholder="Buscar por folio o nombre..." class="form-control border-0 bg-transparent" />
+                                <span id="ip-matches" class="ip-matches">Coincidencias: 0</span>
+                            </div>
+                            
+                            <!-- Filtros dinámicos -->
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="material-symbols-rounded me-1">filter_list</i>
+                                    <span id="ip-status-label">Todos los estados</span>
+                                </button>
+                                <ul class="dropdown-menu" id="ip-status-menu">
+                                    <li><a class="dropdown-item ip-status-option active" data-value="">Todos los estados</a></li>
+                                    <li><a class="dropdown-item ip-status-option" data-value="pendiente">Pendiente</a></li>
+                                    <li><a class="dropdown-item ip-status-option" data-value="en_revision">En Revisión</a></li>
+                                    <li><a class="dropdown-item ip-status-option" data-value="aceptada">Aceptada</a></li>
+                                    <li><a class="dropdown-item ip-status-option" data-value="rechazada">Rechazada</a></li>
+                                    <li><a class="dropdown-item ip-status-option" data-value="aprobada">Aprobada</a></li>
+                                    <li><a class="dropdown-item ip-status-option" data-value="seleccionado">Seleccionado</a></li>
+                                    <li><a class="dropdown-item ip-status-option" data-value="no_seleccionado">No seleccionado</a></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="material-symbols-rounded me-1">date_range</i>
+                                    <span id="ip-year-label">Todos los años</span>
+                                </button>
+                                <ul class="dropdown-menu" id="ip-year-menu">
+                                    <li><a class="dropdown-item ip-year-option active" data-value="">Todos los años</a></li>
+                                    <!-- Los años se poblarán dinámicamente -->
+                                </ul>
+                            </div>
+                            
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="material-symbols-rounded me-1">sort</i>
+                                    <span id="ip-sort-label">Más recientes</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item ip-sort-option active" data-value="recientes">Más recientes</a></li>
+                                    <li><a class="dropdown-item ip-sort-option" data-value="antiguos">Más antiguos</a></li>
+                                    <li><a class="dropdown-item ip-sort-option" data-value="folio">Por folio</a></li>
+                                    <li><a class="dropdown-item ip-sort-option" data-value="nombre">Por nombre</a></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="btn-group" role="group">
+                                <button type="button" id="btn-vista-cards" class="btn btn-primary btn-sm">
+                                    <i class="material-symbols-rounded me-1">grid_view</i>
+                                    Cards
+                                </button>
+                                <button type="button" id="btn-vista-lista" class="btn btn-outline-secondary btn-sm">
+                                    <i class="material-symbols-rounded me-1">table_view</i>
+                                    Tabla
+                                </button>
+                            </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="animate-card glass-container p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">
+                                <span class="material-symbols-outlined me-2" style="vertical-align: middle;">schedule</span>
+                                Solicitudes recientes
+                            </h5>
+                        </div>
+
+                        <!-- Vista Cards -->
+                        <div id="sol-cards" class="pl-grid">
+                            {% for s in solicitudes_recientes %}
+                            <div class="pl-cardx" data-term="{{ s.folio }} {{ s.get_nombre_completo|lower }}" data-fecha="{{ s.fecha_registro|date:'Y-m-d H:i:s' }}" data-estado="{{ s.estado }}" data-anio="{{ s.fecha_registro|date:'Y' }}">
+                                <div class="pl-card-body">
+                                    <div class="pl-status">
+                                        <span class="pl-badge {% if s.estado == 'aceptada' or s.estado == 'seleccionado' %}pl-badge--ok{% elif s.estado == 'rechazada' or s.estado == 'no_seleccionado' %}pl-badge--off{% elif s.estado == 'en_revision' %}pl-badge--info{% else %}pl-badge--danger{% endif %}">
+                            <i class="material-symbols-rounded" style="font-size:16px;">
+                                {% if s.estado == 'aceptada' or s.estado == 'seleccionado' %}check_circle{% elif s.estado == 'rechazada' or s.estado == 'no_seleccionado' %}block{% elif s.estado == 'en_revision' %}schedule{% else %}help{% endif %}
+                            </i>{{ s.get_estado_display }}
+                        </span>
+                                    </div>
+                                    <div class="pl-card-head">
+                                        <div class="icon-chip head"><i class="material-symbols-outlined">person</i></div>
+                                        <div>
+                                            <h6 class="title-text">{{ s.get_nombre_completo }}</h6>
+                                            <div class="sub">Folio: {{ s.folio }}</div>
                                         </div>
                                     </div>
-                                    <div class="col-4">
-                                        <div class="text-warning">
-                                            <strong>{{ datos.pendientes }}</strong>
-                                            <small class="d-block">Pendientes</small>
-                                        </div>
+                                    <div class="d-flex justify-content-between small mb-2">
+                                        <span>Carrera: <strong>{{ s.respuestas_json.carrera_interes|default:"N/A" }}</strong></span>
+                                        <span>Fecha: <strong>{{ s.fecha_registro|date:"d/m/Y H:i" }}</strong></span>
                                     </div>
-                                    <div class="col-4">
-                                        <div class="text-danger">
-                                            <strong>{{ datos.rechazadas }}</strong>
-                                            <small class="d-block">Rechazadas</small>
-                                        </div>
+                                    <div class="d-flex gap-2 pl-actions-lg mt-2">
+                                        <a href="{% url 'admision:admin_ver_solicitud_publico' s.folio %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="material-symbols-outlined me-1">visibility</i> Ver
+                                        </a>
                                     </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center text-muted py-5 w-100">
+                                <i class="material-symbols-outlined" style="font-size: 3rem;">inbox</i>
+                                <p class="mb-0">No hay solicitudes recientes</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Paginación Universal para Cards -->
+                        <div class="se-pager" id="ip-pager-cards" style="display: block;">
+                            <div class="pager-info" id="ip-pager-info-cards">Mostrando 0–0 de 0</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="me-1 small text-muted" for="ip-page-size-cards">Por página</label>
+                                <select id="ip-page-size-cards" class="form-select form-select-sm">
+                                    <option value="12">12</option>
+                                    <option value="24">24</option>
+                                    <option value="48">48</option>
+                                    <option value="96">96</option>
+                                </select>
+                                <button id="ip-prev-cards" class="btn btn-outline-secondary btn-sm" type="button">Anterior</button>
+                                <button id="ip-next-cards" class="btn btn-outline-secondary btn-sm" type="button">Siguiente</button>
+                            </div>
+                        </div>
+
+                        <!-- Vista Lista -->
+                        <div id="ip-table-wrap" class="table-responsive" style="display:none;">
+                            <table class="table se-table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>FOLIO</th>
+                                        <th>NOMBRE</th>
+                                        <th>CARRERA</th>
+                                        <th>PERIODO</th>
+                                        <th>ESTADO</th>
+                                        <th>CREADO</th>
+                                        <th>ACCIONES</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for solicitud in solicitudes_tabla %}
+                                    <tr data-term="{{ solicitud.folio }} {{ solicitud.get_nombre_completo|lower }} {{ solicitud.respuestas_json.carrera_interes|default:'' }} {{ solicitud.periodo.nombre|default:'' }} {{ solicitud.estado }}" data-fecha="{{ solicitud.fecha_registro|date:'Y-m-d H:i:s' }}" data-estado="{{ solicitud.estado }}" data-anio="{{ solicitud.fecha_registro|date:'Y' }}">
+                                        <td data-label="Folio"><strong>{{ solicitud.folio }}</strong></td>
+                                        <td data-label="Nombre">{{ solicitud.get_nombre_completo }}</td>
+                                        <td data-label="Carrera">{{ solicitud.respuestas_json.carrera_interes|default:"—" }}</td>
+                                        <td data-label="Periodo">{{ solicitud.periodo.nombre|default:"—" }}</td>
+                                        <td data-label="Estado">
+                                            <span class="pl-badge {% if solicitud.estado == 'aceptada' or solicitud.estado == 'seleccionado' %}pl-badge--ok{% elif solicitud.estado == 'rechazada' or solicitud.estado == 'no_seleccionado' %}pl-badge--off{% elif solicitud.estado == 'en_revision' %}pl-badge--info{% else %}pl-badge--danger{% endif %}">
+                                                <i class="material-symbols-rounded" style="font-size:14px;">
+                                                    {% if solicitud.estado == 'aceptada' or solicitud.estado == 'seleccionado' %}check_circle{% elif solicitud.estado == 'rechazada' or solicitud.estado == 'no_seleccionado' %}block{% elif solicitud.estado == 'en_revision' %}schedule{% else %}help{% endif %}
+                                                </i>{{ solicitud.get_estado_display }}
+                                            </span>
+                                        </td>
+                                        <td data-label="Creado">{{ solicitud.fecha_registro|date:"d/m/Y" }}<br><small class="text-muted">{{ solicitud.fecha_registro|date:"H:i" }}</small></td>
+                                        <td data-label="Acciones">
+                                            <a href="{% url 'admision:admin_ver_solicitud_publico' solicitud.folio %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="material-symbols-outlined">visibility</i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <!-- Paginación Universal -->
+                            <div class="se-pager" id="ip-pager">
+                                <div class="pager-info" id="ip-pager-info">Mostrando 0–0 de 0</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <label class="me-1 small text-muted" for="ip-page-size">Por página</label>
+                                    <select id="ip-page-size" class="form-select form-select-sm">
+                                        <option value="10">10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                    <button id="ip-prev" class="btn btn-outline-secondary btn-sm" type="button">Anterior</button>
+                                    <button id="ip-next" class="btn btn-outline-secondary btn-sm" type="button">Siguiente</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div class="col-lg-4">
+                    <div class="animate-card glass-container p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="material-symbols-outlined me-2">bolt</span>
+                            <h5 class="mb-0">Acciones Rápidas</h5>
+                        </div>
+                        <div class="row">
+                            
+                            <div class="col-12 mb-3">
+                                <a href="{% url 'admision:admin_exportar_solicitudes' %}" class="btn-gradient-success w-100">
+                                    <span class="material-symbols-outlined mb-1 d-block">download</span>
+                                    Exportar Solicitudes
+                                </a>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <a href="{% url 'admision:admin_estadisticas_avanzadas' %}" class="btn-gradient-secondary w-100">
+                                    <span class="material-symbols-outlined mb-1 d-block">monitoring</span>
+                                    Estadísticas Avanzadas
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    {% endif %}
 
-    <div class="row">
-        <!-- Solicitudes Recientes -->
-        <div class="col-md-8">
-            <div class="recent-applications">
-                <h5 class="mb-3">
-                    <i class="fas fa-history me-2"></i>
-                    Solicitudes Recientes
-                </h5>
-                {% if solicitudes_recientes %}
-                    {% for solicitud in solicitudes_recientes %}
-                    <div class="application-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="mb-1">
-                                    <a href="{% url 'admision:admin_ver_solicitud_publico' solicitud.folio %}" 
-                                       class="text-decoration-none">
-                                        {{ solicitud.nombre }} {{ solicitud.apellido_paterno }}
+        <!-- Tab: Historial (solicitudes de periodos inactivos) -->
+        <div class="tab-pane fade" id="pane-historial" role="tabpanel" aria-labelledby="tab-historial">
+            <div class="row">
+              <div class="col-12">
+                <div class="ip-toolbar mb-3">
+                  <div class="ip-search">
+                    <i class="material-symbols-rounded">search</i>
+                    <input type="search" id="ih-search" placeholder="Buscar por folio o nombre..." class="form-control border-0 bg-transparent" />
+                    <span id="ih-matches" class="ip-matches">Coincidencias: 0</span>
+                  </div>
+                  <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                      <i class="material-symbols-rounded me-1">filter_list</i>
+                      <span id="ih-status-label">Todos los estados</span>
+                    </button>
+                    <ul class="dropdown-menu" id="ih-status-menu">
+                      <li><a class="dropdown-item ih-status-option active" data-value="">Todos los estados</a></li>
+                      <li><a class="dropdown-item ih-status-option" data-value="pendiente">Pendiente</a></li>
+                      <li><a class="dropdown-item ih-status-option" data-value="en_revision">En Revisión</a></li>
+                      <li><a class="dropdown-item ih-status-option" data-value="aceptada">Aceptada</a></li>
+                      <li><a class="dropdown-item ih-status-option" data-value="rechazada">Rechazada</a></li>
+                      <li><a class="dropdown-item ih-status-option" data-value="aprobada">Aprobada</a></li>
+                      <li><a class="dropdown-item ih-status-option" data-value="seleccionado">Seleccionado</a></li>
+                      <li><a class="dropdown-item ih-status-option" data-value="no_seleccionado">No seleccionado</a></li>
+                    </ul>
+                  </div>
+                  <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                      <i class="material-symbols-rounded me-1">date_range</i>
+                      <span id="ih-year-label">Todos los años</span>
+                    </button>
+                    <ul class="dropdown-menu" id="ih-year-menu">
+                      <li><a class="dropdown-item ih-year-option active" data-value="">Todos los años</a></li>
+                      <!-- Años poblarán dinámicamente -->
+                    </ul>
+                  </div>
+                  <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                      <i class="material-symbols-rounded me-1">sort</i>
+                      <span id="ih-sort-label">Más recientes</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item ih-sort-option active" data-value="recientes">Más recientes</a></li>
+                      <li><a class="dropdown-item ih-sort-option" data-value="antiguos">Más antiguos</a></li>
+                      <li><a class="dropdown-item ih-sort-option" data-value="folio">Por folio</a></li>
+                      <li><a class="dropdown-item ih-sort-option" data-value="nombre">Por nombre</a></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12">
+                <div id="ih-table-wrap" class="table-responsive">
+                  <table class="table se-table align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th>FOLIO</th>
+                        <th>NOMBRE</th>
+                        <th>CARRERA</th>
+                        <th>PERIODO</th>
+                        <th>ESTADO</th>
+                        <th>CREADO</th>
+                        <th>ACCIONES</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for solicitud in solicitudes_historial %}
+                      <tr data-term="{{ solicitud.folio }} {{ solicitud.get_nombre_completo|lower }} {{ solicitud.respuestas_json.carrera_interes|default:'' }} {{ solicitud.periodo.nombre|default:'' }} {{ solicitud.estado }}" data-fecha="{{ solicitud.fecha_registro|date:'Y-m-d H:i:s' }}" data-folio="{{ solicitud.folio }}" data-nombre="{{ solicitud.get_nombre_completo|lower }}" data-estado="{{ solicitud.estado }}" data-anio="{{ solicitud.periodo.año|default:'' }}">
+                        <td data-label="Folio"><strong>{{ solicitud.folio }}</strong></td>
+                        <td data-label="Nombre">{{ solicitud.get_nombre_completo }}</td>
+                        <td data-label="Carrera">{{ solicitud.respuestas_json.carrera_interes|default:"—" }}</td>
+                        <td data-label="Periodo">{{ solicitud.periodo.nombre|default:"—" }}</td>
+                        <td data-label="Estado">
+                          <span class="pl-badge {% if solicitud.estado == 'aceptada' or solicitud.estado == 'seleccionado' %}pl-badge--ok{% elif solicitud.estado == 'rechazada' or solicitud.estado == 'no_seleccionado' %}pl-badge--off{% elif solicitud.estado == 'en_revision' %}pl-badge--info{% else %}pl-badge--danger{% endif %}">
+                            <i class="material-symbols-rounded" style="font-size:14px;">
+                              {% if solicitud.estado == 'aceptada' or solicitud.estado == 'seleccionado' %}check_circle{% elif solicitud.estado == 'rechazada' or solicitud.estado == 'no_seleccionado' %}block{% elif solicitud.estado == 'en_revision' %}schedule{% else %}help{% endif %}
+                            </i>{{ solicitud.get_estado_display }}
+                          </span>
+                        </td>
+                        <td data-label="Creado">{{ solicitud.fecha_registro|date:"d/m/Y" }}<br><small class="text-muted">{{ solicitud.fecha_registro|date:"H:i" }}</small></td>
+                        <td data-label="Acciones">
+                          <a href="{% url 'admision:admin_ver_solicitud_publico' solicitud.folio %}" class="btn btn-sm btn-outline-primary">
+                            <i class="material-symbols-outlined">visibility</i>
+                          </a>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                  <div class="se-pager" id="ih-pager">
+                    <div class="pager-info" id="ih-pager-info">Mostrando 0–0 de 0</div>
+                    <div class="d-flex align-items-center gap-2">
+                      <label class="me-1 small text-muted" for="ih-page-size">Por página</label>
+                      <select id="ih-page-size" class="form-select form-select-sm">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                      </select>
+                      <button id="ih-prev" class="btn btn-outline-secondary btn-sm" type="button">Anterior</button>
+                      <button id="ih-next" class="btn btn-outline-secondary btn-sm" type="button">Siguiente</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <!-- Tab: Periodo de admisión -->
+        <div class="tab-pane fade" id="pane-periodos" role="tabpanel" aria-labelledby="tab-periodos">
+            <div class="row">
+                <div class="col-12">
+                    <div class="ip-toolbar mb-3">
+                        <div class="ip-search flex-grow-1">
+                            <i class="material-symbols-outlined">search</i>
+                            <input id="periodos-search" type="search" placeholder="Buscar por nombre o año..." class="form-control border-0 bg-transparent" />
+                        </div>
+                        <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#modalPeriodoNuevo">
+                            <i class="material-symbols-outlined">add</i> Nuevo periodo
+                        </button>
+                    </div>
+
+                    <div class="pl-grid" id="periodos-grid">
+                        {% for p in periodos_admision %}
+                        <div class="pl-cardx" data-nombre="{{ p.nombre|default:''|lower }}" data-anio="{{ p.año }}" data-activo="{% if p.activo %}1{% else %}0{% endif %}">
+                            <div class="pl-card-body">
+                                <div class="pl-status">
+                                    {% if p.activo %}
+                                    <span class="pl-badge pl-badge--ok"><i class="material-symbols-outlined" style="font-size:18px;">check_circle</i>Activo</span>
+                                    {% else %}
+                                    <span class="pl-badge pl-badge--off"><i class="material-symbols-outlined" style="font-size:18px;">block</i>Inactivo</span>
+                                    {% endif %}
+                                </div>
+                                <div class="pl-card-head">
+                                    <div class="icon-chip head"><i class="material-symbols-outlined">calendar_month</i></div>
+                                    <div>
+                                        <h6 class="title-text">{{ p.nombre }} ({{ p.año }})</h6>
+                                        <div class="sub">ID: {{ p.id }}</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between small mb-2">
+                                    <span>Inicio: <strong>{{ p.fecha_inicio|date:"d/m/Y" }}</strong></span>
+                                    <span>Fin: <strong>{{ p.fecha_fin|date:"d/m/Y" }}</strong></span>
+                                </div>
+                                <div class="d-flex gap-2 pl-actions-lg mt-2">
+                                    <a href="{% url 'admision:periodo_toggle_activo' p.id %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary" title="Cambiar estado">
+                                        <i class="material-symbols-outlined" style="font-size:24px;">{% if p.activo %}toggle_on{% else %}toggle_off{% endif %}</i>
                                     </a>
-                                </h6>
-                                <p class="mb-1 text-muted">
-                                    <small>
-                                        <i class="fas fa-id-card me-1"></i>
-                                        Folio: {{ solicitud.folio }}
-                                        <span class="ms-3">
-                                            <i class="fas fa-calendar me-1"></i>
-                                            {{ solicitud.fecha_registro|date:"d/m/Y H:i" }}
-                                        </span>
-                                    </small>
-                                </p>
-                                {% if solicitud.carrera_interes %}
-                                <p class="mb-0 text-muted">
-                                    <small>
-                                        <i class="fas fa-graduation-cap me-1"></i>
-                                        {{ solicitud.carrera_interes }}
-                                    </small>
-                                </p>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <span class="status-badge status-{{ solicitud.estado }}">
-                                    {{ solicitud.get_estado_display }}
-                                </span>
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-sm btn-outline-primary" 
+                                        title="Editar"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalPeriodoEditar"
+                                        data-edit-url="{% url 'admision:periodo_admision_editar' p.id %}?next={{ request.path }}"
+                                        data-id="{{ p.id }}"
+                                        data-nombre="{{ p.nombre|default:'' }}"
+                                        data-anio="{{ p.año }}"
+                                        data-fi="{{ p.fecha_inicio|date:'Y-m-d\\TH:i' }}"
+                                        data-ff="{{ p.fecha_fin|date:'Y-m-d\\TH:i' }}"
+                                        data-activo="{% if p.activo %}1{% else %}0{% endif %}"
+                                        data-descripcion="{{ p.descripcion|default:'' }}"
+                                    >
+                                        <i class="material-symbols-outlined me-1">edit</i>Editar
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-5 w-100">
+                            <i class="material-symbols-outlined" style="font-size: 3rem;">calendar_month</i>
+                            <p class="mb-0">No hay períodos de admisión registrados</p>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                    <div class="text-center mt-3">
-                        <a href="{% url 'admision:admin_solicitudes_publico' %}" 
-                           class="btn btn-outline-primary">
-                            <i class="fas fa-list me-1"></i>
-                            Ver Todas las Solicitudes
-                        </a>
-                    </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No hay solicitudes registradas aún</p>
-                        <a href="{% url 'admision:admision_publico:registro_aspirante' %}" 
-                           class="btn btn-primary" target="_blank">
-                            <i class="fas fa-plus me-1"></i>
-                            Ver Formulario Público
-                        </a>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
 
-        <!-- Acciones Rápidas -->
-        <div class="col-md-4">
-            <div class="quick-actions">
-                <h5 class="mb-3">
-                    <i class="fas fa-bolt me-2"></i>
-                    Acciones Rápidas
-                </h5>
-                
-                <a href="{% url 'admision:admin_solicitudes_publico' %}" 
-                   class="action-btn btn btn-primary">
-                    <i class="fas fa-list me-2"></i>
-                    Gestionar Solicitudes
-                </a>
-                
-                <a href="{% url 'admision:admin_exportar_solicitudes' %}" 
-                   class="action-btn btn btn-success">
-                    <i class="fas fa-download me-2"></i>
-                    Exportar Datos
-                </a>
-                
-                <a href="{% url 'admision:admin_estadisticas_avanzadas' %}" 
-                   class="action-btn btn btn-info">
-                    <i class="fas fa-chart-bar me-2"></i>
-                    Estadísticas Avanzadas
-                </a>
-                
-                <a href="{% url 'admision:admision_publico:registro_aspirante' %}" 
-                   class="action-btn btn btn-outline-primary" target="_blank">
-                    <i class="fas fa-external-link-alt me-2"></i>
-                    Ver Formulario Público
-                </a>
-                
-                <a href="{% url 'admision:admision_publico:informacion_proceso' %}" 
-                   class="action-btn btn btn-outline-info" target="_blank">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Información del Proceso
-                </a>
-            </div>
+                    <!-- Modal: Nuevo Período de Admisión -->
+                    <div class="modal fade" id="modalPeriodoNuevo" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title"><i class="material-symbols-outlined me-1">add</i>Nuevo período de admisión</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <form method="post" action="{% url 'admision:periodos_panel' %}?next={{ request.path }}">
+                            {% csrf_token %}
+                            <input type="hidden" name="_scope" value="admision" />
+                            <div class="modal-body">
+                              <div class="row g-3">
+                                <div class="col-md-6">
+                                  <label class="form-label">Nombre</label>
+                                  <input type="text" name="nombre" class="form-control" required />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Año</label>
+                                  <input type="number" name="año" class="form-control" min="2000" max="2100" required />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Fecha inicio</label>
+                                  <input type="datetime-local" name="fecha_inicio" class="form-control" required />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Fecha fin</label>
+                                  <input type="datetime-local" name="fecha_fin" class="form-control" required />
+                                </div>
+                                <div class="col-12">
+                                  <label class="form-label">Descripción</label>
+                                  <textarea name="descripcion" class="form-control" rows="3"></textarea>
+                                </div>
+                                <div class="col-12 form-check">
+                                  <input class="form-check-input" type="checkbox" id="nuevo-periodo-activo" name="activo" />
+                                  <label class="form-check-label" for="nuevo-periodo-activo">Marcar como activo</label>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                              <button type="submit" class="btn btn-primary">Crear período</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
 
-            <!-- Estadísticas Adicionales -->
-            <div class="quick-actions mt-3">
-                <h5 class="mb-3">
-                    <i class="fas fa-chart-pie me-2"></i>
-                    Estadísticas Adicionales
-                </h5>
-                
-                <div class="row text-center">
-                    <div class="col-6 mb-2">
-                        <div class="bg-light p-2 rounded">
-                            <strong class="d-block">{{ estadisticas.hoy }}</strong>
-                            <small class="text-muted">Hoy</small>
+                    <!-- Modal: Editar Período de Admisión -->
+                    <div class="modal fade" id="modalPeriodoEditar" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title"><i class="material-symbols-outlined me-1">edit</i>Editar período de admisión</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <form id="formPeriodoEditar" method="post" action="">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                              <input type="hidden" name="periodo_id" id="edit-periodo-id" />
+                              <div class="row g-3">
+                                <div class="col-md-6">
+                                  <label class="form-label">Nombre</label>
+                                  <input type="text" name="nombre" id="edit-nombre" class="form-control" required />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Año</label>
+                                  <input type="number" name="año" id="edit-anio" class="form-control" min="2000" max="2100" required />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Fecha inicio</label>
+                                  <input type="datetime-local" name="fecha_inicio" id="edit-fi" class="form-control" required />
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Fecha fin</label>
+                                  <input type="datetime-local" name="fecha_fin" id="edit-ff" class="form-control" required />
+                                </div>
+                                <div class="col-12">
+                                  <label class="form-label">Descripción</label>
+                                  <textarea name="descripcion" id="edit-descripcion" class="form-control" rows="3"></textarea>
+                                </div>
+                                <div class="col-12 form-check">
+                                  <input class="form-check-input" type="checkbox" id="edit-activo" name="activo" />
+                                  <label class="form-check-label" for="edit-activo">Marcar como activo</label>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                              <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                            </div>
+                          </form>
                         </div>
-                    </div>
-                    <div class="col-6 mb-2">
-                        <div class="bg-light p-2 rounded">
-                            <strong class="d-block">{{ estadisticas.esta_semana }}</strong>
-                            <small class="text-muted">Esta Semana</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="bg-light p-2 rounded">
-                            <strong class="d-block">{{ estadisticas.este_mes }}</strong>
-                            <small class="text-muted">Este Mes</small>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="bg-light p-2 rounded">
-                            <strong class="d-block">{{ estadisticas.promedio_diario|floatformat:1 }}</strong>
-                            <small class="text-muted">Promedio/Día</small>
-                        </div>
+                      </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        
+    </div>
     </div>
 </div>
 
@@ -368,38 +636,1016 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Animación de entrada para las tarjetas de estadísticas
-    const statsCards = document.querySelectorAll('.stats-card');
-    statsCards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        setTimeout(() => {
-            card.style.transition = 'all 0.5s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, index * 100);
+  // Sistema de filtros dinámicos
+   (function(){
+     const pane = document.getElementById('pane-lista') || document;
+     const input = document.getElementById('ip-search');
+     const grid = document.getElementById('sol-cards');
+     const tableWrap = document.getElementById('ip-table-wrap');
+     const tbody = tableWrap ? tableWrap.querySelector('tbody') : null;
+     
+     // Variables de filtros
+     let statusValue = '';
+     let yearValue = '';
+     let sortValue = 'recientes';
+     
+     const statusLabel = document.getElementById('ip-status-label');
+     const yearLabel = document.getElementById('ip-year-label');
+     const yearMenu = document.getElementById('ip-year-menu');
+     const sortLabel = document.getElementById('ip-sort-label');
+     
+     // Función para normalizar texto
+     function norm(s){ return (s||'').toString().toLowerCase(); }
+     
+     // Poblar años dinámicamente
+     (function(){
+       if (!yearMenu) return;
+       const years = new Set();
+       document.querySelectorAll('[data-anio]').forEach(function(el){ 
+         const y = el.getAttribute('data-anio'); 
+         if (y) years.add(y); 
+       });
+       Array.from(years).sort(function(a,b){ return b.localeCompare(a); }).forEach(function(y){
+         const li = document.createElement('li');
+         li.innerHTML = '<a class="dropdown-item ip-year-option" data-value="'+y+'">'+y+'</a>';
+         yearMenu.appendChild(li);
+       });
+     })();
+     
+     // Función principal de filtros
+     function applyFilters(){
+       const q = norm(input ? input.value : '');
+       const match = function(el){
+         const hitText = norm(el.getAttribute('data-term')||'').includes(q);
+         const hitYear = !yearValue || (el.getAttribute('data-anio') === yearValue);
+         const hitEstado = !statusValue || (el.getAttribute('data-estado') === statusValue);
+         return hitText && hitYear && hitEstado;
+       };
+       
+       // Filtrar cards
+       if (grid){ 
+         grid.querySelectorAll('.pl-cardx').forEach(function(card){ 
+           card.style.display = match(card) ? '' : 'none'; 
+         }); 
+       }
+       
+       // Filtrar tabla
+       if (tbody){ 
+         tbody.querySelectorAll('tr').forEach(function(tr){ 
+           tr.style.display = match(tr) ? '' : 'none'; 
+         }); 
+       }
+       
+       // Actualizar paginación
+       if (typeof window.updateCardsPagination === 'function') {
+         window.updateCardsPagination();
+       }
+       if (typeof window.updateTablePagination === 'function') {
+         window.updateTablePagination();
+       }
+       updateMatchesCount();
+     }
+     
+     // Event listeners
+     if (input) input.addEventListener('input', applyFilters);
+     
+     // Filtro de estado
+     document.addEventListener('click', function(e){
+       const statusOption = e.target.closest('.ip-status-option');
+       if (statusOption) {
+         e.preventDefault();
+         document.querySelectorAll('.ip-status-option').forEach(function(o){ o.classList.remove('active'); });
+         statusOption.classList.add('active');
+         statusValue = statusOption.getAttribute('data-value') || '';
+         if (statusLabel){ statusLabel.textContent = statusValue ? statusOption.textContent.trim() : 'Todos los estados'; }
+         applyFilters();
+       }
+     });
+     
+     // Filtro de año
+     document.addEventListener('click', function(e){
+       const yearOption = e.target.closest('.ip-year-option');
+       if (yearOption) {
+         e.preventDefault();
+         document.querySelectorAll('.ip-year-option').forEach(function(o){ o.classList.remove('active'); });
+         yearOption.classList.add('active');
+         yearValue = yearOption.getAttribute('data-value') || '';
+         if (yearLabel){ yearLabel.textContent = yearValue ? ('Año: ' + yearOption.textContent.trim()) : 'Todos los años'; }
+         applyFilters();
+       }
+     });
+     
+     // Ordenamiento
+     document.addEventListener('click', function(e){
+       const sortOption = e.target.closest('.ip-sort-option');
+       if (sortOption) {
+         e.preventDefault();
+         document.querySelectorAll('.ip-sort-option').forEach(function(o){ o.classList.remove('active'); });
+         sortOption.classList.add('active');
+         sortValue = sortOption.getAttribute('data-value') || 'recientes';
+         if (sortLabel){ sortLabel.textContent = sortOption.textContent.trim(); }
+         applySort();
+       }
+     });
+     
+     // Función de ordenamiento
+     function applySort(){
+       const order = sortValue || 'recientes';
+       let cmp;
+       
+       if (order === 'folio') {
+         cmp = function(a,b){ 
+           const aFolio = a.getAttribute('data-term').split(' ')[0];
+           const bFolio = b.getAttribute('data-term').split(' ')[0];
+           return aFolio.localeCompare(bFolio);
+         };
+       } else if (order === 'nombre') {
+         cmp = function(a,b){ 
+           const aName = a.getAttribute('data-term').split(' ').slice(1).join(' ');
+           const bName = b.getAttribute('data-term').split(' ').slice(1).join(' ');
+           return aName.localeCompare(bName);
+         };
+       } else {
+         const dir = order === 'recientes' ? 'desc' : 'asc';
+         cmp = function(a,b){ 
+           const av = a.getAttribute('data-fecha') || '';
+           const bv = b.getAttribute('data-fecha') || '';
+           return dir==='asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+         };
+       }
+       
+       // Ordenar cards
+       if (grid){
+         const nodes = Array.from(grid.querySelectorAll('.pl-cardx'));
+         nodes.sort(cmp).forEach(function(n){ grid.appendChild(n); });
+       }
+       
+      // Ordenar tabla
+      if (tbody){
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.sort(cmp).forEach(function(r){ tbody.appendChild(r); });
+      }
+
+      if (typeof window.updateCardsPagination === 'function') {
+        window.updateCardsPagination();
+      }
+      if (typeof window.updateTablePagination === 'function') {
+        window.updateTablePagination();
+      }
+      updateMatchesCount();
+    }
+     
+     // Inicializar filtros
+     applyFilters();
+     applySort();
+   })();
+   
+   // Cambio de vista Cards/Tabla
+   (function(){
+     const btnCards = document.getElementById('btn-vista-cards');
+     const btnLista = document.getElementById('btn-vista-lista');
+     const cards = document.getElementById('sol-cards');
+     const lista = document.getElementById('ip-table-wrap');
+     const pagerCards = document.getElementById('ip-pager-cards');
+     const pagerLista = document.getElementById('ip-pager');
+     
+     if(btnCards && btnLista && cards && lista){
+       btnCards.addEventListener('click', function(){
+         cards.style.display = '';
+         lista.style.display = 'none';
+         if(pagerCards) pagerCards.style.display = 'flex';
+         if(pagerLista) pagerLista.style.display = 'none';
+         btnCards.classList.add('btn-primary');
+         btnCards.classList.remove('btn-outline-primary');
+         btnLista.classList.add('btn-outline-secondary');
+         btnLista.classList.remove('btn-outline-primary');
+         updateMatchesCount();
+       });
+       btnLista.addEventListener('click', function(){
+         cards.style.display = 'none';
+         lista.style.display = '';
+         if(pagerCards) pagerCards.style.display = 'none';
+         if(pagerLista) pagerLista.style.display = 'flex';
+         btnLista.classList.add('btn-primary');
+         btnLista.classList.remove('btn-outline-secondary');
+         btnCards.classList.add('btn-outline-primary');
+         btnCards.classList.remove('btn-primary');
+         updateMatchesCount();
+       });
+     }
+   })();
+  
+  // Paginación para Cards
+  (function(){
+    const cardsContainer = document.getElementById('sol-cards');
+    const pagerInfo = document.getElementById('ip-pager-info-cards');
+    const pageSizeSelect = document.getElementById('ip-page-size-cards');
+    const prevBtn = document.getElementById('ip-prev-cards');
+    const nextBtn = document.getElementById('ip-next-cards');
+    
+    if(!cardsContainer || !pagerInfo || !pageSizeSelect || !prevBtn || !nextBtn) return;
+    
+    let currentPage = 1;
+    let pageSize = 12;
+    
+    function updatePagination(){
+      const cards = Array.from(cardsContainer.children)
+        .filter(card => !card.classList.contains('text-center'))
+        .filter(card => card.style.display !== 'none');
+      const totalItems = cards.length;
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalItems);
+      
+      // Mostrar/ocultar cards
+      cards.forEach((card, index) => {
+        const visible = (index >= startIndex && index < endIndex);
+        card.style.display = visible ? '' : 'none';
+        if (visible) {
+          card.classList.remove('pl-slide-in');
+          void card.offsetWidth; // reflow para reiniciar animación
+          card.classList.add('pl-slide-in');
+        }
+      });
+      
+      // Actualizar info
+      pagerInfo.textContent = `Mostrando ${startIndex + 1}–${endIndex} de ${totalItems}`;
+      
+      // Actualizar botones
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+    }
+    // Exponer para uso global (filtros)
+    window.updateCardsPagination = updatePagination;
+    
+    pageSizeSelect.addEventListener('change', function(){
+      pageSize = parseInt(this.value);
+      currentPage = 1;
+      updatePagination();
+    });
+    
+    prevBtn.addEventListener('click', function(){
+      if(currentPage > 1){
+        currentPage--;
+        updatePagination();
+      }
+    });
+    
+    nextBtn.addEventListener('click', function(){
+      const cards = Array.from(cardsContainer.children).filter(card => !card.classList.contains('text-center'));
+      const totalPages = Math.ceil(cards.length / pageSize);
+      if(currentPage < totalPages){
+        currentPage++;
+        updatePagination();
+      }
+    });
+    
+   // Inicializar
+     updatePagination();
+   })();
+   
+   // Paginación para Tabla
+   (function(){
+    const tableWrap = document.getElementById('ip-table-wrap');
+     const tbody = tableWrap ? tableWrap.querySelector('tbody') : null;
+     const pagerInfo = document.getElementById('ip-pager-info');
+     const pageSizeSelect = document.getElementById('ip-page-size');
+     const prevBtn = document.getElementById('ip-prev');
+     const nextBtn = document.getElementById('ip-next');
+     
+     if(!tbody || !pagerInfo || !pageSizeSelect || !prevBtn || !nextBtn) return;
+     
+     let currentPage = 1;
+     let pageSize = 10;
+     
+     function updateTablePagination(){
+      const rows = Array.from(tbody.children)
+        .filter(row => !row.querySelector('td[colspan]'))
+        .filter(row => row.style.display !== 'none');
+       const totalItems = rows.length;
+       const totalPages = Math.ceil(totalItems / pageSize);
+       const startIndex = (currentPage - 1) * pageSize;
+       const endIndex = Math.min(startIndex + pageSize, totalItems);
+       
+       // Mostrar/ocultar filas
+       rows.forEach((row, index) => {
+         row.style.display = (index >= startIndex && index < endIndex) ? '' : 'none';
+       });
+       
+       // Actualizar info
+       pagerInfo.textContent = `Mostrando ${startIndex + 1}–${endIndex} de ${totalItems}`;
+       
+       // Actualizar botones
+       prevBtn.disabled = currentPage <= 1;
+       nextBtn.disabled = currentPage >= totalPages;
+     }
+     // Exponer para uso global (filtros)
+     window.updateTablePagination = updateTablePagination;
+     
+     pageSizeSelect.addEventListener('change', function(){
+       pageSize = parseInt(this.value);
+       currentPage = 1;
+       updateTablePagination();
+     });
+     
+     prevBtn.addEventListener('click', function(){
+       if(currentPage > 1){
+         currentPage--;
+         updateTablePagination();
+       }
+     });
+     
+     nextBtn.addEventListener('click', function(){
+      const rows = Array.from(tbody.children)
+        .filter(row => !row.querySelector('td[colspan]'))
+        .filter(row => row.style.display !== 'none');
+       const totalPages = Math.ceil(rows.length / pageSize);
+       if(currentPage < totalPages){
+         currentPage++;
+         updateTablePagination();
+       }
+     });
+     
+     // Inicializar
+     updateTablePagination();
+   })();
+
+   // Contador de coincidencias
+   function updateMatchesCount(){
+     const badge = document.getElementById('ip-matches');
+     if(!badge) return;
+     const cardsWrap = document.getElementById('sol-cards');
+     const tableWrap = document.getElementById('ip-table-wrap');
+     const cardsVisible = window.getComputedStyle(cardsWrap).display !== 'none';
+     let count = 0;
+     if (cardsVisible) {
+       count = Array.from(cardsWrap.querySelectorAll('.pl-cardx')).filter(c => c.style.display !== 'none').length;
+     } else if (tableWrap) {
+       const tbody = tableWrap.querySelector('tbody');
+       if (tbody) {
+         count = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none').length;
+       }
+     }
+     badge.textContent = `Coincidencias: ${count}`;
+   }
+
+  // Búsqueda en Periodos de Admisión (client-side)
+  (function(){
+    const searchInput = document.getElementById('periodos-search');
+    const grid = document.getElementById('periodos-grid');
+    if(!searchInput || !grid) return;
+
+    function norm(s){ return (s||'').toString().toLowerCase(); }
+
+    function applyFilter(){
+      const q = norm(searchInput.value);
+      const cards = Array.from(grid.querySelectorAll('.pl-cardx'));
+      let visibleCount = 0;
+      cards.forEach(card => {
+        const nombre = norm(card.getAttribute('data-nombre'));
+        const anio = norm(card.getAttribute('data-anio'));
+        const match = (!q) || nombre.includes(q) || anio.includes(q);
+        card.style.display = match ? '' : 'none';
+        if(match) visibleCount++;
+      });
+      // Opcional: mostrar mensaje si no hay resultados
+      const emptyMsg = grid.querySelector('.ip-empty-msg');
+      if(emptyMsg) emptyMsg.style.display = (visibleCount === 0) ? '' : 'none';
+    }
+
+    searchInput.addEventListener('input', applyFilter);
+  })();
+
+  // Relleno de modal de edición de período
+  (function(){
+    const editModal = document.getElementById('modalPeriodoEditar');
+    if(!editModal) return;
+    editModal.addEventListener('show.bs.modal', function(ev){
+      const btn = ev.relatedTarget;
+      if(!btn) return;
+      const form = document.getElementById('formPeriodoEditar');
+      const id = btn.getAttribute('data-id');
+      const nombre = btn.getAttribute('data-nombre') || '';
+      const anio = btn.getAttribute('data-anio') || '';
+      const fi = btn.getAttribute('data-fi') || '';
+      const ff = btn.getAttribute('data-ff') || '';
+      const activo = btn.getAttribute('data-activo') === '1';
+      const descripcion = btn.getAttribute('data-descripcion') || '';
+      const editUrl = btn.getAttribute('data-edit-url');
+
+      if(form && editUrl){ form.setAttribute('action', editUrl); }
+      const idInput = document.getElementById('edit-periodo-id');
+      const nombreInput = document.getElementById('edit-nombre');
+      const anioInput = document.getElementById('edit-anio');
+      const fiInput = document.getElementById('edit-fi');
+      const ffInput = document.getElementById('edit-ff');
+      const activoInput = document.getElementById('edit-activo');
+      const descInput = document.getElementById('edit-descripcion');
+
+      if(idInput) idInput.value = id || '';
+      if(nombreInput) nombreInput.value = nombre || '';
+      if(anioInput) anioInput.value = anio || '';
+      if(fiInput) fiInput.value = fi || '';
+      if(ffInput) ffInput.value = ff || '';
+      if(activoInput) activoInput.checked = !!activo;
+      if(descInput) descInput.value = descripcion || '';
+    });
+  })();
+
+  // Historial: filtros, orden y paginación (solo tabla)
+  (function(){
+    const tableWrap = document.getElementById('ih-table-wrap');
+    if(!tableWrap) return;
+    const tbody = tableWrap.querySelector('tbody');
+    const searchInput = document.getElementById('ih-search');
+    const statusMenu = document.getElementById('ih-status-menu');
+    const statusLabel = document.getElementById('ih-status-label');
+    const yearMenu = document.getElementById('ih-year-menu');
+    const yearLabel = document.getElementById('ih-year-label');
+    const sortLabel = document.getElementById('ih-sort-label');
+    const matchesBadge = document.getElementById('ih-matches');
+
+    function norm(s){ return (s||'').toString().toLowerCase(); }
+
+    // Poblar años desde las filas
+    (function populateYears(){
+      if(!yearMenu || !tbody) return;
+      const years = Array.from(tbody.querySelectorAll('tr'))
+        .map(r => r.getAttribute('data-anio'))
+        .filter(Boolean);
+      const unique = Array.from(new Set(years)).sort((a,b)=>parseInt(b||'0')-parseInt(a||'0'));
+      unique.forEach(anio => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.className = 'dropdown-item ih-year-option';
+        a.setAttribute('data-value', anio);
+        a.textContent = anio;
+        li.appendChild(a);
+        yearMenu.appendChild(li);
+      });
+    })();
+
+    function updateHistMatches(){
+      if(!matchesBadge || !tbody) return;
+      const count = Array.from(tbody.querySelectorAll('tr')).filter(r => r.style.display !== 'none').length;
+      matchesBadge.textContent = `Coincidencias: ${count}`;
+    }
+
+    function applyFilters(){
+      const q = norm(searchInput ? searchInput.value : '');
+      const statusSel = statusLabel ? statusLabel.textContent : '';
+      const statusVal = (function(){
+        const active = statusMenu ? statusMenu.querySelector('.ih-status-option.active') : null;
+        return active ? active.getAttribute('data-value') : '';
+      })();
+      const yearVal = (function(){
+        const active = yearMenu ? yearMenu.querySelector('.ih-year-option.active') : null;
+        return active ? active.getAttribute('data-value') : '';
+      })();
+
+      Array.from(tbody.querySelectorAll('tr')).forEach(row => {
+        const term = norm(row.getAttribute('data-term'));
+        const estado = row.getAttribute('data-estado') || '';
+        const anio = row.getAttribute('data-anio') || '';
+        const matchSearch = (!q) || term.includes(q);
+        const matchStatus = (!statusVal) || estado === statusVal;
+        const matchYear = (!yearVal) || anio === yearVal;
+        const visible = matchSearch && matchStatus && matchYear;
+        row.style.display = visible ? '' : 'none';
+      });
+
+      if (typeof window.updateHistTablePagination === 'function') {
+        window.updateHistTablePagination();
+      }
+      updateHistMatches();
+    }
+
+    function applySort(){
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const active = document.querySelector('.ih-sort-option.active');
+      const value = active ? active.getAttribute('data-value') : 'recientes';
+
+      function cmp(a,b){
+        switch(value){
+          case 'antiguos': {
+            const ta = a.getAttribute('data-fecha');
+            const tb = b.getAttribute('data-fecha');
+            return ta.localeCompare(tb);
+          }
+          case 'folio': {
+            const fa = a.getAttribute('data-folio')||'';
+            const fb = b.getAttribute('data-folio')||'';
+            return fa.localeCompare(fb);
+          }
+          case 'nombre': {
+            const na = a.getAttribute('data-nombre')||'';
+            const nb = b.getAttribute('data-nombre')||'';
+            return na.localeCompare(nb);
+          }
+          default: { // recientes
+            const ta = a.getAttribute('data-fecha');
+            const tb = b.getAttribute('data-fecha');
+            return tb.localeCompare(ta);
+          }
+        }
+      }
+
+      rows.sort(cmp).forEach(r => tbody.appendChild(r));
+      if (typeof window.updateHistTablePagination === 'function') {
+        window.updateHistTablePagination();
+      }
+      updateHistMatches();
+    }
+
+    // Eventos de filtros
+    if(searchInput){ searchInput.addEventListener('input', applyFilters); }
+    if(statusMenu){
+      statusMenu.addEventListener('click', function(ev){
+        const t = ev.target.closest('.ih-status-option');
+        if(!t) return;
+        Array.from(statusMenu.querySelectorAll('.ih-status-option')).forEach(x=>x.classList.remove('active'));
+        t.classList.add('active');
+        if(statusLabel) statusLabel.textContent = t.textContent;
+        applyFilters();
+      });
+    }
+    if(yearMenu){
+      yearMenu.addEventListener('click', function(ev){
+        const t = ev.target.closest('.ih-year-option');
+        if(!t) return;
+        Array.from(yearMenu.querySelectorAll('.ih-year-option')).forEach(x=>x.classList.remove('active'));
+        t.classList.add('active');
+        if(yearLabel) yearLabel.textContent = t.textContent;
+        applyFilters();
+      });
+    }
+    document.querySelectorAll('.ih-sort-option').forEach(opt => {
+      opt.addEventListener('click', function(){
+        document.querySelectorAll('.ih-sort-option').forEach(x=>x.classList.remove('active'));
+        this.classList.add('active');
+        if(sortLabel) sortLabel.textContent = this.textContent;
+        applySort();
+      });
     });
 
-    // Actualización automática de estadísticas cada 5 minutos
-    setInterval(function() {
-        fetch(window.location.href, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+    // Paginación propia del historial
+    (function(){
+      const pagerInfo = document.getElementById('ih-pager-info');
+      const pageSizeSelect = document.getElementById('ih-page-size');
+      const prevBtn = document.getElementById('ih-prev');
+      const nextBtn = document.getElementById('ih-next');
+      if(!tbody || !pagerInfo || !pageSizeSelect || !prevBtn || !nextBtn) return;
+      let currentPage = 1;
+      let pageSize = parseInt(pageSizeSelect.value || '10');
+
+      function updateHistTablePagination(){
+        const rows = Array.from(tbody.children)
+          .filter(row => !row.querySelector('td[colspan]'))
+          .filter(row => row.style.display !== 'none');
+        const totalItems = rows.length;
+        const totalPages = Math.ceil(totalItems / pageSize);
+        const startIndex = (currentPage - 1) * pageSize;
+        const endIndex = Math.min(startIndex + pageSize, totalItems);
+        rows.forEach((row, index) => {
+          row.style.display = (index >= startIndex && index < endIndex) ? '' : 'none';
+        });
+        pagerInfo.textContent = `Mostrando ${startIndex + 1}–${endIndex} de ${totalItems}`;
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages;
+      }
+
+      window.updateHistTablePagination = updateHistTablePagination;
+
+      pageSizeSelect.addEventListener('change', function(){
+        pageSize = parseInt(this.value);
+        currentPage = 1;
+        updateHistTablePagination();
+      });
+      prevBtn.addEventListener('click', function(){
+        if(currentPage > 1){ currentPage--; updateHistTablePagination(); }
+      });
+      nextBtn.addEventListener('click', function(){
+        const rows = Array.from(tbody.children)
+          .filter(row => !row.querySelector('td[colspan]'))
+          .filter(row => row.style.display !== 'none');
+        const totalPages = Math.ceil(rows.length / pageSize);
+        if(currentPage < totalPages){ currentPage++; updateHistTablePagination(); }
+      });
+
+      updateHistTablePagination();
+    })();
+
+    // Inicialización
+    applyFilters();
+    applySort();
+  })();
+
+  // Editor JSON (Formularios) e integración con creación de período
+  // (Se eliminó el editor JSON y su integración; ya no se usa)
+
+  // Panel lateral: detalle de solicitud y cambio de estado con adjuntos (AJAX)
+  (function(){
+    // Utilidades
+    function getCookie(name){
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Inyectar estilos del panel
+    const style = document.createElement('style');
+    style.textContent = `
+      .se-sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.25);backdrop-filter:saturate(180%) blur(2px);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:1040}
+      .se-sidebar{position:fixed;top:0;right:-480px;width:480px;max-width:95vw;height:100%;background:#fff;box-shadow:-4px 0 16px rgba(0,0,0,.15);transition:right .25s ease;z-index:1041;display:flex;flex-direction:column;border-left:1px solid #e9ecef}
+      .se-sidebar.open{right:0}
+      .se-sidebar-backdrop.open{opacity:1;pointer-events:auto}
+      .se-sidebar-header{padding:1rem 1.25rem;border-bottom:1px solid #e9ecef;display:flex;align-items:center;justify-content:space-between}
+      .se-sidebar-body{padding:1rem 1.25rem;overflow:auto}
+ .se-tag{display:inline-flex;align-items:center;gap:8px;font-size:1rem;border-radius:999px;padding:6px 12px;font-weight:600;border:1px solid #e0e3e7}
+ .se-tag .material-symbols-outlined{font-size:20px}
+ .se-tag--ok{background:#e6f4ea;color:#137333;border-color:#cce9d6}
+ .se-tag--off{background:#fce8e6;color:#c5221f;border-color:#fad2cf}
+ .se-tag--info{background:#e8f0fe;color:#1967d2;border-color:#d2e3fc}
+ .se-tag--neutral{background:#f1f3f4;color:#5f6368;border-color:#e0e3e7}
+      .se-actions{border-top:1px solid #e9ecef;padding:.75rem 1.25rem;display:flex;gap:.5rem}
+      .se-list{list-style:none;padding:0;margin:0}
+      .se-list li{padding:.25rem 0;border-bottom:1px dashed #eee}
+      /* Accordion de detalles mejorado */
+      details{border:1px solid #e9ecef;border-radius:12px;background:#fff}
+      details>summary{padding:.5rem .75rem;cursor:pointer;list-style:none;display:flex;align-items:center;gap:.5rem}
+      details>summary .material-symbols-outlined{font-size:20px;color:#1b396a}
+      details>summary::-webkit-details-marker{display:none}
+      details[open]>summary{border-bottom:1px solid #f1f3f4}
+      details>div,details>ul{padding:.5rem .75rem}
+      details:not([open])>summary::after{content:'▸';margin-left:auto;color:#6c757d}
+      details[open]>summary::after{content:'▾';margin-left:auto;color:#6c757d}
+      /* Timeline para historial de cambios */
+      .timeline{position:relative;margin:0;padding-left:24px}
+      .timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:#e9ecef}
+      .timeline-item{position:relative;padding:.5rem 0}
+      .timeline-item::before{content:'';position:absolute;left:-2px;top:.6rem;width:10px;height:10px;border-radius:50%;background:#1b396a;box-shadow:0 0 0 3px #e9ecef}
+      .tl-heading{font-weight:600}
+      .tl-meta{font-size:.85rem;color:#6c757d}
+      .tl-heading .material-symbols-outlined{font-size:18px;vertical-align:middle;margin-right:4px;color:#1b396a}
+    `;
+    document.head.appendChild(style);
+
+    // Construir DOM del panel
+    const backdrop = document.createElement('div');
+    backdrop.className = 'se-sidebar-backdrop';
+    const panel = document.createElement('div');
+    panel.className = 'se-sidebar';
+    panel.innerHTML = `
+      <div class="se-sidebar-header">
+        <div>
+          <div class="small text-muted">Solicitud</div>
+          <h6 id="sb-folio" class="mb-0">—</h6>
+        </div>
+        <button type="button" id="sb-close" class="btn btn-sm btn-outline-secondary"><i class="material-symbols-outlined">close</i></button>
+      </div>
+      <div class="se-sidebar-body">
+        <div class="mb-2">
+          <span id="sb-estado" class="se-tag se-tag--neutral"><i class="material-symbols-outlined">help</i><span>—</span></span>
+        </div>
+        <div class="mb-3 small text-muted" id="sb-basic">—</div>
+
+        <details class="mb-3" open>
+          <summary class="fw-semibold"><i class="material-symbols-outlined">assignment</i> Respuestas del formulario</summary>
+          <div id="sb-respuestas" class="mt-2"></div>
+        </details>
+
+        <details class="mb-3">
+          <summary class="fw-semibold"><i class="material-symbols-outlined">settings</i> Detalles técnicos</summary>
+          <div id="sb-tech" class="mt-2 small text-muted"></div>
+        </details>
+
+        <details class="mb-3" open>
+          <summary class="fw-semibold"><i class="material-symbols-outlined">attach_file</i> Adjuntos existentes</summary>
+          <ul id="sb-adjuntos" class="se-list"></ul>
+        </details>
+
+        <details class="mb-3" open>
+          <summary class="fw-semibold"><i class="material-symbols-outlined">history</i> Historial de cambios</summary>
+          <ul id="sb-logs" class="se-list timeline"></ul>
+        </details>
+
+        <div class="mb-3">
+          <h6 class="mb-2">Cambiar estado</h6>
+          <form id="sb-form" enctype="multipart/form-data">
+            <div class="mb-2">
+              <select name="nuevo_estado" id="sb-estado-select" class="form-select form-select-sm"></select>
+            </div>
+            <div class="mb-2">
+              <textarea name="comentario" id="sb-comentario" class="form-control form-control-sm" rows="2" placeholder="Comentario (opcional)"></textarea>
+            </div>
+
+            <!-- Dropzone estilo diseño -->
+            <div class="mb-2">
+              <div id="sb-dropzone" class="dz-container" tabindex="0" role="button">
+                <div class="dz-in">
+                  <i class="material-symbols-outlined">cloud_upload</i>
+                  <div>
+                    <div class="fw-semibold">Arrastra y suelta archivos aquí</div>
+                    <div class="text-muted">o</div>
+                    <button type="button" id="sb-select" class="btn btn-sm btn-primary">Seleccionar archivos</button>
+                  </div>
+                </div>
+              </div>
+              <input type="file" name="adjuntos" id="sb-adjuntos-input" class="d-none" multiple>
+              <div class="form-text">Tamaño máximo por archivo: 10MB</div>
+            </div>
+            <div id="sb-files" class="dz-list"></div>
+          </form>
+        </div>
+      </div>
+      <div class="se-actions">
+        <button type="button" id="sb-save" class="btn btn-primary btn-sm"><i class="material-symbols-outlined me-1">save</i>Guardar</button>
+        <button type="button" id="sb-cancel" class="btn btn-outline-secondary btn-sm">Cancelar</button>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    document.body.appendChild(panel);
+
+    function openPanel(){ backdrop.classList.add('open'); panel.classList.add('open'); }
+    function closePanel(){ backdrop.classList.remove('open'); panel.classList.remove('open'); }
+    document.getElementById('sb-close').addEventListener('click', closePanel);
+    document.getElementById('sb-cancel').addEventListener('click', closePanel);
+    backdrop.addEventListener('click', closePanel);
+
+    let currentFolio = null;
+
+    function populateSelect(estados, current){
+      const sel = document.getElementById('sb-estado-select');
+      sel.innerHTML = '';
+      (estados||[]).forEach(([code,name]) => {
+        const opt = document.createElement('option');
+        opt.value = code; opt.textContent = name; if(code===current) opt.selected = true; sel.appendChild(opt);
+      });
+    }
+
+    function renderList(containerId, items, renderer){
+      const ul = document.getElementById(containerId);
+      ul.innerHTML = '';
+      const isTimeline = (containerId === 'sb-logs');
+      if(!items || items.length===0){
+        const li = document.createElement('li'); li.innerHTML = isTimeline ? '<span class="text-muted"><i class="material-symbols-outlined me-1">hourglass_empty</i>Sin registros</span>' : 'Sin registros'; ul.appendChild(li); return;
+      }
+      if(isTimeline){ ul.classList.add('timeline'); }
+      items.forEach(item => {
+        const li = document.createElement('li');
+        if(isTimeline){ li.className = 'timeline-item'; }
+        li.innerHTML = renderer(item);
+        ul.appendChild(li);
+      });
+    }
+
+    function estadoIcon(code){
+      if(code==='aceptada' || code==='seleccionado') return 'check_circle';
+      if(code==='rechazada' || code==='no_seleccionado') return 'block';
+      if(code==='en_revision') return 'hourglass_top';
+      return 'help';
+    }
+
+    function estadoClass(code){
+      if(code==='aceptada' || code==='seleccionado') return 'se-tag se-tag--ok';
+      if(code==='rechazada' || code==='no_seleccionado') return 'se-tag se-tag--off';
+      if(code==='en_revision') return 'se-tag se-tag--info';
+      return 'se-tag se-tag--neutral';
+    }
+
+    function formatBytes(bytes){
+      if(!bytes && bytes !== 0) return '—';
+      const sizes = ['B','KB','MB','GB'];
+      const i = Math.min(Math.floor(Math.log(bytes)/Math.log(1024)), sizes.length-1);
+      const val = bytes/Math.pow(1024,i);
+      return `${val.toFixed(val>=100?0:val>=10?1:2)} ${sizes[i]}`;
+    }
+
+    function renderRespuestas(res){
+      try{
+        const data = (typeof res === 'string') ? JSON.parse(res) : (res||{});
+        const keys = Object.keys(data);
+        if(keys.length===0) return '<p class="text-muted">No hay respuestas registradas</p>';
+        let html = '<div class="row">';
+        keys.forEach(k=>{
+          const v = data[k];
+          let val;
+          if(Array.isArray(v)){
+            val = v.join(', ');
+          } else if(v && typeof v === 'object'){
+            // Renderizar objetos anidados como lista corta clave: valor
+            const sub = Object.entries(v).map(([sk,sv])=>`${sk}: ${Array.isArray(sv)? sv.join(', '):(sv==null?'—':String(sv))}`).join('; ');
+            val = sub || '—';
+          } else {
+            val = (v==null? '—' : String(v));
+          }
+          const label = k.replace(/_/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
+          html += `<div class="col-6 mb-2"><div class="d-flex"><span class="me-2 text-muted">${label}:</span><span class="fw-semibold">${val||'—'}</span></div></div>`;
+        });
+        html += '</div>';
+        return html;
+      }catch(e){
+        return `<pre class="small">${res}</pre>`;
+      }
+    }
+
+    async function loadDetalle(folio){
+      const url = `${window.location.origin}/admision/admin/publico/solicitud/${encodeURIComponent(folio)}/detalle.json`;
+      const res = await fetch(url, {headers:{'Accept':'application/json'}});
+      if(!res.ok){ throw new Error('No se pudo cargar el detalle'); }
+      const data = await res.json();
+      currentFolio = data.solicitud.folio;
+      document.getElementById('sb-folio').textContent = data.solicitud.folio;
+      const est = data.solicitud.estado;
+      const estEl = document.getElementById('sb-estado');
+      estEl.className = estadoClass(est);
+      estEl.innerHTML = `<i class="material-symbols-outlined">${estadoIcon(est)}</i><span>${data.solicitud.estado_display}</span>`;
+      document.getElementById('sb-basic').textContent = `${data.solicitud.curp} • ${data.solicitud.email} • ${data.solicitud.periodo}`;
+      // Respuestas
+      document.getElementById('sb-respuestas').innerHTML = renderRespuestas(data.solicitud.respuestas);
+      // Detalles técnicos
+      document.getElementById('sb-tech').innerHTML = `
+        <div><span class="text-muted">Registrado:</span> ${data.solicitud.fecha_registro||'—'}</div>
+        <div><span class="text-muted">Modificado:</span> ${data.solicitud.fecha_modificacion||'—'}</div>
+        <div><span class="text-muted">IP registro:</span> ${data.solicitud.ip_registro||'—'}</div>
+      `;
+      populateSelect(data.estados_choices, est);
+      renderList('sb-adjuntos', data.adjuntos, a => {
+        const name = a.nombre || 'archivo';
+        const link = a.url ? `<a href="${a.url}" target="_blank">${name}</a>` : name;
+        return `${link} <small class="text-muted">(${a.fecha_subida})</small>`;
+      });
+      renderList('sb-logs', data.logs, l => {
+        const meta = `<div class="tl-meta"><span>${l.fecha}</span>${l.usuario ? ' • '+l.usuario : ''}</div>`;
+        if(l.type === 'estado'){
+          const estadoIco = estadoIcon(l.nuevo_estado);
+          const noti = (l.notificacion_enviada ? '<span class="badge bg-success ms-1"><i class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">mail</i> Email enviado</span>' : '<span class="badge bg-warning text-dark ms-1"><i class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">mail_lock</i> Email no enviado</span>');
+          const msg = l.resultado_notificacion ? `<div class="small text-muted"><i class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">info</i> ${l.resultado_notificacion}</div>` : '';
+          const comentario = l.comentario ? `<div class="mt-1"><i class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">comment</i> ${l.comentario}</div>` : '';
+          return `<div class="tl-heading"><i class="material-symbols-outlined">${estadoIco}</i>${l.estado_anterior} → ${l.nuevo_estado} ${noti}</div>${meta}${comentario}${msg}`;
+        } else if(l.type === 'audit'){
+          const ico = (l.action === 'create') ? 'add_circle' : (l.action === 'delete' ? 'delete' : 'edit');
+          let cambios = '';
+          try{
+            const ch = l.changes || {};
+            const entries = Object.entries(ch);
+            if(entries.length){
+              cambios = entries.map(([field,chg])=>{
+                const oldVal = (chg && typeof chg === 'object' ? (chg.old ?? '—') : '—');
+                const newVal = (chg && typeof chg === 'object' ? (chg.new ?? '—') : '—');
+                return `<div class="small"><strong>${field}</strong>: <span class="text-muted">${oldVal}</span> → ${newVal}</div>`;
+              }).join('');
+            }else{
+              cambios = '<div class="small text-muted">Sin cambios de campos</div>';
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.estadisticas) {
-                // Actualizar números en las tarjetas
-                document.querySelector('.stats-card .stats-number').textContent = data.estadisticas.total_solicitudes;
-                document.querySelectorAll('.stats-card')[1].querySelector('.stats-number').textContent = data.estadisticas.aprobadas;
-                document.querySelectorAll('.stats-card')[2].querySelector('.stats-number').textContent = data.estadisticas.pendientes;
-                document.querySelectorAll('.stats-card')[3].querySelector('.stats-number').textContent = data.estadisticas.rechazadas;
-            }
-        })
-        .catch(error => console.log('Error actualizando estadísticas:', error));
-    }, 300000); // 5 minutos
-});
+          }catch(_e){ cambios = ''; }
+          return `<div class="tl-heading"><i class="material-symbols-outlined">${ico}</i>${(l.action||'').toUpperCase()}</div>${meta}${cambios}`;
+        }
+        // Fallback
+        return `<div class="tl-heading">Evento</div>${meta}`;
+      });
+      openPanel();
+    }
+
+    // Modal de confirmación de guardado
+    const saveModal = document.createElement('div');
+    saveModal.className = 'modal fade';
+    saveModal.id = 'sb-save-modal';
+    saveModal.innerHTML = `
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Cambios guardados</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="sb-save-summary" class="mb-2"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendido</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(saveModal);
+
+    async function saveCambio(){
+      if(!currentFolio) return;
+      const form = document.getElementById('sb-form');
+      const fd = new FormData(form);
+      const url = `${window.location.origin}/admision/admin/publico/solicitud/${encodeURIComponent(currentFolio)}/cambiar-estado/`;
+      const res = await fetch(url, {
+        method:'POST',
+        headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':csrftoken},
+        body: fd
+      });
+      if(!res.ok){ alert('Error al cambiar estado'); return; }
+      const data = await res.json();
+      // Refrescar etiqueta de estado y logs
+      const badge = document.getElementById('sb-estado');
+      badge.className = estadoClass(data.nuevo_estado);
+      badge.innerHTML = `<i class=\"material-symbols-outlined\">${estadoIcon(data.nuevo_estado)}</i><span>${data.estado_display}</span>`;
+      // Recargar detalle para adjuntos/logs actualizados
+      await loadDetalle(currentFolio);
+
+      // Mostrar modal de confirmación con resumen
+      const comentario = (fd.get('comentario')||'').trim();
+      const resumen = [
+        `<div><strong>Estado actualizado:</strong> ${data.estado_display}</div>`,
+        comentario ? `<div><strong>Comentario:</strong> ${comentario}</div>` : '',
+        `<div><strong>Adjuntos enviados:</strong> ${document.getElementById('sb-files').children.length}</div>`,
+        `<div>${data.notificacion_enviada ? '<span class=\'text-success\'>Notificación por email enviada</span>' : '<span class=\'text-warning\'>Notificación por email no enviada</span>'}${data.mensaje? ' – '+data.mensaje : ''}</div>`
+      ].filter(Boolean).join('');
+      const summaryEl = document.getElementById('sb-save-summary');
+      if(summaryEl){ summaryEl.innerHTML = resumen; }
+      try{
+        const modal = new bootstrap.Modal(saveModal);
+        modal.show();
+      }catch(_e){
+        // Fallback si no está Bootstrap
+        alert('Cambios guardados. '+(comentario?(' Comentario: '+comentario):''));
+      }
+    }
+
+    document.getElementById('sb-save').addEventListener('click', saveCambio);
+
+    // Interceptar enlaces "Ver" para abrir panel
+    function setupLinks(){
+      const sel = 'a.btn.btn-sm.btn-outline-primary[href*="/admision/admin/publico/solicitud/"]';
+      document.querySelectorAll(sel).forEach(a => {
+        a.addEventListener('click', function(ev){
+          ev.preventDefault();
+          const href = a.getAttribute('href')||'';
+          const parts = href.split('/').filter(Boolean);
+          const folio = parts[parts.length-1];
+          if(folio){ loadDetalle(folio).catch(err=>alert(err.message)); }
+        });
+      });
+    }
+    setupLinks();
+
+    // Dropzone: arrastrar/soltar y listado de archivos
+    const dz = document.getElementById('sb-dropzone');
+    const input = document.getElementById('sb-adjuntos-input');
+    const selectBtn = document.getElementById('sb-select');
+    const filesList = document.getElementById('sb-files');
+    const dt = new DataTransfer();
+
+    function refreshFiles(){
+      filesList.innerHTML = '';
+      for(let i=0;i<dt.files.length;i++){
+        const f = dt.files[i];
+        const row = document.createElement('div');
+        row.className = 'dz-row';
+        row.innerHTML = `
+          <div class="dz-name"><i class="material-symbols-outlined">description</i>${f.name}</div>
+          <div class="dz-meta">${formatBytes(f.size)}</div>
+          <div class="dz-actions">
+            <button type="button" class="btn btn-sm btn-outline-secondary dz-preview"><i class="material-symbols-outlined">visibility</i></button>
+            <button type="button" class="btn btn-sm btn-outline-danger dz-remove"><i class="material-symbols-outlined">delete</i></button>
+          </div>`;
+        row.querySelector('.dz-remove').addEventListener('click', ()=>{
+          // reconstruir DataTransfer sin este índice
+          const ndt = new DataTransfer();
+          for(let j=0;j<dt.files.length;j++){
+            if(j!==i) ndt.items.add(dt.files[j]);
+          }
+          dt.items.clear();
+          for(let k=0;k<ndt.files.length;k++){ dt.items.add(ndt.files[k]); }
+          input.files = dt.files;
+          refreshFiles();
+        });
+        row.querySelector('.dz-preview').addEventListener('click', ()=>{
+          const url = URL.createObjectURL(f);
+          window.open(url, '_blank');
+          setTimeout(()=>URL.revokeObjectURL(url), 5000);
+        });
+        filesList.appendChild(row);
+      }
+    }
+
+    function addFiles(files){
+      for(const f of files){ dt.items.add(f); }
+      input.files = dt.files; refreshFiles();
+    }
+
+    ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e=>{ e.preventDefault(); dz.classList.add('dz-hover'); }));
+    ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e=>{ e.preventDefault(); dz.classList.remove('dz-hover'); }));
+    dz.addEventListener('drop', e=>{ addFiles(e.dataTransfer.files); });
+    dz.addEventListener('click', ()=> input.click());
+    selectBtn.addEventListener('click', ()=> input.click());
+    input.addEventListener('change', ()=> addFiles(input.files));
+  })();
 </script>
 {% endblock %}
+  /* Dropzone adjuntos */
+  .dz-container{border:2px dashed #c8d1e0;border-radius:12px;padding:18px;display:flex;justify-content:center;align-items:center;background:#fafbff;cursor:pointer}
+  .dz-container.dz-hover{background:#f0f5ff;border-color:#8bb6ff}
+  .dz-in{display:flex;gap:12px;align-items:center;color:#3c5a99}
+  .dz-in .material-symbols-outlined{font-size:28px}
+  .dz-list{margin-top:10px}
+  .dz-row{display:flex;align-items:center;gap:12px;justify-content:space-between;background:#fff;border:1px solid #e6e9ef;border-radius:10px;padding:10px 12px;margin-bottom:8px}
+  .dz-name{display:flex;align-items:center;gap:8px;font-weight:600}
+  .dz-meta{color:#6b7280}
+  .dz-actions{display:flex;gap:6px}

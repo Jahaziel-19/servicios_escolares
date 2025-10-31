@@ -1,0 +1,38 @@
+Alguna vez te has preguntado cómo las
+matemáticas describen el
+movimiento a nuestro alrededor?
+Es más fácil de lo que crees!
+Imagina que vas en tu coche por una
+carretera despejada
+A medida que te acercas a un
+semáforo en rojo
+tu velocidad empieza a disminuir
+Matemáticamente
+decimos que la velocidad
+tiende a un límite
+que en este caso es cero
+Ahora, aquí viene lo interesante
+Si frenas suavemente
+tu velocidad baja de forma progresiva
+sin saltos
+En matemáticas, esto es un ejemplo
+perfecto de continuidad
+Es una transición fluida!
+Pero,  qué pasa si un
+coche se te cruza y
+tienes que frenar de golpe?
+Pum!
+Tu velocidad pasa de, digamos
+50 a 0 en un instante
+Ese cambio brusco es lo que
+llamamos una discontinuidad
+Así que la próxima vez que frenes
+recuerda
+estás experimentando en vivo
+los conceptos de límites y
+continuidad!
+No es genial?
+Si te gustó esta
+forma de ver las matemáticas
+suscríbete para más curiosidades
+Nos vemos en el próximo video
